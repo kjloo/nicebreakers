@@ -1,0 +1,40 @@
+{
+  "name": "games",
+  "version": "1.0.0",
+  "description": "Suite of Socket.io games",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/app.js",
+    "build": "webpack --config client/webpack.config.js --mode=production && cp -r client/build server",
+    "debug-client": "webpack serve --config client/webpack.config.js --open --mode=development",
+    "webpack:build": "webpack --config client/webpack.config.js --mode=production --watch",
+    "webpack:client": "nodemon --watch client/build --exec cp -r client/build server",
+    "webpack:server": "nodemon --watch server --exec npm run start",
+    "dev": "npm-run-all --parallel webpack:*"
+  },
+  "author": "Kaleb Loo",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.13.8",
+    "@babel/preset-env": "^7.13.8",
+    "@babel/preset-react": "^7.12.13",
+    "babel-loader": "^8.2.2",
+    "css-loader": "^5.1.0",
+    "html-webpack-plugin": "^5.2.0",
+    "nodemon": "^2.0.7",
+    "npm-run-all": "^4.1.5",
+    "prop-types": "^15.7.2",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.24.2",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "express": "^4.17.1",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "socket.io": "^3.1.2",
+    "socket.io-client": "^3.1.2"
+  }
+}

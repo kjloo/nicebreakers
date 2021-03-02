@@ -1,0 +1,179 @@
+:root {
+--main-bg-color: rgb(35, 95, 173);
+--shadow: rgb(35, 82, 114);
+--footer-height: 2.5rem;
+}
+
+body {
+margin: 0
+}
+
+.footer {
+background-color: var(--main-bg-color);
+position: absolute;
+bottom: 0;
+margin-top: 0.5em;
+width: 100%;
+height: var(--footer-height);
+box-shadow: 0 -.5em var(--shadow);
+}
+
+ul.navbar {
+  background-color: var(--main-bg-color);
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  padding: 0;
+  overflow: hidden;
+  list-style-type: none;
+  box-shadow: 0 .5em var(--shadow);
+}
+
+li {
+  float: left;
+}
+
+li a {
+  display: block;
+  color: rgb(255, 255, 255);
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+li a:hover {
+  background-color: rgba(10, 32, 32, 0.705);
+}
+
+.container {
+  width: max-content;
+  border-width: 1px;
+  border-radius: 3rem;
+  border-style: solid;
+  padding: 2rem;
+  margin-top: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+button {
+  display: inline-block;
+  border-radius: 10rem;
+  background-color: teal;
+  cursor: pointer;
+  padding: 1em;
+  border: none;
+  font-weight: bold;
+  color: white;
+}
+
+button:active {
+  transform: scale(0.98);  
+}
+button:focus {
+  outline: none;
+}
+
+.banner-container {
+  cursor: pointer;
+}
+
+.team-container {
+  width: max-content;
+  height: fit-content;
+  border-width: 1px;
+  border-radius: 0.5rem;
+  border-style: solid;
+  padding: 0.25rem;
+}
+
+.chat-area {
+  width: 100%;
+  padding: 0.1rem;
+  margin: 0.1rem auto 0.4rem auto;
+  border: none;
+  background: #f1f1f1;
+  resize: none;
+  min-height: 5rem;
+}
+
+.chat-input {
+  display: flex;
+  margin-top: 0.1rem;
+}
+
+.chat-input > * {
+  margin-right: 0.25rem;
+}
+
+.chat-input > .submit {
+  background-color: forestgreen;
+  color: white;
+  border-radius: 0.1rem;
+  border-style: none;
+}
+
+.add-team-form {
+  background-color: gainsboro;
+  display: block;
+  padding: 0.25rem;
+  margin: 0.25rem;
+  align-items: center;
+}
+
+.add-team-form > input {
+  margin: 0 0.2rem 0 0.2rem;
+}
+
+.add-team-form > input[type='color'] {
+  vertical-align: middle;
+}
+
+.add-team-form > .submit {
+  background-color: lightskyblue;
+  color: white;
+  border-radius: 0.25rem;
+  border-style: none;
+}
+
+.delete-button {
+  background-color: red;
+  margin-left: auto;
+  margin-right: 0;
+  border-radius: 50%;
+  color: white;
+  font-size: 0.75em;
+  padding: 0;
+  height: 1rem;
+  width: 1rem;
+}
+
+.teams-footer {
+  display: flex;
+  bottom: var(--footer-height);
+  position: absolute;
+  align-items: flex-end;
+  margin: 0.5em;
+}
+
+.teams-footer .team-container {
+  margin: 0.5em;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  margin-right: 0.1rem;
+}
+.banner > * {
+  margin-right: 0.75rem;
+}
+.box {
+  height: 1rem;
+  width: 1rem;
+}
+
+.game-controls button {
+  margin: 0 0.2rem 0 0.2rem;
+}
