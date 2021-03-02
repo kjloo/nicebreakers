@@ -3,22 +3,35 @@ import io from 'socket.io-client';
 import axios from 'axios';
 import Navbar from './components/Navbar';
 import Name from './components/Name';
-import Button from './components/Button';
+import UserForm from './components/UserForm';
+import Players from './components/Players';
 import Footer from './components/Footer';
-import Team from './components/Team';
-import AddTeam from './components/AddTeam';
+import Teams from './components/Teams';
+import GameControls from './components/GameControls';
 
 const socket = io();
 
 const App = () => {
     const maxTeams = 4;
-    const [addTeam, setAddTeam] = useState(false);
+    const [user, setUser] = useState(-1);
+    const [users, setUsers] = useState([]);
     const [teams, setTeams] = useState([]);
 
-    // toggle add team
-    const toggleAddTeam = () => {
-        setAddTeam(!addTeam);
+    // submit user
+    const submitUser = (name) => {
+        socket.emit('add user', { name: name });
     }
+    // get users
+    const getUsers = () => {
+        // Request current teams
+        axios({
+            method: 'get',
+            url: '/users',
+        }).then((response) => {
+            setUsers(response.data.users);
+        });
+    }
+
     // submit team
     const submitTeam = (name, color) => {
         socket.emit('add team', { name: name, color: color });
@@ -44,11 +57,18 @@ const App = () => {
     }
 
     useEffect(() => {
+        getUsers();
         getTeams();
 
         socket.on('exception', (message) => {
             alert(message);
-        })
+        });
+        socket.on('registered user', (user) => {
+            setUser(user);
+        });
+        socket.on('update users', (users) => {
+            setUsers(users);
+        });
         socket.on('update teams', (teams) => {
             setTeams(teams);
         });
@@ -62,17 +82,14 @@ const App = () => {
             <Navbar />
             <div className="container">
                 <Name />
-                <div className="game-controls">
-                    {addTeam && <AddTeam setAddTeam={setAddTeam} onSubmit={submitTeam} />}
-                    <Button text={!addTeam ? "Add Team" : "Close"} color={!addTeam ? "lightskyblue" : "red"} disabled={teams.length >= maxTeams} onClick={toggleAddTeam} />
-                    {!addTeam && <Button text="Start Game" color="green" />}
-                </div>
+                {user < 0 ? <UserForm onSubmit={submitUser} /> :
+                    <>
+                        <Players players={users} />
+                        <GameControls isMaxTeams={teams.length >= maxTeams} onSubmit={submitTeam} />
+                    </>
+                }
             </div>
-            <div className="teams-footer">
-                {teams.length > 0 && teams.map((team) => {
-                    return <Team id={team.id} team={team} onSubmit={submitMessage} onDelete={deleteTeam} />
-                })}
-            </div>
+            <Teams teams={teams} onSubmit={submitMessage} onDelete={deleteTeam} />
             <Footer />
         </div>
     )

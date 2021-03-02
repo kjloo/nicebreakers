@@ -114,7 +114,7 @@ button:focus {
   border-style: none;
 }
 
-.add-team-form {
+.option-form {
   background-color: gainsboro;
   display: block;
   padding: 0.25rem;
@@ -122,15 +122,15 @@ button:focus {
   align-items: center;
 }
 
-.add-team-form > input {
+.option-form > input {
   margin: 0 0.2rem 0 0.2rem;
 }
 
-.add-team-form > input[type='color'] {
+.option-form > input[type='color'] {
   vertical-align: middle;
 }
 
-.add-team-form > .submit {
+.option-form > input[type='submit'] {
   background-color: lightskyblue;
   color: white;
   border-radius: 0.25rem;

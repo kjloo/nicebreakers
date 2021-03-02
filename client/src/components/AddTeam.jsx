@@ -14,10 +14,10 @@ const AddTeam = ({ setAddTeam, onSubmit }) => {
     }
 
     return (
-        <form className='add-team-form' onSubmit={submitTeam}>
+        <form className='option-form' onSubmit={submitTeam}>
             <input type='text' onChange={(e) => setName(e.target.value)} value={name} placeholder="Enter Team Name" required />
             <input type='color' onChange={(e) => setColor(e.target.value)} value={color} required />
-            <input className='submit' type='submit' value='Add' />
+            <input type='submit' value='Add' />
         </form>
     )
 }
