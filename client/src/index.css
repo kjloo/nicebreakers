@@ -45,8 +45,9 @@ li a:hover {
   background-color: rgba(10, 32, 32, 0.705);
 }
 
-.container {
+.title-container {
   width: max-content;
+  background-color: aliceblue;
   border-width: 1px;
   border-radius: 3rem;
   border-style: solid;
@@ -80,6 +81,7 @@ button:focus {
 }
 
 .team-container {
+  background-color: rgb(255, 255, 244);
   width: max-content;
   height: fit-content;
   border-width: 1px;
@@ -89,13 +91,14 @@ button:focus {
 }
 
 .chat-area {
+  overflow: auto;
   width: 100%;
   padding: 0.1rem;
   margin: 0.1rem auto 0.4rem auto;
   border: none;
-  background: #f1f1f1;
+  background: #ffffff;
   resize: none;
-  min-height: 5rem;
+  height: 5rem;
 }
 
 .chat-input {

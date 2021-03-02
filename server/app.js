@@ -30,7 +30,7 @@ const getUsers = () => {
     data = {
         users: users
     }
-    return users
+    return data
 }
 
 // Get Teams
@@ -66,6 +66,13 @@ socket.on('connection', (s) => {
         }
         users.push(user);
         s.emit('registered user', user);
+        socket.emit('update users', users);
+    });
+    s.on('update user', ({ user }) => {
+        users = users.map((u) => {
+            // If match return new user else keep old data
+            return u.id === s.id ? user : u;
+        });
         socket.emit('update users', users);
     });
     s.on('add team', ({ name, color }) => {

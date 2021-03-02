@@ -1,7 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 
 const Chat = ({ data, id, onSubmit }) => {
+    const divRef = useRef(null);
     const [message, setMessage] = useState('');
+
+    useEffect(() => {
+        divRef.current.scrollIntoView({ behavior: 'smooth' });
+    });
 
     // handle message
     const handleMessage = (event) => {
@@ -22,6 +27,7 @@ const Chat = ({ data, id, onSubmit }) => {
                 {data.length > 0 && data.map((line) => {
                     return <p>{line}</p>
                 })}
+                <div ref={divRef}></div>
             </div>
             <form className='chat-input' onSubmit={submitMessage}>
                 <input type="text" value={message} onChange={handleMessage} />

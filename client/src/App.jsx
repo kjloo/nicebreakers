@@ -51,6 +51,23 @@ const App = () => {
         });
     }
 
+    // join team
+    const joinTeam = (team) => {
+        if (user.teamID !== team.id) {
+            if (confirm(`Join Team ${team.name}`)) {
+                // add team id for user
+                user.teamID = team.id;
+                // update server
+                socket.emit('update user', { user: user });
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+
     // chat message submit
     const submitMessage = (id, message) => {
         socket.emit('team chat', { id: id, message: message });
@@ -80,7 +97,7 @@ const App = () => {
     return (
         <div>
             <Navbar />
-            <div className="container">
+            <div className="title-container">
                 <Name />
                 {user < 0 ? <UserForm onSubmit={submitUser} /> :
                     <>
@@ -89,7 +106,7 @@ const App = () => {
                     </>
                 }
             </div>
-            <Teams teams={teams} onSubmit={submitMessage} onDelete={deleteTeam} />
+            <Teams teams={teams} players={users} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />
             <Footer />
         </div>
     )

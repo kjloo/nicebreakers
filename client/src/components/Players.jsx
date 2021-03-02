@@ -1,18 +1,19 @@
 import React from 'react'
 
-const Players = ({ players }) => {
+const Players = ({ players, title }) => {
     return (
         <div className='players-container'>
-            <h4>Players</h4>
+            <h4>{title}</h4>
             {players.map((player) => {
-                return <p>{player.name}</p>
+                return <p id={player.id}>{player.name}</p>
             })}
         </div>
     )
 }
 
 Players.defaultProps = {
-    players: []
+    players: [],
+    title: "Players"
 }
 
 export default Players;

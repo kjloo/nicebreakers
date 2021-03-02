@@ -1,13 +1,18 @@
 import React, { useState } from 'react'
 import Chat from './Chat';
 import Banner from './Banner';
+import Players from './Players';
 
-const Team = ({ team, onSubmit, onDelete }) => {
+const Team = ({ team, players, onJoin, onSubmit, onDelete }) => {
     const [minimize, setMinimize] = useState(true);
 
     // handle click
     const bannerClick = () => {
-        setMinimize(!minimize);
+        if (onJoin(team)) {
+            setMinimize(!minimize);
+        } else {
+            setMinimize(true);
+        }
     }
 
     // handle delete
@@ -22,7 +27,12 @@ const Team = ({ team, onSubmit, onDelete }) => {
             <div className="banner-container" onClick={bannerClick}>
                 <Banner name={team.name} color={team.color} score={team.score} onDelete={handleDelete} />
             </div>
-            {!minimize && <Chat data={team.data} id={team.id} onSubmit={onSubmit} />}
+            {!minimize &&
+                <>
+                    <Players players={players} title="Team Members" />
+                    <Chat data={team.data} id={team.id} onSubmit={onSubmit} />
+                </>
+            }
         </div>
     )
 }
