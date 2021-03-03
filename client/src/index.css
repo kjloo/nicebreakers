@@ -32,7 +32,7 @@ li {
   float: left;
 }
 
-li a {
+li.link {
   display: block;
   color: rgb(255, 255, 255);
   text-align: center;
@@ -41,7 +41,7 @@ li a {
   cursor: pointer;
 }
 
-li a:hover {
+li.link:hover {
   background-color: rgba(10, 32, 32, 0.705);
 }
 
@@ -56,6 +56,10 @@ li a:hover {
   margin-left: auto;
   margin-right: auto;
   text-align: center;
+}
+
+.title-container button {
+  margin: 0 0.2rem 0 0.2rem;
 }
 
 button {
