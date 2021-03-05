@@ -4,16 +4,80 @@ const http = require('http');
 const app = express();
 const io = require('socket.io');
 
+// consts
+const codeLength = 4;
+const timeout = 60000; // 60 sec
+
+// In memory data
+let games = [];
 let users = [];
 let teams = [];
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Routes
-app.get('/', function (req, res) {
-    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+// API requests
+app.get('/users', function (req, res) {
+    res.json(getUsers());
+})
+
+app.get('/teams', function (req, res) {
+    res.json(getTeams());
+})
+
+app.get('/movie/game', function (req, res) {
+    let code = generateGameCode();
+    res.redirect(`/movie/game/${code}`);
 });
+
+app.get('/movie/game/:gameID', function (req, res, next) {
+    gameID = req.params.gameID;
+    if (gameID.length !== codeLength) {
+        res.send("Invalid GameID");
+    }
+    else if (!games.includes(gameID)) {
+        games.push(gameID);
+    }
+    next();
+});
+
+// Routes
+app.get(/^\/(.*)/, function (req, res) {
+    serveHtml(res);
+});
+
+// Functions
+// serve html
+const serveHtml = (res) => {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+}
+
+// Garbage collection
+const garbageCollection = () => {
+    // remove any inactive game ids
+    games = games.filter((game) => {
+        return (users.find((user) => user.gameID === game) !== undefined);
+    });
+}
+
+// Generate code
+const generateCode = () => {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let code = "";
+    while (code.length < codeLength) {
+        code += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+    return code;
+}
+
+// Create Game Code
+const generateGameCode = () => {
+    let code = generateCode();
+    while (games.includes(code)) {
+        code = generateCode();
+    }
+    return code;
+}
 
 // Create Team ID
 const generateTeamID = () => {
@@ -41,17 +105,14 @@ const getTeams = () => {
     return data
 }
 
-app.get('/users', function (req, res) {
-    res.json(getUsers());
-})
-
-app.get('/teams', function (req, res) {
-    res.json(getTeams());
-})
+// Execute code
+setInterval(garbageCollection, timeout);
 
 const server = http.createServer(app);
 const socket = io(server);
 socket.on('connection', (s) => {
+    const gameID = s.handshake;
+    console.log(gameID);
     s.on('add user', ({ name }) => {
         // Check if team name and color exist
         if (users.find((user) => name === user.name) !== undefined) {

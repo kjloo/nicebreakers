@@ -1,65 +1,14 @@
 :root {
---main-bg-color: rgb(35, 95, 173);
---shadow: rgb(35, 82, 114);
---footer-height: 2.5rem;
+  --main-bg-color: rgb(35, 95, 173);
+  --shadow: rgb(35, 82, 114);
+  --default-spacing: 0 0.25rem 0 0.25rem;
+  --footer-height: 10vh;
 }
 
-body {
-margin: 0
-}
-
-.footer {
-background-color: var(--main-bg-color);
-position: absolute;
-bottom: 0;
-margin-top: 0.5em;
-width: 100%;
-height: var(--footer-height);
-box-shadow: 0 -.5em var(--shadow);
-}
-
-ul.navbar {
-  background-color: var(--main-bg-color);
-  margin-top: 0;
-  margin-bottom: 0.5em;
-  padding: 0;
-  overflow: hidden;
-  list-style-type: none;
-  box-shadow: 0 .5em var(--shadow);
-}
-
-li {
-  float: left;
-}
-
-li.link {
-  display: block;
-  color: rgb(255, 255, 255);
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-li.link:hover {
-  background-color: rgba(10, 32, 32, 0.705);
-}
-
-.title-container {
-  width: max-content;
-  background-color: aliceblue;
-  border-width: 1px;
-  border-radius: 3rem;
-  border-style: solid;
-  padding: 2rem;
-  margin-top: 1rem;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
-
-.title-container button {
-  margin: 0 0.2rem 0 0.2rem;
+/* elements */
+html, body {
+  margin: 0;
+  min-height: 100vh;
 }
 
 button {
@@ -80,18 +29,66 @@ button:focus {
   outline: none;
 }
 
+footer {
+  display: block;
+  bottom: 0;
+  background-color: var(--main-bg-color);
+  margin-top: 0.5em;
+  width: 100%;
+  min-height: var(--footer-height);
+  box-shadow: 0 -.5em var(--shadow);
+}
+
+li {
+  float: left;
+}
+
+li.link {
+  display: block;
+  color: rgb(255, 255, 255);
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+li.link:hover {
+  background-color: rgba(10, 32, 32, 0.705);
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  min-height: 10vh;
+  background-color: var(--main-bg-color);
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  padding: 0;
+  box-shadow: 0 .5em var(--shadow);
+}
+
+ul.navbar {
+  overflow: hidden;
+  padding: 0;
+  list-style-type: none;
+}
+
+/* classes */
 .banner-container {
   cursor: pointer;
 }
 
-.team-container {
-  background-color: rgb(255, 255, 244);
-  width: max-content;
-  height: fit-content;
-  border-width: 1px;
-  border-radius: 0.5rem;
-  border-style: solid;
-  padding: 0.25rem;
+.banner {
+  display: flex;
+  align-items: center;
+  margin-right: 0.1rem;
+}
+.banner > * {
+  margin-right: 0.75rem;
+}
+.box {
+  height: 1rem;
+  width: 1rem;
 }
 
 .chat-area {
@@ -121,27 +118,11 @@ button:focus {
   border-style: none;
 }
 
-.option-form {
-  background-color: gainsboro;
-  display: block;
-  padding: 0.25rem;
-  margin: 0.25rem;
-  align-items: center;
-}
-
-.option-form > input {
-  margin: 0 0.2rem 0 0.2rem;
-}
-
-.option-form > input[type='color'] {
-  vertical-align: middle;
-}
-
-.option-form > input[type='submit'] {
-  background-color: lightskyblue;
-  color: white;
-  border-radius: 0.25rem;
-  border-style: none;
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 80vh;
 }
 
 .delete-button {
@@ -156,31 +137,77 @@ button:focus {
   width: 1rem;
 }
 
+.game-controls button {
+  margin: var(--default-spacing);
+}
+
+.form-input {
+  display: flex;
+  margin: 1rem auto 1rem auto;
+}
+
+.form-input *{
+  margin: var(--default-spacing);
+}
+
+.option-form {
+  background-color: gainsboro;
+  display: block;
+  padding: 0.25rem;
+  margin: 0.25rem;
+  align-items: center;
+}
+
+.option-form > input {
+  margin: var(--default-spacing);
+}
+
+.option-form > input[type='color'] {
+  vertical-align: middle;
+}
+
+.option-form > input[type='submit'] {
+  background-color: lightskyblue;
+  color: white;
+  border-radius: 0.25rem;
+  border-style: none;
+}
+
+.title-container {
+  width: max-content;
+  background-color: aliceblue;
+  border-width: 1px;
+  border-radius: 3rem;
+  border-style: solid;
+  padding: 2rem;
+  margin-top: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.title-container button {
+  margin: var(--default-spacing);
+}
+
+.team-container {
+  background-color: rgb(255, 255, 244);
+  width: max-content;
+  height: fit-content;
+  border-width: 1px;
+  border-radius: 0.5rem;
+  border-style: solid;
+  padding: 0.25rem;
+}
+
 .teams-footer {
   display: flex;
   bottom: var(--footer-height);
-  position: absolute;
   align-items: flex-end;
+  justify-content: space-evenly;
   margin: 0.5em;
 }
 
 .teams-footer .team-container {
   margin: 0.5em;
-}
-
-.banner {
-  display: flex;
-  align-items: center;
-  margin-right: 0.1rem;
-}
-.banner > * {
-  margin-right: 0.75rem;
-}
-.box {
-  height: 1rem;
-  width: 1rem;
-}
-
-.game-controls button {
-  margin: 0 0.2rem 0 0.2rem;
 }

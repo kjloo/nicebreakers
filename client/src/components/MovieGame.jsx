@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
 import UserForm from './UserForm';
@@ -7,13 +8,15 @@ import Teams from './Teams';
 import GameControls from './GameControls';
 import GameMenu from './GameMenu';
 
-const socket = io();
+const socket = io("http://chingloo.zapto.org:1111");
 
 const MovieGame = () => {
     const maxTeams = 4;
     const [user, setUser] = useState(-1);
     const [users, setUsers] = useState([]);
     const [teams, setTeams] = useState([]);
+
+    const { gameID } = useParams();
 
     // submit user
     const submitUser = (name) => {
