@@ -9,35 +9,62 @@ const codeLength = 4;
 const timeout = 60000; // 60 sec
 
 // In memory data
-let games = [];
-let users = [];
-let teams = [];
+let global_games = [];
+let global_players = [];
+let player_cache = {};
+let global_teams = [];
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'build')));
 
 // API requests
-app.get('/users', function (req, res) {
-    res.json(getUsers());
+app.get('/player', function (req, res) {
+    // Check if player name is cached
+    gameID = req.query.gameID;
+
+    data = {}
+    if (player_cache[gameID] !== undefined) {
+        // put player name in cookie
+        data.player = player_cache[gameID]
+    }
+    res.json(data)
+})
+app.get('/players', function (req, res) {
+    gameID = req.query.gameID;
+    players = getPlayers(gameID);
+    data = {
+        players: players
+    };
+
+    res.json(data);
 })
 
 app.get('/teams', function (req, res) {
-    res.json(getTeams());
+    gameID = req.query.gameID;
+    teams = getTeams(gameID);
+    data = {
+        teams: teams
+    };
+
+    res.json(data);
 })
 
-app.get('/movie/game', function (req, res) {
-    let code = generateGameCode();
-    res.redirect(`/movie/game/${code}`);
+app.get('/movie/game/', function (req, res) {
+    let player = req.query.player;
+    let gameID = req.query.gameID === undefined ? generateGameCode() : req.query.gameID;
+    // register player name in cache
+    player_cache[gameID] = player;
+
+    //validateGameID(res, gameID);
+    res.redirect(`/movie/game/${gameID}`);
 });
 
 app.get('/movie/game/:gameID', function (req, res, next) {
+    // Handle direct route
     gameID = req.params.gameID;
-    if (gameID.length !== codeLength) {
-        res.send("Invalid GameID");
-    }
-    else if (!games.includes(gameID)) {
-        games.push(gameID);
-    }
+
+    validateGameID(res, gameID);
+
     next();
 });
 
@@ -52,11 +79,20 @@ const serveHtml = (res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 }
 
+const validateGameID = (res, gameID) => {
+    if (gameID.length !== codeLength) {
+        res.send("Invalid GameID");
+    }
+    else if (!global_games.includes(gameID)) {
+        global_games.push(gameID);
+    }
+}
+
 // Garbage collection
 const garbageCollection = () => {
     // remove any inactive game ids
-    games = games.filter((game) => {
-        return (users.find((user) => user.gameID === game) !== undefined);
+    global_games = global_games.filter((game) => {
+        return (global_players.find((player) => player.gameID === game) !== undefined);
     });
 }
 
@@ -73,7 +109,7 @@ const generateCode = () => {
 // Create Game Code
 const generateGameCode = () => {
     let code = generateCode();
-    while (games.includes(code)) {
+    while (global_games.includes(code)) {
         code = generateCode();
     }
     return code;
@@ -83,66 +119,70 @@ const generateGameCode = () => {
 const generateTeamID = () => {
     // This should be fine as incrementing should yield a new number
     let teamID = 0;
-    while (teams.find((team) => team.id === teamID) !== undefined) {
+    while (global_teams.find((team) => team.id === teamID) !== undefined) {
         teamID = Date.now();
     }
     return teamID;
 }
 
-// Get Users
-const getUsers = () => {
-    data = {
-        users: users
-    }
-    return data
+// Get Players
+const getPlayers = (gameID) => {
+    return global_players.filter((player) => player.gameID === gameID);
 }
 
 // Get Teams
-const getTeams = () => {
-    data = {
-        teams: teams
-    }
-    return data
+const getTeams = (gameID) => {
+    return global_teams.filter((team) => team.gameID === gameID);
 }
 
 // Execute code
 setInterval(garbageCollection, timeout);
 
+// Socket functions
+const updatePlayers = (s, gameID) => {
+    s.in(gameID).emit('update players', getPlayers(gameID));
+}
+
+const updateTeams = (s, gameID) => {
+    s.in(gameID).emit('update teams', getTeams(gameID));
+}
+
 const server = http.createServer(app);
 const socket = io(server);
 socket.on('connection', (s) => {
-    const gameID = s.handshake;
-    console.log(gameID);
-    s.on('add user', ({ name }) => {
+    const gameID = s.handshake.query['gameID'];
+    s.on('add player', ({ name }) => {
+        s.join(gameID);
         // Check if team name and color exist
-        if (users.find((user) => name === user.name) !== undefined) {
+        if (global_players.find((player) => (name === player.name) && (gameID === player.gameID)) !== undefined) {
             s.emit('exception', 'Name is taken!');
             return;
         }
         // Create Team
-        user = {
+        player = {
             id: s.id,
             name: name,
+            gameID: gameID,
             teamID: -1
         }
-        users.push(user);
-        s.emit('registered user', user);
-        socket.emit('update users', users);
+        global_players.push(player);
+        s.emit('registered player', player);
+        updatePlayers(socket, gameID);
     });
-    s.on('update user', ({ user }) => {
-        users = users.map((u) => {
-            // If match return new user else keep old data
-            return u.id === s.id ? user : u;
+    s.on('update player', ({ player }) => {
+        global_players = global_players.map((u) => {
+            // If match return new player else keep old data
+            return u.id === s.id ? player : u;
         });
-        socket.emit('update users', users);
+        updatePlayers(socket, gameID);
     });
     s.on('add team', ({ name, color }) => {
         // Check if team name and color exist
-        if (teams.find((team) => name === team.name) !== undefined) {
+        if (global_teams.find((team) => name === team.name) !== undefined) {
             s.emit('exception', 'Team name is taken!');
             return;
         }
-        if (teams.find((team) => color === team.color) !== undefined) {
+        if (global_teams.find((team) => color === team.color) !== undefined) {
             s.emit('exception', 'Color is taken!');
             return;
         }
@@ -152,27 +192,28 @@ socket.on('connection', (s) => {
             name: name,
             color: color,
             score: 0,
+            gameID: gameID,
             data: []
         }
-        teams.push(team);
-        socket.emit('update teams', teams);
+        global_teams.push(team);
+        updateTeams(socket, gameID);
     });
     s.on('delete team', ({ id }) => {
-        teams = teams.filter((team) => {
+        global_teams = global_teams.filter((team) => {
             return (id !== team.id);
         });
-        socket.emit('update teams', teams);
+        updateTeams(socket, gameID);
     });
     s.on('team chat', ({ id, message }) => {
-        teams = teams.map((team) => {
+        global_teams = global_teams.map((team) => {
             return (id === team.id) ? { ...team, data: [...team.data, message] } : team;
         });
-        socket.emit('team chat', teams);
+        socket.emit('team chat', getTeams(gameID));
     });
     s.on('disconnect', (s) => {
-        // Delete user
-        users = users.filter((user) => user.id !== s.id);
-        socket.emit('update users', users);
+        // Delete player
+        global_players = global_players.filter((player) => player.id !== s.id);
+        updatePlayers(socket, gameID);
     });
 });
 

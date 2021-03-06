@@ -4,6 +4,7 @@ import Button from './Button';
 
 const MovieMenu = () => {
     const codeLength = 4;
+    const [player, setPlayer] = useState('');
     const [code, setCode] = useState('');
 
     // validate key press
@@ -18,11 +19,15 @@ const MovieMenu = () => {
     return (
         <GameMenu title="Untitled Movie Game">
             <div className='form-input'>
+                <p className='label'>Enter Name: </p>
+                <input type='text' value={player} placeholder="Enter Name" onChange={(e) => setPlayer(e.target.value)} />
+            </div>
+            <div className='form-input'>
                 <p className='label'>Enter Room Code: </p>
                 <input type='text' value={code} maxLength={codeLength} onKeyPress={validateKeyPress} onChange={(e) => setCode(e.target.value.toUpperCase())} />
             </div>
-            <a href='/movie/game'>
-                <Button text="Create Game" color="lightskyblue" />
+            <a href={`/movie/game/?player=${player}`}>
+                <Button text="Create Game" color="lightskyblue" disabled={player.length === 0} />
             </a>
             <a href={`/movie/game/${code}`}>
                 <Button text="Join Game" color="green" disabled={code.length < codeLength} />
