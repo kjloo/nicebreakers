@@ -16,10 +16,11 @@ const Team = ({ team, players, onJoin, onSubmit, onDelete }) => {
     }
 
     // handle delete
-    const handleDelete = () => {
+    const handleDelete = (evt) => {
         if (confirm(`Are you sure you want to delete ${team.name}?`)) {
             onDelete(team.id);
         }
+        evt.stopPropagation();
     }
 
     return (

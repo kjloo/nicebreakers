@@ -118,7 +118,7 @@ const generateGameCode = () => {
 // Create Team ID
 const generateTeamID = () => {
     // This should be fine as incrementing should yield a new number
-    let teamID = 0;
+    let teamID = Date.now();
     while (global_teams.find((team) => team.id === teamID) !== undefined) {
         teamID = Date.now();
     }
@@ -178,11 +178,11 @@ socket.on('connection', (s) => {
     });
     s.on('add team', ({ name, color }) => {
         // Check if team name and color exist
-        if (global_teams.find((team) => name === team.name) !== undefined) {
+        if (global_teams.find((team) => (name === team.name) && (gameID == team.gameID)) !== undefined) {
             s.emit('exception', 'Team name is taken!');
             return;
         }
-        if (global_teams.find((team) => color === team.color) !== undefined) {
+        if (global_teams.find((team) => (color === team.color) && (gameID == team.gameID)) !== undefined) {
             s.emit('exception', 'Color is taken!');
             return;
         }
@@ -208,9 +208,9 @@ socket.on('connection', (s) => {
         global_teams = global_teams.map((team) => {
             return (id === team.id) ? { ...team, data: [...team.data, message] } : team;
         });
-        socket.emit('team chat', getTeams(gameID));
+        updateTeams(socket, gameID);
     });
-    s.on('disconnect', (s) => {
+    s.on('disconnect', () => {
         // Delete player
         global_players = global_players.filter((player) => player.id !== s.id);
         updatePlayers(socket, gameID);

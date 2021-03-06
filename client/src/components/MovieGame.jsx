@@ -126,6 +126,10 @@ const MovieGame = () => {
         socket.on('team chat', (teams) => {
             setTeams(teams);
         });
+
+        return function handleCleanUp() {
+            socket.close();
+        }
     }, []);
 
     return (
