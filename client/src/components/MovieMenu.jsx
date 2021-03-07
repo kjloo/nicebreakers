@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import GameMenu from './GameMenu';
 import Button from './Button';
+import FocusInput from './FocusInput';
 
 const MovieMenu = () => {
     const codeLength = 4;
@@ -20,7 +21,7 @@ const MovieMenu = () => {
         <GameMenu title="Untitled Movie Game">
             <div className='form-input'>
                 <p className='label'>Enter Name: </p>
-                <input type='text' value={player} placeholder="Enter Name" onChange={(e) => setPlayer(e.target.value)} />
+                <FocusInput type='text' value={player} placeholder="Enter Name" onChange={(e) => setPlayer(e.target.value)} />
             </div>
             <div className='form-input'>
                 <p className='label'>Enter Room Code: </p>

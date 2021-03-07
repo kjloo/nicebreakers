@@ -4,9 +4,11 @@ const Players = ({ players, title }) => {
     return (
         <div className='players-container'>
             <h4>{title}</h4>
-            {players.map((player) => {
-                return <p id={player.id}>{player.name}</p>
-            })}
+            <ul className='players-list'>
+                {players.map((player) => {
+                    return <li id={player.id}>{player.name}</li>
+                })}
+            </ul>
         </div>
     )
 }

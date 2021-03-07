@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Chat from './Chat';
 import Banner from './Banner';
 import Players from './Players';
 
-const Team = ({ team, players, onJoin, onSubmit, onDelete }) => {
+const Team = ({ player, team, players, onJoin, onSubmit, onDelete }) => {
     const [minimize, setMinimize] = useState(true);
 
     // handle click
@@ -23,6 +23,10 @@ const Team = ({ team, players, onJoin, onSubmit, onDelete }) => {
         evt.stopPropagation();
     }
 
+    useEffect(() => {
+        setMinimize(player.teamID !== team.id);
+    }, [player]);
+
     return (
         <div className="team-container">
             <div className="banner-container" onClick={bannerClick}>
@@ -31,7 +35,7 @@ const Team = ({ team, players, onJoin, onSubmit, onDelete }) => {
             {!minimize &&
                 <>
                     <Players players={players} title="Team Members" />
-                    <Chat data={team.data} id={team.id} onSubmit={onSubmit} />
+                    <Chat player={player} data={team.data} id={team.id} onSubmit={onSubmit} />
                 </>
             }
         </div>

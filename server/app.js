@@ -1,4 +1,5 @@
 const express = require('express');
+const acronym = require('./utils/acronym.js');
 const path = require('path');
 const http = require('http');
 const app = express();
@@ -18,6 +19,15 @@ let global_teams = [];
 app.use(express.static(path.join(__dirname, 'build')));
 
 // API requests
+app.get('/acronym', function (req, res) {
+    // Get code
+    gameID = req.query.gameID;
+    // Process
+    data = {
+        decode: acronym.processAcronym(gameID)
+    }
+    res.json(data);
+})
 app.get('/player', function (req, res) {
     // Check if player name is cached
     gameID = req.query.gameID;
@@ -125,14 +135,28 @@ const generateTeamID = () => {
     return teamID;
 }
 
+// Get Player
+const getPlayer = (playerID) => {
+    return global_players.find((player) => player.id === playerID);
+}
+
 // Get Players
 const getPlayers = (gameID) => {
     return global_players.filter((player) => player.gameID === gameID);
 }
 
 // Get Teams
-const getTeams = (gameID) => {
-    return global_teams.filter((team) => team.gameID === gameID);
+const getTeams = (gameID, playerID = undefined) => {
+    let rc = global_teams.filter((team) => team.gameID === gameID);
+    let player = (playerID === undefined) ? undefined : getPlayer(playerID);
+    rc = rc.map((team) => {
+        if ((player === undefined) || (team.id !== player.teamID)) {
+            // delete messages
+            return { ...team, data: [] };
+        }
+        return team;
+    });
+    return rc;
 }
 
 // Execute code
@@ -143,8 +167,19 @@ const updatePlayers = (s, gameID) => {
     s.in(gameID).emit('update players', getPlayers(gameID));
 }
 
-const updateTeams = (s, gameID) => {
-    s.in(gameID).emit('update teams', getTeams(gameID));
+const addTeam = (s, gameID, team) => {
+    // need to tell everyone changes in teams
+    s.in(gameID).emit('add team', team);
+}
+
+const deleteTeam = (s, gameID, id) => {
+    // need to tell everyone changes in teams
+    s.in(gameID).emit('delete team', id);
+}
+
+const updateTeam = (s, teamID, playerID) => {
+    // should only go to members of team
+    s.in(teamID).emit('team chat', getTeams(gameID, playerID));
 }
 
 const server = http.createServer(app);
@@ -166,15 +201,22 @@ socket.on('connection', (s) => {
             teamID: -1
         }
         global_players.push(player);
-        s.emit('registered player', player);
+        s.emit('update player', player);
         updatePlayers(socket, gameID);
     });
-    s.on('update player', ({ player }) => {
+    s.on('join team', ({ teamID }) => {
+        let player = getPlayer(s.id);
+        // change team
+        s.leave(player.teamID);
+        s.join(teamID);
+        player.teamID = teamID;
         global_players = global_players.map((u) => {
             // If match return new player else keep old data
             return u.id === s.id ? player : u;
         });
+        s.emit('update player', player);
         updatePlayers(socket, gameID);
+        updateTeam(socket, teamID, s.id);
     });
     s.on('add team', ({ name, color }) => {
         // Check if team name and color exist
@@ -196,19 +238,32 @@ socket.on('connection', (s) => {
             data: []
         }
         global_teams.push(team);
-        updateTeams(socket, gameID);
+        addTeam(socket, gameID, team);
     });
     s.on('delete team', ({ id }) => {
         global_teams = global_teams.filter((team) => {
             return (id !== team.id);
         });
-        updateTeams(socket, gameID);
+        deleteTeam(socket, gameID, id);
+    });
+    s.on('update score', ({ teamID, score }) => {
+        teams.map((team) => {
+            if (team.id === teamID) {
+                return { ...team, score: score };
+            }
+            return team;
+        });
     });
     s.on('team chat', ({ id, message }) => {
-        global_teams = global_teams.map((team) => {
-            return (id === team.id) ? { ...team, data: [...team.data, message] } : team;
-        });
-        updateTeams(socket, gameID);
+        let player = getPlayer(s.id);
+        if (player.teamID !== id) {
+            s.emit('exception', 'Not allowed to talk to another team.');
+        } else {
+            global_teams = global_teams.map((team) => {
+                return (id === team.id) ? { ...team, data: [...team.data, { player: player, message: message }] } : team;
+            });
+            updateTeam(socket, id, s.id);
+        }
     });
     s.on('disconnect', () => {
         // Delete player

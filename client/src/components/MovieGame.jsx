@@ -17,12 +17,26 @@ const initializeSocket = (gameID) => {
 
 const MovieGame = () => {
     const maxTeams = 4;
+    const [decode, setDecode] = useState("");
     const [player, setPlayer] = useState(-1);
     const [players, setPlayers] = useState([]);
     const [teams, setTeams] = useState([]);
 
     const { gameID } = useParams();
 
+    // process acronym
+    const processAcronym = () => {
+        // Get request
+        axios({
+            method: 'get',
+            url: '/acronym',
+            params: {
+                gameID: gameID
+            }
+        }).then((response) => {
+            setDecode(response.data.decode);
+        });
+    }
     // get player
     const getDefaultPlayer = () => {
         // Request player
@@ -87,10 +101,8 @@ const MovieGame = () => {
     const joinTeam = (team) => {
         if (player.teamID !== team.id) {
             if (confirm(`Join Team ${team.name}`)) {
-                // add team id for player
-                player.teamID = team.id;
                 // update server
-                socket.emit('update player', { player: player });
+                socket.emit('join team', { teamID: team.id });
                 return true;
             } else {
                 return false;
@@ -107,6 +119,7 @@ const MovieGame = () => {
 
     useEffect(() => {
         initializeSocket(gameID);
+        processAcronym();
 
         getPlayers();
         getTeams();
@@ -114,35 +127,50 @@ const MovieGame = () => {
         socket.on('exception', (message) => {
             alert(message);
         });
-        socket.on('registered player', (player) => {
-            setPlayer(player);
+        socket.on('update player', (p) => {
+            setPlayer(p);
         });
-        socket.on('update players', (players) => {
-            setPlayers(players);
+        socket.on('update players', (p) => {
+            setPlayers(p);
         });
-        socket.on('update teams', (teams) => {
-            setTeams(teams);
-        });
-        socket.on('team chat', (teams) => {
-            setTeams(teams);
+        socket.on('team chat', (t) => {
+            setTeams(t);
         });
 
         return function handleCleanUp() {
-            socket.close();
+            socket.disconnect();
         }
     }, []);
+
+    useEffect(() => {
+        socket.on('add team', (t) => {
+            // do not update your team
+            setTeams([...teams, t]);
+        });
+        socket.on('delete team', (id) => {
+            // do not update your team
+            setTeams(teams.filter((team) => id !== team.id));
+        });
+        return () => {
+            socket.off('add team');
+            socket.off('delete team');
+        }
+    }, [teams]);
 
     return (
         <>
             <GameMenu title="Untitled Movie Game" >
                 {player < 0 ? <UserForm onSubmit={submitPlayer} /> :
                     <>
+                        <p className="label">Room Code: </p>
+                        <p className="value">{gameID}</p>
+                        <p className="value"> ({decode}) </p>
                         <Players players={players} />
                         <GameControls isMaxTeams={teams.length >= maxTeams} onSubmit={submitTeam} />
                     </>
                 }
             </GameMenu>
-            <Teams teams={teams} players={players} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />
+            <Teams player={player} teams={teams} players={players} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />
         </>
 
     )
