@@ -3,10 +3,10 @@ import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
 import UserForm from './UserForm';
-import Players from './Players';
 import Teams from './Teams';
-import GameControls from './GameControls';
 import GameMenu from './GameMenu';
+import GameSetup from './GameSetup';
+import MovieInstruction from './MovieInstruction';
 
 let socket;
 const initializeSocket = (gameID) => {
@@ -16,27 +16,22 @@ const initializeSocket = (gameID) => {
 }
 
 const MovieGame = () => {
-    const maxTeams = 4;
-    const [decode, setDecode] = useState("");
-    const [player, setPlayer] = useState(-1);
+    const [player, setPlayer] = useState({});
     const [players, setPlayers] = useState([]);
     const [teams, setTeams] = useState([]);
+    const [movie, setMovie] = useState('');
+    const [started, setStarted] = useState(false);
 
     const { gameID } = useParams();
 
-    // process acronym
-    const processAcronym = () => {
-        // Get request
-        axios({
-            method: 'get',
-            url: '/acronym',
-            params: {
-                gameID: gameID
-            }
-        }).then((response) => {
-            setDecode(response.data.decode);
-        });
+    // basic util
+    function isEmpty(obj) {
+        if (obj === undefined || obj === null) {
+            return true;
+        }
+        return Object.keys(obj).length === 0;
     }
+
     // get player
     const getDefaultPlayer = () => {
         // Request player
@@ -75,10 +70,6 @@ const MovieGame = () => {
         });
     }
 
-    // submit team
-    const submitTeam = (name, color) => {
-        socket.emit('add team', { name: name, color: color });
-    }
     // delete team
     const deleteTeam = (id) => {
         socket.emit('delete team', { id: id });
@@ -100,16 +91,25 @@ const MovieGame = () => {
     // join team
     const joinTeam = (team) => {
         if (player.teamID !== team.id) {
-            if (confirm(`Join Team ${team.name}`)) {
-                // update server
-                socket.emit('join team', { teamID: team.id });
-                return true;
+            if (started) {
+                alert('Game Already Started');
             } else {
-                return false;
+                if (confirm(`Join Team ${team.name}`)) {
+                    // update server
+                    socket.emit('join team', { teamID: team.id });
+                    return true;
+                } else {
+                    return false;
+                }
             }
         } else {
             return true;
         }
+    }
+    // start game
+    const startGame = () => {
+        setStarted(true);
+        socket.emit('start game');
     }
 
     // chat message submit
@@ -117,9 +117,14 @@ const MovieGame = () => {
         socket.emit('team chat', { id: id, message: message });
     }
 
+    // set movie
+    const submitMovie = (movie) => {
+        setMovie(movie);
+        socket.emit('set movie', { movie: movie });
+    }
+
     useEffect(() => {
         initializeSocket(gameID);
-        processAcronym();
 
         getPlayers();
         getTeams();
@@ -127,20 +132,36 @@ const MovieGame = () => {
         socket.on('exception', (message) => {
             alert(message);
         });
-        socket.on('update player', (p) => {
-            setPlayer(p);
+        socket.on('start game', () => {
+            setStarted(true);
         });
-        socket.on('update players', (p) => {
-            setPlayers(p);
-        });
-        socket.on('team chat', (t) => {
-            setTeams(t);
-        });
+        socket.on('set movie', (m) => {
+            setMovie(m);
+        })
 
         return function handleCleanUp() {
             socket.disconnect();
         }
     }, []);
+
+    useEffect(() => {
+        socket.on('update player', (p) => {
+            if (p !== undefined) {
+                setPlayer(p);
+            }
+        });
+        socket.on('update players', (p) => {
+            setPlayers(p);
+            // See if new information about self
+            if (!isEmpty(player)) {
+                setPlayer(p.find((update) => update.id === player.id));
+            }
+        });
+        return () => {
+            socket.off('update player');
+            socket.off('update players');
+        }
+    }, [player, players])
 
     useEffect(() => {
         socket.on('add team', (t) => {
@@ -151,25 +172,32 @@ const MovieGame = () => {
             // do not update your team
             setTeams(teams.filter((team) => id !== team.id));
         });
+        socket.on('team chat', (chat) => {
+            setTeams(teams.map((team) => {
+                if (chat.teamID === team.id) {
+                    return { ...team, data: chat.data };
+                } else {
+                    return team;
+                }
+            }));
+            console.log(teams);
+        });
         return () => {
             socket.off('add team');
             socket.off('delete team');
+            socket.off('team chat');
         }
     }, [teams]);
 
     return (
         <>
-            <GameMenu title="Untitled Movie Game" >
-                {player < 0 ? <UserForm onSubmit={submitPlayer} /> :
-                    <>
-                        <p className="label">Room Code: </p>
-                        <p className="value">{gameID}</p>
-                        <p className="value"> ({decode}) </p>
-                        <Players players={players} />
-                        <GameControls isMaxTeams={teams.length >= maxTeams} onSubmit={submitTeam} />
-                    </>
-                }
-            </GameMenu>
+            {started ? <MovieInstruction player={player} movie={movie} onSubmit={submitMovie} isReady={movie} /> :
+                <GameMenu title="Untitled Movie Game" >
+                    {isEmpty(player) ? <UserForm onSubmit={submitPlayer} /> :
+                        <GameSetup socket={socket} players={players} teams={teams} started={started} onStart={startGame} />
+                    }
+                </GameMenu>
+            }
             <Teams player={player} teams={teams} players={players} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />
         </>
 

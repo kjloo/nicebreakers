@@ -13,6 +13,8 @@ const Button = ({ color, text, disabled, onClick }) => {
 Button.defaultProps = {
     color: 'steelblue',
     text: 'Click Me',
+    disabled: false,
+    onClick: () => { }
 }
 
 export default Button

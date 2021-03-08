@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import FocusInput from './FocusInput';
 
 const AddTeam = ({ setAddTeam, onSubmit }) => {
@@ -13,6 +13,11 @@ const AddTeam = ({ setAddTeam, onSubmit }) => {
         setColor('');
         setAddTeam(false);
     }
+
+    useEffect(() => {
+        let randomColor = Math.floor(Math.random() * 16777215).toString(16);
+        setColor(`#${randomColor}`);
+    }, []);
 
     return (
         <form className='option-form' onSubmit={submitTeam}>

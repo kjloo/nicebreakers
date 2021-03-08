@@ -1,7 +1,7 @@
 const acronym_table = {
-    A: ['Apple', 'Almond', 'Albino', 'Athlete', 'Ass'],
-    B: ['Bannanna', 'Basket', 'Bassoon', 'Bee'],
-    C: ['Cast', 'Crow', 'Case', 'Child'],
+    A: ['Apple', 'Almond', 'Albino', 'Athlete', 'Ass', 'Alien', 'Alpaca'],
+    B: ['Bannanna', 'Basket', 'Bassoon', 'Bee', 'Bass', 'Brunch', 'Breakfast', 'Bunny'],
+    C: ['Cast', 'Crow', 'Case', 'Child', 'Church', 'Chicken'],
     D: ['Dinosaur', 'Disc', 'Dog', 'Dad', 'Destiny', 'Daffodil'],
     E: ['Eel', 'Eve', 'Elephant', 'Entertainer', 'Excess', 'Exit'],
     F: ['Frog', 'Face', 'French', 'Falcon'],
@@ -11,7 +11,7 @@ const acronym_table = {
     J: ['Jester', 'Jack', 'Job', 'Jug'],
     K: ['Kite', 'Kangaroo', 'Kid', 'Kiss', 'Knight'],
     L: ['Llama', 'Lord', 'Level', 'List'],
-    M: ['Master', 'monster', 'magic', 'minister'],
+    M: ['Master', 'Monster', 'Magic', 'Minister'],
     N: ['Nun', 'Noon', 'Nap', 'Night', 'Nickel', 'Nine', 'Next', 'Nexus'],
     O: ['Option', 'Orange', 'Original', 'Order'],
     P: ['Pokemon', 'People', 'Pineapple', 'Peach'],
@@ -24,7 +24,7 @@ const acronym_table = {
     W: ['Watermelon', 'Water', 'West', 'Wombat'],
     X: ['Xylophone', 'Xenophobe'],
     Y: ['Yesterday', 'Youth', 'Yogurt', 'Yoga'],
-    Z: ['Zebra', 'Zillion', 'Zygote', 'Zelot']
+    Z: ['Zebra', 'Zillion', 'Zygote', 'Zealot']
 }
 
 const processAcronym = (code) => {

@@ -102,8 +102,15 @@ ul.navbar li {
   margin: 0;
   display: flex;
   align-items: center;
+  margin-block-start: 0;
+  margin-block-end: 0;
 }
 
+.chat-list > li > p {
+  margin: 0;
+  margin-block-start: 0.1rem;
+  margin-block-end: 0.1rem;
+}
 
 .chat-list > li.self-message {
   align-self: flex-end;
@@ -131,7 +138,7 @@ ul.navbar li {
   border: none;
   background: #ffffff;
   resize: none;
-  height: 7rem;
+  height: 8rem;
 }
 
 .chat-input {
