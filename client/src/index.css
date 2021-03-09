@@ -176,6 +176,28 @@ ul.navbar li {
   width: 1rem;
 }
 
+.game-container {
+  width: max-content;
+  background-color: aliceblue;
+  border-width: 1px;
+  border-radius: 3rem;
+  border-style: solid;
+  padding: 2rem;
+  margin-top: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.game-container * {
+  margin-block-start: 0.5rem;
+  margin-block-end: 0.5rem;
+}
+
+.game-container button {
+  margin: var(--default-spacing);
+}
+
 .game-controls button {
   margin: var(--default-spacing);
 }
@@ -191,6 +213,12 @@ ul.navbar li {
 
 .label {
   display: inline;
+}
+
+.movie-instruction {
+  display: flex;
+  width: 100%;
+  justify-content: center;
 }
 
 .option-form {
@@ -226,28 +254,6 @@ ul.navbar li {
 
 .players-list > li {
   margin: 0;
-}
-
-.title-container {
-  width: max-content;
-  background-color: aliceblue;
-  border-width: 1px;
-  border-radius: 3rem;
-  border-style: solid;
-  padding: 2rem;
-  margin-top: 1rem;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
-
-.title-container * {
-  margin-block-start: 0.5rem;
-  margin-block-end: 0.5rem;
-}
-
-.title-container button {
-  margin: var(--default-spacing);
 }
 
 .team-container {

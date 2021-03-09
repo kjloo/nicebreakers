@@ -1,5 +1,6 @@
 const express = require('express');
-const acronym = require('./utils/acronym.js');
+const acronym = require('../utils/acronym');
+const enums = require('../utils/enums');
 const path = require('path');
 const http = require('http');
 const app = express();
@@ -271,9 +272,17 @@ const deleteTeam = (s, gameID, id) => {
     s.in(gameID).emit('delete team', id);
 }
 
+const startGame = (s, gameID) => {
+    s.in(gameID).emit('start game', enums.GameState.ENTRY);
+}
+
 const updateChat = (s, teamID, player) => {
     // should only go to members of team
     s.in(teamID).emit('team chat', getChat(player));
+}
+
+const updateState = (s, gameID, state) => {
+    s.in(gameID).emit('set state', state);
 }
 
 const incrementGameState = (s, gameID, team_cache, game_state) => {
@@ -312,6 +321,9 @@ socket.on('connection', (s) => {
         global_players.push(player);
         s.emit('update player', player);
         updatePlayers(socket, gameID);
+    });
+    s.on('alert stop', () => {
+        updateState(socket, gameID, enums.GameState.GUESS);
     });
     s.on('join team', ({ teamID }) => {
         let player = getPlayer(s.id);
@@ -372,7 +384,7 @@ socket.on('connection', (s) => {
     s.on('start game', () => {
         // TO DO: Should probably validate game
         // Send started to all
-        socket.in(gameID).emit('start game');
+        startGame(socket, gameID);
         // Cache all teams in game
         team_cache = getTeams(gameID);
         // Store players on teams
@@ -383,6 +395,10 @@ socket.on('connection', (s) => {
         // Set first turn
         incrementGameState(socket, gameID, team_cache, game_state);
         updatePlayers(socket, gameID);
+    });
+    s.on('set movie', ({ movie }) => {
+        game_state.movie = movie;
+        updateState(socket, gameID, enums.GameState.HINT);
     });
     s.on('team chat', ({ id, message }) => {
         let player = getPlayer(s.id);

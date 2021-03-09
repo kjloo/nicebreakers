@@ -19,7 +19,7 @@ const MovieGame = () => {
     const [player, setPlayer] = useState({});
     const [players, setPlayers] = useState([]);
     const [teams, setTeams] = useState([]);
-    const [movie, setMovie] = useState('');
+    const [state, setState] = useState(false);
     const [started, setStarted] = useState(false);
 
     const { gameID } = useParams();
@@ -30,6 +30,11 @@ const MovieGame = () => {
             return true;
         }
         return Object.keys(obj).length === 0;
+    }
+
+    // alert stop
+    const alertStop = () => {
+        socket.emit('alert stop');
     }
 
     // get player
@@ -119,7 +124,6 @@ const MovieGame = () => {
 
     // set movie
     const submitMovie = (movie) => {
-        setMovie(movie);
         socket.emit('set movie', { movie: movie });
     }
 
@@ -132,11 +136,13 @@ const MovieGame = () => {
         socket.on('exception', (message) => {
             alert(message);
         });
-        socket.on('start game', () => {
+        socket.on('start game', (s) => {
+            console.log(s);
             setStarted(true);
+            setState(s);
         });
-        socket.on('set movie', (m) => {
-            setMovie(m);
+        socket.on('set state', (s) => {
+            setState(s);
         })
 
         return function handleCleanUp() {
@@ -180,7 +186,6 @@ const MovieGame = () => {
                     return team;
                 }
             }));
-            console.log(teams);
         });
         return () => {
             socket.off('add team');
@@ -191,13 +196,12 @@ const MovieGame = () => {
 
     return (
         <>
-            {started ? <MovieInstruction player={player} movie={movie} onSubmit={submitMovie} isReady={movie} /> :
-                <GameMenu title="Untitled Movie Game" >
-                    {isEmpty(player) ? <UserForm onSubmit={submitPlayer} /> :
+            <GameMenu title="Untitled Movie Game" >
+                {started ? <MovieInstruction player={player} onSubmit={submitMovie} onStop={alertStop} state={state} /> :
+                    isEmpty(player) ? <UserForm onSubmit={submitPlayer} /> :
                         <GameSetup socket={socket} players={players} teams={teams} started={started} onStart={startGame} />
-                    }
-                </GameMenu>
-            }
+                }
+            </GameMenu>
             <Teams player={player} teams={teams} players={players} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />
         </>
 

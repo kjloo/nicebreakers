@@ -5,7 +5,7 @@ const FocusInput = ({ type, onChange, placeholder, value, required }) => {
 
     useEffect(() => {
         focusRef.current.focus();
-    });
+    }, []);
 
     return (
         <input ref={focusRef} type={type} onChange={onChange} placeholder={placeholder} value={value} required={required} />

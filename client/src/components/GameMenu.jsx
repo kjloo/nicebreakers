@@ -3,7 +3,7 @@ import Name from './Name'
 
 const GameMenu = ({ children, title }) => {
     return (
-        <div className="title-container">
+        <div className="game-container">
             <Name title={title} />
             {children}
         </div>
