@@ -95,8 +95,14 @@ const validateGameID = (res, gameID) => {
     if (gameID.length !== codeLength) {
         res.send("Invalid GameID");
     }
-    else if (!global_games.includes(gameID)) {
-        global_games.push(gameID);
+    else if (getGame(gameID) === undefined) {
+        let game = {
+            id: gameID,
+            teamIndex: 0,
+            teamsCache: [],
+            answer: ""
+        }
+        global_games.push(game);
     }
 }
 
@@ -104,7 +110,7 @@ const validateGameID = (res, gameID) => {
 const garbageCollection = () => {
     // remove any inactive game ids
     global_games = global_games.filter((game) => {
-        return (global_players.find((player) => player.gameID === game) !== undefined);
+        return (global_players.find((player) => player.gameID === game.id) !== undefined);
     });
 }
 
@@ -121,7 +127,7 @@ const generateCode = () => {
 // Create Game Code
 const generateGameCode = () => {
     let code = generateCode();
-    while (global_games.includes(code)) {
+    while (getGame(code) !== undefined) {
         code = generateCode();
     }
     return code;
@@ -139,67 +145,72 @@ const generateTeamID = () => {
 
 
 // Read/Write Game State
-const getCurrentPlayer = (team_cache, game_state) => {
+const getCurrentPlayer = (teamsCache, gameState) => {
     // Get player
-    let player_index = team_cache[game_state.team_index].player_index;
-    let player = team_cache[game_state.team_index].players[player_index];
+    let player_index = teamsCache[gameState.teamIndex].player_index;
+    let player = teamsCache[gameState.teamIndex].players[player_index];
     return player;
 }
 
-const getCurrentTeam = (team_cache, game_state) => {
-    let team = team_cache[game_state.team_index];
+const getCurrentTeam = (teamsCache, gameState) => {
+    let team = teamsCache[gameState.teamIndex];
     return team;
 }
 
-const incrementTeamIndex = (team_cache, game_state) => {
-    game_state.team_index++;
+const incrementTeamIndex = (teamsCache, gameState) => {
+    gameState.teamIndex++;
     // Check if valid
-    if (game_state.team_index >= team_cache.length) {
-        game_state.team_index = 0;
+    if (gameState.teamIndex >= teamsCache.length) {
+        gameState.teamIndex = 0;
     }
 }
 
-const incrementPlayerIndex = (team_cache, game_state) => {
-    team_cache[game_state.team_index].player_index++;
+const incrementPlayerIndex = (teamsCache, gameState) => {
+    teamsCache[gameState.teamIndex].player_index++;
     // Check if valid
-    if (team_cache[game_state.team_index].player_index >= team_cache[game_state.team_index].players.length) {
-        team_cache[game_state.team_index].player_index = 0;
+    if (teamsCache[gameState.teamIndex].player_index >= teamsCache[gameState.teamIndex].players.length) {
+        teamsCache[gameState.teamIndex].player_index = 0;
     }
 }
 
-const changeTeamTurns = (team_cache, game_state) => {
+const changeTeamTurns = (teamsCache, gameState) => {
     // Set old team to false
-    let team = getCurrentTeam(team_cache, game_state);
+    let team = getCurrentTeam(teamsCache, gameState);
     team.turn = false;
     updateTeamState(team);
 
     // Increment
-    incrementTeamIndex(team_cache, game_state);
+    incrementTeamIndex(teamsCache, gameState);
     // Set new team to true
-    team = getCurrentTeam(team_cache, game_state);
+    team = getCurrentTeam(teamsCache, gameState);
     team.turn = true;
 
     // Update global teams list
     updateTeamState(team);
 }
 
-const changePlayerTurns = (team_cache, game_state) => {
+const changePlayerTurns = (teamsCache, gameState) => {
     // Set old player to false
-    let player = getCurrentPlayer(team_cache, game_state);
+    let player = getCurrentPlayer(teamsCache, gameState);
     player.turn = false;
 
     // Update global players list
     updatePlayerState(player);
 
     // Change teams
-    changeTeamTurns(team_cache, game_state);
+    changeTeamTurns(teamsCache, gameState);
     // Set new player to true
-    incrementPlayerIndex(team_cache, game_state);
-    player = getCurrentPlayer(team_cache, game_state);
+    incrementPlayerIndex(teamsCache, gameState);
+    player = getCurrentPlayer(teamsCache, gameState);
     player.turn = true;
 
     // Update global players list
     updatePlayerState(player);
+}
+
+// Get Game
+const getGame = (gameID) => {
+    return global_games.find((game) => game.id === gameID);
 }
 
 // Get Player
@@ -281,13 +292,21 @@ const updateChat = (s, teamID, player) => {
     s.in(teamID).emit('team chat', getChat(player));
 }
 
+const revealAnswer = (s, gameID) => {
+    let game = getGame(gameID);
+    s.in(gameID).emit('reveal answer', game.answer);
+    updateState(s, gameID, enums.GameState.REVEAL);
+}
+
 const updateState = (s, gameID, state) => {
     s.in(gameID).emit('set state', state);
 }
 
-const incrementGameState = (s, gameID, team_cache, game_state) => {
+const incrementGameState = (s, gameID) => {
+    let gameState = getGame(gameID);
+    let teamsCache = gameState.teamsCache;
     // Move the turn along
-    changePlayerTurns(team_cache, game_state);
+    changePlayerTurns(teamsCache, gameState);
     // Update sockets
     updatePlayers(s, gameID);
     updateTeams(s, gameID);
@@ -297,12 +316,6 @@ const server = http.createServer(app);
 const socket = io(server);
 socket.on('connection', (s) => {
     const gameID = s.handshake.query['gameID'];
-    // Use to store game state
-    let team_cache = [];
-    let game_state = {
-        team_index: 0,
-        movie: ""
-    };
     s.on('add player', ({ name }) => {
         s.join(gameID);
         // Check if team name and color exist
@@ -323,7 +336,41 @@ socket.on('connection', (s) => {
         updatePlayers(socket, gameID);
     });
     s.on('alert stop', () => {
-        updateState(socket, gameID, enums.GameState.GUESS);
+        updateState(socket, gameID, enums.GameState.STEAL);
+    });
+    s.on('give answer', ({ right, state }) => {
+        if (right === true) {
+            // give point based on state
+            // give point to team with turn if GUESS else STEAL
+            let point = (state === enums.GameState.GUESS);
+            // get only teams in game
+            let game = getGame(gameID);
+            let teams = game.teamsCache;
+            // update score
+            game.teamsCache = teams.map((team) => {
+                if (team.turn === point) {
+                    return { ...team, score: team.score + 1 }
+                } else {
+                    return team;
+                }
+            });
+            // change turns
+            incrementGameState(socket, gameID);
+            // back to beginning
+            revealAnswer(socket, gameID);
+        } else {
+            if (state === enums.GameState.STEAL) {
+                updateState(socket, gameID, enums.GameState.GUESS);
+            } else {
+                // change turns
+                incrementGameState(socket, gameID);
+                // back to beginning
+                revealAnswer(socket, gameID);
+            }
+        }
+    });
+    s.on('next turn', () => {
+        updateState(socket, gameID, enums.GameState.ENTRY);
     });
     s.on('join team', ({ teamID }) => {
         let player = getPlayer(s.id);
@@ -373,7 +420,7 @@ socket.on('connection', (s) => {
         deleteTeam(socket, gameID, id);
     });
     s.on('update score', ({ teamID, score }) => {
-        teams.map((team) => {
+        global_teams = global_teams.map((team) => {
             if (team.id === teamID) {
                 return { ...team, score: score };
             }
@@ -386,18 +433,20 @@ socket.on('connection', (s) => {
         // Send started to all
         startGame(socket, gameID);
         // Cache all teams in game
-        team_cache = getTeams(gameID);
+        let game = getGame(gameID);
+        let teamsCache = getTeams(gameID);
         // Store players on teams
-        team_cache = team_cache.map((team) => {
+        teamsCache = teamsCache.map((team) => {
             let players = getPlayersOnTeam(team.id);
             return { ...team, players: players, player_index: 0 };
         });
+        game.teamsCache = teamsCache;
         // Set first turn
-        incrementGameState(socket, gameID, team_cache, game_state);
-        updatePlayers(socket, gameID);
+        incrementGameState(socket, gameID);
     });
-    s.on('set movie', ({ movie }) => {
-        game_state.movie = movie;
+    s.on('set answer', ({ answer }) => {
+        let game = getGame(gameID);
+        game.answer = answer;
         updateState(socket, gameID, enums.GameState.HINT);
     });
     s.on('team chat', ({ id, message }) => {

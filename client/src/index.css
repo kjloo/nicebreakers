@@ -215,12 +215,6 @@ ul.navbar li {
   display: inline;
 }
 
-.movie-instruction {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-}
-
 .option-form {
   background-color: gainsboro;
   display: block;

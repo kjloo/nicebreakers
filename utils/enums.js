@@ -1,7 +1,9 @@
 const GameState = {
     GUESS: 'guess',
     HINT: 'hint',
-    ENTRY: 'entry'
+    STEAL: 'steal',
+    ENTRY: 'entry',
+    REVEAL: 'reveal'
 }
 
 exports.GameState = GameState;

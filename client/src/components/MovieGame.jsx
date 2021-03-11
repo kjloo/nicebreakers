@@ -21,6 +21,7 @@ const MovieGame = () => {
     const [teams, setTeams] = useState([]);
     const [state, setState] = useState(false);
     const [started, setStarted] = useState(false);
+    const [answer, setAnswer] = useState('');
 
     const { gameID } = useParams();
 
@@ -93,6 +94,11 @@ const MovieGame = () => {
         });
     }
 
+    // give answer
+    const giveAnswer = (right) => {
+        socket.emit('give answer', { right: right, state: state });
+    }
+
     // join team
     const joinTeam = (team) => {
         if (player.teamID !== team.id) {
@@ -117,6 +123,11 @@ const MovieGame = () => {
         socket.emit('start game');
     }
 
+    // next turn
+    const nextTurn = () => {
+        socket.emit('next turn');
+    }
+
     // chat message submit
     const submitMessage = (id, message) => {
         socket.emit('team chat', { id: id, message: message });
@@ -124,7 +135,7 @@ const MovieGame = () => {
 
     // set movie
     const submitMovie = (movie) => {
-        socket.emit('set movie', { movie: movie });
+        socket.emit('set answer', { answer: movie });
     }
 
     useEffect(() => {
@@ -136,6 +147,9 @@ const MovieGame = () => {
         socket.on('exception', (message) => {
             alert(message);
         });
+        socket.on('reveal answer', (answer) => {
+            setAnswer(answer);
+        })
         socket.on('start game', (s) => {
             console.log(s);
             setStarted(true);
@@ -187,6 +201,9 @@ const MovieGame = () => {
                 }
             }));
         });
+        socket.on('update teams', (t) => {
+            setTeams(t);
+        })
         return () => {
             socket.off('add team');
             socket.off('delete team');
@@ -197,7 +214,7 @@ const MovieGame = () => {
     return (
         <>
             <GameMenu title="Untitled Movie Game" >
-                {started ? <MovieInstruction player={player} onSubmit={submitMovie} onStop={alertStop} state={state} /> :
+                {started ? <MovieInstruction player={player} teams={teams} onSubmit={submitMovie} onStop={alertStop} onAnswer={giveAnswer} onNext={nextTurn} state={state} answer={answer} /> :
                     isEmpty(player) ? <UserForm onSubmit={submitPlayer} /> :
                         <GameSetup socket={socket} players={players} teams={teams} started={started} onStart={startGame} />
                 }
