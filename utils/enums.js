@@ -1,4 +1,5 @@
 const GameState = {
+    SETUP: 'setup',
     GUESS: 'guess',
     HINT: 'hint',
     STEAL: 'steal',

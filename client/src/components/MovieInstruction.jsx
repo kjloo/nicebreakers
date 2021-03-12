@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import enums from '../../../utils/enums.js';
+import enums from '../../../utils/enums';
 import FocusInput from './FocusInput';
 import Button from './Button';
 import AnswerValidator from './AnswerValidator';
 
-const MovieInstruction = ({ player, teams, onSubmit, onStop, onAnswer, onNext, state, answer }) => {
+const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
     const [movie, setMovie] = useState('');
     const [team, setTeam] = useState(undefined);
 
@@ -37,7 +37,7 @@ const MovieInstruction = ({ player, teams, onSubmit, onStop, onAnswer, onNext, s
                         {player.teamID === team.id &&
                             <>
                                 <h3>Hit This Button When You Know The Answer!</h3>
-                                <Button text="Stop" color="red" onClick={onStop} />
+                                <Button text="Stop" color="red" onClick={onNext} />
                             </>
                         }
                     </div >
@@ -45,20 +45,20 @@ const MovieInstruction = ({ player, teams, onSubmit, onStop, onAnswer, onNext, s
                 return player.turn ?
                     <>
                         <h3>Opposing Team Players Are Guessing</h3>
-                        <AnswerValidator onAnswer={onAnswer} />
+                        <AnswerValidator onAnswer={onNext} />
                     </> :
                     player.teamID === team.id ?
-                        <h3>Wait</h3> :
+                        <h3>Wait. Opponents Are Guessing</h3> :
                         <h3>Try To Steal</h3>
             case enums.GameState.GUESS:
                 return player.turn ?
                     <>
                         <h3>Players Are Guessing</h3>
-                        <AnswerValidator onAnswer={onAnswer} />
+                        <AnswerValidator onAnswer={onNext} />
                     </> :
                     player.teamID === team.id ?
                         <h3>Make A Guess</h3> :
-                        <h3>Wait</h3>
+                        <h3>Wait. Opponents Are Guessing</h3>
             case enums.GameState.REVEAL:
                 return <>
                     <h3>The Answer Is: {answer}</h3>
@@ -71,7 +71,7 @@ const MovieInstruction = ({ player, teams, onSubmit, onStop, onAnswer, onNext, s
     // submit team
     const submitMovie = (evt) => {
         evt.preventDefault();
-        onSubmit(movie);
+        onNext(movie);
         setMovie('');
     }
 

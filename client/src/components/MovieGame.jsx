@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
+import enums from '../../../utils/enums';
 import UserForm from './UserForm';
 import Teams from './Teams';
 import GameMenu from './GameMenu';
@@ -19,7 +20,7 @@ const MovieGame = () => {
     const [player, setPlayer] = useState({});
     const [players, setPlayers] = useState([]);
     const [teams, setTeams] = useState([]);
-    const [state, setState] = useState(false);
+    const [state, setState] = useState(enums.GameState.SETUP);
     const [started, setStarted] = useState(false);
     const [answer, setAnswer] = useState('');
 
@@ -33,9 +34,13 @@ const MovieGame = () => {
         return Object.keys(obj).length === 0;
     }
 
-    // alert stop
-    const alertStop = () => {
-        socket.emit('alert stop');
+    const nextState = (args = undefined) => {
+        if (args && args.type !== undefined) {
+            // ignore button evt click
+            args = undefined;
+        }
+        console.log(args);
+        socket.emit('next state', { state: state, args: args });
     }
 
     // get player
@@ -94,11 +99,6 @@ const MovieGame = () => {
         });
     }
 
-    // give answer
-    const giveAnswer = (right) => {
-        socket.emit('give answer', { right: right, state: state });
-    }
-
     // join team
     const joinTeam = (team) => {
         if (player.teamID !== team.id) {
@@ -117,25 +117,10 @@ const MovieGame = () => {
             return true;
         }
     }
-    // start game
-    const startGame = () => {
-        setStarted(true);
-        socket.emit('start game');
-    }
-
-    // next turn
-    const nextTurn = () => {
-        socket.emit('next turn');
-    }
 
     // chat message submit
     const submitMessage = (id, message) => {
         socket.emit('team chat', { id: id, message: message });
-    }
-
-    // set movie
-    const submitMovie = (movie) => {
-        socket.emit('set answer', { answer: movie });
     }
 
     useEffect(() => {
@@ -151,7 +136,6 @@ const MovieGame = () => {
             setAnswer(answer);
         })
         socket.on('start game', (s) => {
-            console.log(s);
             setStarted(true);
             setState(s);
         });
@@ -214,9 +198,9 @@ const MovieGame = () => {
     return (
         <>
             <GameMenu title="Untitled Movie Game" >
-                {started ? <MovieInstruction player={player} teams={teams} onSubmit={submitMovie} onStop={alertStop} onAnswer={giveAnswer} onNext={nextTurn} state={state} answer={answer} /> :
+                {started ? <MovieInstruction player={player} teams={teams} onNext={nextState} state={state} answer={answer} /> :
                     isEmpty(player) ? <UserForm onSubmit={submitPlayer} /> :
-                        <GameSetup socket={socket} players={players} teams={teams} started={started} onStart={startGame} />
+                        <GameSetup socket={socket} players={players} teams={teams} started={started} onStart={nextState} />
                 }
             </GameMenu>
             <Teams player={player} teams={teams} players={players} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />

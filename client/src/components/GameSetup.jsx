@@ -46,7 +46,6 @@ const GameSetup = ({ socket, players, teams, started, onStart }) => {
 
     useEffect(() => {
         processAcronym();
-
     }, [])
 
     return (

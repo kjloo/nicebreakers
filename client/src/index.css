@@ -177,7 +177,6 @@ ul.navbar li {
 }
 
 .game-container {
-  width: max-content;
   background-color: aliceblue;
   border-width: 1px;
   border-radius: 3rem;

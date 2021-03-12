@@ -261,6 +261,76 @@ const getChat = (player) => {
     return rc[0];
 }
 
+// Game State Machine
+const updateScore = (s, gameID, state) => {
+    // give point based on state
+    // give point to team with turn if GUESS else STEAL
+    let point = (state === enums.GameState.GUESS);
+    // get only teams in game
+    let game = getGame(gameID);
+    let teams = game.teamsCache;
+    // update score
+    game.teamsCache = teams.map((team) => {
+        if (team.turn === point) {
+            return { ...team, score: team.score + 1 }
+        } else {
+            return team;
+        }
+    });
+    // change turns
+    incrementGameState(s, gameID);
+    // back to beginning
+    revealAnswer(s, gameID);
+}
+
+const gameStateMachine = (s, gameID, state, args) => {
+    let game = getGame(gameID);
+    switch (state) {
+        case enums.GameState.SETUP:
+            // TO DO: Should probably validate game
+            // Send started to all
+            startGame(s, gameID);
+            // Cache all teams in game
+            let teamsCache = getTeams(gameID);
+            // Store players on teams
+            teamsCache = teamsCache.map((team) => {
+                let players = getPlayersOnTeam(team.id);
+                return { ...team, players: players, player_index: 0 };
+            });
+            game.teamsCache = teamsCache;
+            // Set first turn
+            incrementGameState(s, gameID);
+            break;
+        case enums.GameState.ENTRY:
+            game.answer = args;
+            updateState(s, gameID, enums.GameState.HINT);
+            break;
+        case enums.GameState.HINT:
+            updateState(s, gameID, enums.GameState.STEAL);
+            break;
+        case enums.GameState.STEAL:
+            if (args === true) {
+                updateScore(s, gameID, state);
+            } else {
+                updateState(s, gameID, enums.GameState.GUESS);
+            }
+            break;
+        case enums.GameState.GUESS:
+            if (args === true) {
+                updateScore(s, gameID, state);
+            } else {
+                // change turns
+                incrementGameState(s, gameID);
+                // back to beginning
+                revealAnswer(s, gameID);
+            }
+            break;
+        case enums.GameState.REVEAL:
+            updateState(s, gameID, enums.GameState.ENTRY);
+            break;
+    }
+}
+
 // Execute code
 setInterval(garbageCollection, timeout);
 
@@ -335,42 +405,8 @@ socket.on('connection', (s) => {
         s.emit('update player', player);
         updatePlayers(socket, gameID);
     });
-    s.on('alert stop', () => {
-        updateState(socket, gameID, enums.GameState.STEAL);
-    });
-    s.on('give answer', ({ right, state }) => {
-        if (right === true) {
-            // give point based on state
-            // give point to team with turn if GUESS else STEAL
-            let point = (state === enums.GameState.GUESS);
-            // get only teams in game
-            let game = getGame(gameID);
-            let teams = game.teamsCache;
-            // update score
-            game.teamsCache = teams.map((team) => {
-                if (team.turn === point) {
-                    return { ...team, score: team.score + 1 }
-                } else {
-                    return team;
-                }
-            });
-            // change turns
-            incrementGameState(socket, gameID);
-            // back to beginning
-            revealAnswer(socket, gameID);
-        } else {
-            if (state === enums.GameState.STEAL) {
-                updateState(socket, gameID, enums.GameState.GUESS);
-            } else {
-                // change turns
-                incrementGameState(socket, gameID);
-                // back to beginning
-                revealAnswer(socket, gameID);
-            }
-        }
-    });
-    s.on('next turn', () => {
-        updateState(socket, gameID, enums.GameState.ENTRY);
+    s.on('next state', ({ state, args }) => {
+        gameStateMachine(socket, gameID, state, args);
     });
     s.on('join team', ({ teamID }) => {
         let player = getPlayer(s.id);
@@ -418,36 +454,6 @@ socket.on('connection', (s) => {
             return (id !== team.id);
         });
         deleteTeam(socket, gameID, id);
-    });
-    s.on('update score', ({ teamID, score }) => {
-        global_teams = global_teams.map((team) => {
-            if (team.id === teamID) {
-                return { ...team, score: score };
-            }
-            return team;
-        });
-        updateTeams(s, gameID);
-    });
-    s.on('start game', () => {
-        // TO DO: Should probably validate game
-        // Send started to all
-        startGame(socket, gameID);
-        // Cache all teams in game
-        let game = getGame(gameID);
-        let teamsCache = getTeams(gameID);
-        // Store players on teams
-        teamsCache = teamsCache.map((team) => {
-            let players = getPlayersOnTeam(team.id);
-            return { ...team, players: players, player_index: 0 };
-        });
-        game.teamsCache = teamsCache;
-        // Set first turn
-        incrementGameState(socket, gameID);
-    });
-    s.on('set answer', ({ answer }) => {
-        let game = getGame(gameID);
-        game.answer = answer;
-        updateState(socket, gameID, enums.GameState.HINT);
     });
     s.on('team chat', ({ id, message }) => {
         let player = getPlayer(s.id);
