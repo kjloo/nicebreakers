@@ -3,17 +3,17 @@ import Button from './Button';
 
 const AnswerValidator = ({ onAnswer }) => {
     const rightAnswer = () => {
-        onAnswer(true);
+        onAnswer({ correct: true });
     }
 
     const wrongAnswer = () => {
-        onAnswer(false);
+        onAnswer({ correct: false });
     }
     return (
-        <>
+        <div>
             <Button text="Right" color="green" onClick={rightAnswer} />
             <Button text="Wrong" color="red" onClick={wrongAnswer} />
-        </>
+        </div>
     )
 }
 

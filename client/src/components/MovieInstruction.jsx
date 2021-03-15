@@ -19,6 +19,13 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
         }
     }
 
+    const endGame = () => {
+
+        if (confirm("Are you sure you want to end the game?")) {
+            onNext({ isEnd: true });
+        }
+    }
+
     // for understanding
     const render = () => {
         switch (state) {
@@ -60,10 +67,10 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
                         <h3>Make A Guess</h3> :
                         <h3>Wait. Opponents Are Guessing</h3>
             case enums.GameState.REVEAL:
-                return <>
+                return <div>
                     <h3>The Answer Is: {answer}</h3>
                     <Button text="Next" color="blue" onClick={onNext} />
-                </>
+                </div>
             default:
                 return <h3>No Instructions</h3>
         }
@@ -71,7 +78,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
     // submit team
     const submitMovie = (evt) => {
         evt.preventDefault();
-        onNext(movie);
+        onNext({ answer: movie });
         setMovie('');
     }
 
@@ -83,6 +90,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
         <div className="movie-instruction">
             {displayTeam()}
             {render()}
+            <Button text="End Game" color="firebrick" onClick={endGame} />
         </div>
     )
 }

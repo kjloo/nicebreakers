@@ -4,7 +4,8 @@ const GameState = {
     HINT: 'hint',
     STEAL: 'steal',
     ENTRY: 'entry',
-    REVEAL: 'reveal'
+    REVEAL: 'reveal',
+    END: 'end'
 }
 
 exports.GameState = GameState;

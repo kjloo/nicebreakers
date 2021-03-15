@@ -23,6 +23,7 @@ const MovieGame = () => {
     const [state, setState] = useState(enums.GameState.SETUP);
     const [started, setStarted] = useState(false);
     const [answer, setAnswer] = useState('');
+    const [winner, setWinner] = useState(undefined);
 
     const { gameID } = useParams();
 
@@ -39,8 +40,11 @@ const MovieGame = () => {
             // ignore button evt click
             args = undefined;
         }
-        console.log(args);
-        socket.emit('next state', { state: state, args: args });
+        if (args !== undefined && args.isEnd !== undefined && args.isEnd === true) {
+            socket.emit('next state', { state: enums.GameState.END, args: args });
+        } else {
+            socket.emit('next state', { state: state, args: args });
+        }
     }
 
     // get player
@@ -135,13 +139,16 @@ const MovieGame = () => {
         socket.on('reveal answer', (answer) => {
             setAnswer(answer);
         })
-        socket.on('start game', (s) => {
-            setStarted(true);
-            setState(s);
+        socket.on('set started', (s) => {
+            setStarted(s);
+        });
+        socket.on('set winner', (w) => {
+            // Set winner to display
+            setWinner(w);
         });
         socket.on('set state', (s) => {
             setState(s);
-        })
+        });
 
         return function handleCleanUp() {
             socket.disconnect();
@@ -198,6 +205,7 @@ const MovieGame = () => {
     return (
         <>
             <GameMenu title="Untitled Movie Game" >
+                {winner && <h3 style={{ color: winner.color }}>Team {winner.name} Wins!</h3>}
                 {started ? <MovieInstruction player={player} teams={teams} onNext={nextState} state={state} answer={answer} /> :
                     isEmpty(player) ? <UserForm onSubmit={submitPlayer} /> :
                         <GameSetup socket={socket} players={players} teams={teams} started={started} onStart={nextState} />

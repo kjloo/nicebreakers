@@ -251,6 +251,14 @@ const updateTeamState = (update) => {
     });
 }
 
+const resetScores = (s, gameID) => {
+    // update score
+    global_teams = global_teams.map((team) => {
+        return { ...team, score: 0 }
+    });
+    updateTeams(s, gameID);
+}
+
 // Get Chat
 const getChat = (player) => {
     // Only return chat with matching team id
@@ -268,9 +276,8 @@ const updateScore = (s, gameID, state) => {
     let point = (state === enums.GameState.GUESS);
     // get only teams in game
     let game = getGame(gameID);
-    let teams = game.teamsCache;
     // update score
-    game.teamsCache = teams.map((team) => {
+    game.teamsCache = game.teamsCache.map((team) => {
         if (team.turn === point) {
             return { ...team, score: team.score + 1 }
         } else {
@@ -289,7 +296,7 @@ const gameStateMachine = (s, gameID, state, args) => {
         case enums.GameState.SETUP:
             // TO DO: Should probably validate game
             // Send started to all
-            startGame(s, gameID);
+            setStarted(s, gameID, true);
             // Cache all teams in game
             let teamsCache = getTeams(gameID);
             // Store players on teams
@@ -300,23 +307,24 @@ const gameStateMachine = (s, gameID, state, args) => {
             game.teamsCache = teamsCache;
             // Set first turn
             incrementGameState(s, gameID);
+            updateState(s, gameID, enums.GameState.ENTRY);
             break;
         case enums.GameState.ENTRY:
-            game.answer = args;
+            game.answer = args.answer;
             updateState(s, gameID, enums.GameState.HINT);
             break;
         case enums.GameState.HINT:
             updateState(s, gameID, enums.GameState.STEAL);
             break;
         case enums.GameState.STEAL:
-            if (args === true) {
+            if (args.correct === true) {
                 updateScore(s, gameID, state);
             } else {
                 updateState(s, gameID, enums.GameState.GUESS);
             }
             break;
         case enums.GameState.GUESS:
-            if (args === true) {
+            if (args.correct === true) {
                 updateScore(s, gameID, state);
             } else {
                 // change turns
@@ -327,6 +335,15 @@ const gameStateMachine = (s, gameID, state, args) => {
             break;
         case enums.GameState.REVEAL:
             updateState(s, gameID, enums.GameState.ENTRY);
+            break;
+        case enums.GameState.END:
+            // Reset to beginning
+            setStarted(s, gameID, false);
+            // Set winner
+            setWinner(s, gameID);
+            // Set scores to 0
+            resetScores(s, gameID);
+            updateState(s, gameID, enums.GameState.SETUP);
             break;
     }
 }
@@ -353,8 +370,8 @@ const deleteTeam = (s, gameID, id) => {
     s.in(gameID).emit('delete team', id);
 }
 
-const startGame = (s, gameID) => {
-    s.in(gameID).emit('start game', enums.GameState.ENTRY);
+const setStarted = (s, gameID, started) => {
+    s.in(gameID).emit('set started', started);
 }
 
 const updateChat = (s, teamID, player) => {
@@ -370,6 +387,19 @@ const revealAnswer = (s, gameID) => {
 
 const updateState = (s, gameID, state) => {
     s.in(gameID).emit('set state', state);
+}
+
+const setWinner = (s, gameID) => {
+    // Get winner
+    let winner = global_teams.reduce((pre, next) => {
+        return pre.score > next.score ? pre : next;
+    });
+    // There might have been more than one team with the same score
+    const tie = global_teams.filter((team) => team.score === winner.score);
+    if (tie.length > 1) {
+        winner = undefined;
+    }
+    s.in(gameID).emit('set winner', winner);
 }
 
 const incrementGameState = (s, gameID) => {
