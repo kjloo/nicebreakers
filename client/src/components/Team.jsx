@@ -3,7 +3,7 @@ import Chat from './Chat';
 import Banner from './Banner';
 import Players from './Players';
 
-const Team = ({ player, team, players, onJoin, onSubmit, onDelete }) => {
+const Team = ({ player, team, data, players, onJoin, onSubmit, onDelete }) => {
     const [minimize, setMinimize] = useState(true);
 
     // handle click
@@ -35,7 +35,7 @@ const Team = ({ player, team, players, onJoin, onSubmit, onDelete }) => {
             {!minimize &&
                 <>
                     <Players players={players} title="Team Members" />
-                    <Chat player={player} data={team.data} id={team.id} onSubmit={onSubmit} />
+                    <Chat player={player} data={data} id={team.id} onSubmit={onSubmit} />
                 </>
             }
         </div>

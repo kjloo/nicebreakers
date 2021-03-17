@@ -118,8 +118,10 @@ ul.navbar li {
 
 .chat-list > li > .message {
   color: white;
-  border-radius: 2rem;
-  padding: 0.25rem;
+  border-radius: 1rem;
+  padding: 0.35rem;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .chat-list > li.self-message > .message {
@@ -251,7 +253,7 @@ ul.navbar li {
 
 .team-container {
   background-color: rgb(255, 255, 244);
-  width: max-content;
+  max-width: 14rem;
   height: fit-content;
   border-width: 1px;
   border-radius: 0.5rem;

@@ -251,22 +251,33 @@ const updateTeamState = (update) => {
     });
 }
 
-const resetScores = (s, gameID) => {
-    // update score
+const resetGameState = (s, gameID) => {
     global_teams = global_teams.map((team) => {
-        return { ...team, score: 0 }
+        if (team.gameID === gameID) {
+            return { ...team, score: 0, turn: false };
+        } else {
+            return team;
+        }
+    });
+    global_players = global_players.map((player) => {
+        if (player.gameID === gameID) {
+            return { ...player, turn: false };
+        } else {
+            return player;
+        }
     });
     updateTeams(s, gameID);
+    updatePlayers(s, gameID);
 }
 
 // Get Chat
 const getChat = (player) => {
     // Only return chat with matching team id
-    let rc = global_messages.filter((chat) => chat.teamID === player.teamID);
-    if (rc === undefined || rc.length !== 1) {
+    let rc = global_messages.find((chat) => chat.teamID === player.teamID);
+    if (rc === undefined) {
         return [];
     }
-    return rc[0];
+    return rc;
 }
 
 // Game State Machine
@@ -341,8 +352,8 @@ const gameStateMachine = (s, gameID, state, args) => {
             setStarted(s, gameID, false);
             // Set winner
             setWinner(s, gameID);
-            // Set scores to 0
-            resetScores(s, gameID);
+            // Reset game
+            resetGameState(s, gameID);
             updateState(s, gameID, enums.GameState.SETUP);
             break;
     }
@@ -490,17 +501,17 @@ socket.on('connection', (s) => {
         if (player === undefined || player.teamID !== id) {
             s.emit('exception', 'Not allowed to talk to another team.');
         } else {
-            let = chat_entry = { player: player, message: message };
+            let = chatEntry = { player: player, message: message };
             let chat = global_messages.find((chat) => chat.teamID === id);
             if (chat === undefined) {
                 // Create new entry
                 chat = {
                     teamID: id,
-                    data: [chat_entry]
+                    data: [chatEntry]
                 }
                 global_messages.push(chat);
             } else {
-                chat.data.push(chat_entry);
+                chat.data.push(chatEntry);
             }
             updateChat(socket, id, player);
         }

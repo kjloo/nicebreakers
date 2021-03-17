@@ -20,6 +20,7 @@ const MovieGame = () => {
     const [player, setPlayer] = useState({});
     const [players, setPlayers] = useState([]);
     const [teams, setTeams] = useState([]);
+    const [chat, setChat] = useState([]);
     const [state, setState] = useState(enums.GameState.SETUP);
     const [started, setStarted] = useState(false);
     const [answer, setAnswer] = useState('');
@@ -183,14 +184,8 @@ const MovieGame = () => {
             // do not update your team
             setTeams(teams.filter((team) => id !== team.id));
         });
-        socket.on('team chat', (chat) => {
-            setTeams(teams.map((team) => {
-                if (chat.teamID === team.id) {
-                    return { ...team, data: chat.data };
-                } else {
-                    return team;
-                }
-            }));
+        socket.on('team chat', (c) => {
+            setChat(c);
         });
         socket.on('update teams', (t) => {
             setTeams(t);
@@ -205,13 +200,17 @@ const MovieGame = () => {
     return (
         <>
             <GameMenu title="Untitled Movie Game" >
-                {winner && <h3 style={{ color: winner.color }}>Team {winner.name} Wins!</h3>}
-                {started ? <MovieInstruction player={player} teams={teams} onNext={nextState} state={state} answer={answer} /> :
-                    isEmpty(player) ? <UserForm onSubmit={submitPlayer} /> :
-                        <GameSetup socket={socket} players={players} teams={teams} started={started} onStart={nextState} />
+                {started ?
+                    <MovieInstruction player={player} teams={teams} onNext={nextState} state={state} answer={answer} /> :
+                    isEmpty(player) ?
+                        <UserForm onSubmit={submitPlayer} /> :
+                        <>
+                            {winner && <h3 style={{ color: winner.color }}>Team {winner.name} Wins!</h3>}
+                            <GameSetup socket={socket} players={players} teams={teams} started={started} onStart={nextState} />
+                        </>
                 }
             </GameMenu>
-            <Teams player={player} teams={teams} players={players} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />
+            <Teams player={player} teams={teams} chat={chat} players={players} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />
         </>
 
     )
