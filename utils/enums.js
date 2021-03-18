@@ -1,4 +1,4 @@
-const GameState = {
+exports.GameState = {
     SETUP: 'setup',
     GUESS: 'guess',
     HINT: 'hint',
@@ -7,5 +7,3 @@ const GameState = {
     REVEAL: 'reveal',
     END: 'end'
 }
-
-exports.GameState = GameState;

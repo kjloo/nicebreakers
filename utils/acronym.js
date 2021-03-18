@@ -27,7 +27,7 @@ const acronym_table = {
     Z: ['Zebra', 'Zillion', 'Zygote', 'Zealot', 'Zeitgeist', 'Zenith', 'Zephyr', 'Zigzag', 'Zipline', 'Zipper']
 }
 
-const processAcronym = (code) => {
+exports.processAcronym = (code) => {
     let rc = []
     // get a word for each letter
     for (let i = 0; i < code.length; i++) {
@@ -38,5 +38,3 @@ const processAcronym = (code) => {
     }
     return rc.join(' ');
 }
-
-exports.processAcronym = processAcronym;
