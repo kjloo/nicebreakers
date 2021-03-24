@@ -14,13 +14,12 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
     }
 
     const displayTeam = () => {
-        if (team !== undefined) {
+        if ((team !== undefined) && (state !== enums.GameState.REVEAL)) {
             return <h2 style={{ color: team.color }}> Team {team.name}'s Turn</h2>
         }
     }
 
     const endGame = () => {
-
         if (confirm("Are you sure you want to end the game?")) {
             onNext({ isEnd: true });
         }

@@ -21,7 +21,7 @@ const GameSetup = ({ socket, players, teams, started, onStart }) => {
         return ((players.length > 1) &&
             (teams.length > 1) &&
             (players.every((player) => player.teamID > 0)) &&
-            (teams.every((team) => (players.find((player) => player.teamID === team.id) !== undefined))) &&
+            (teams.every((team) => (team.players.length > 0))) &&
             !started);
     }
 

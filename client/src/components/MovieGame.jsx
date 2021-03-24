@@ -210,7 +210,7 @@ const MovieGame = () => {
                         </>
                 }
             </GameMenu>
-            <Teams player={player} teams={teams} chat={chat} players={players} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />
+            <Teams player={player} teams={teams} chat={chat} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />
         </>
 
     )
