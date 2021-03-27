@@ -1,16 +1,14 @@
 const express = require('express');
 const path = require('path');
-const acronym = require('../utils/acronym');
-const codes = require('../utils/codes');
-const filters = require('../utils/filters');
+const acronym = require('./acronym');
+const codes = require('./codes');
+const filters = require('./filters');
+const movieState = require('./movieState');
 const router = express.Router()
 
 // consts
 const codeLength = 4;
 
-// In memory data
-let globalGames = [];
-let globalMessages = [];
 let playerCache = {};
 
 // Middleware
@@ -41,7 +39,7 @@ router.get('/player', function (req, res) {
 
 router.get('/players', function (req, res) {
     const gameID = req.query.gameID;
-    const game = filters.getByID(globalGames, gameID);
+    const game = filters.getByID(movieState.globalGames, gameID);
     const players = filters.getPlayers(game);
     const data = {
         players: players
@@ -53,7 +51,7 @@ router.get('/players', function (req, res) {
 router.get('/teams', function (req, res) {
     let gameID = req.query.gameID;
     // retrieve game and return its teams
-    let game = filters.getByID(globalGames, gameID);
+    let game = filters.getByID(movieState.globalGames, gameID);
     let data = {
         teams: game.teams
     };
@@ -63,7 +61,7 @@ router.get('/teams', function (req, res) {
 
 router.get('/movie/game/', function (req, res) {
     let player = req.query.player;
-    let gameID = req.query.gameID === undefined ? codes.generateGameCode(globalGames, codeLength) : req.query.gameID;
+    let gameID = req.query.gameID === undefined ? codes.generateGameCode(movieState.globalGames, codeLength) : req.query.gameID;
     // register player name in cache
     playerCache[gameID] = player;
 
@@ -95,7 +93,7 @@ const validateGameID = (res, gameID) => {
     if (gameID.length !== codeLength) {
         res.send("Invalid GameID");
     }
-    else if (filters.getByID(globalGames, gameID) === undefined) {
+    else if (filters.getByID(movieState.globalGames, gameID) === undefined) {
         let game = {
             id: gameID,
             teamIndex: 0,
@@ -103,12 +101,10 @@ const validateGameID = (res, gameID) => {
             players: [],
             answer: ""
         }
-        globalGames.push(game);
+        movieState.globalGames.push(game);
     }
 }
 
 module.exports = {
-    router: router,
-    globalGames: globalGames,
-    globalMessages: globalMessages
+    router: router
 }

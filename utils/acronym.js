@@ -1,5 +1,5 @@
 const acronym_table = {
-    A: ['Apple', 'Almond', 'Albino', 'Athlete', 'Ass', 'Alien', 'Alpaca', 'America', 'Australia'],
+    A: ['Apple', 'Almond', 'Albino', 'Athlete', 'Assassin', 'Assistant', 'Astronomer', 'Alien', 'Alpaca', 'America', 'Australia', 'Africa', 'Anonymous'],
     B: ['Banana', 'Basket', 'Bassoon', 'Bee', 'Bass', 'Brunch', 'Breakfast', 'Bunny', 'Boston'],
     C: ['Cast', 'Crow', 'Case', 'Child', 'Church', 'Chicken', 'Chile', 'Capcom', 'Captain', 'Century'],
     D: ['Dinosaur', 'Disc', 'Dog', 'Dad', 'Destiny', 'Daffodil', 'Dunkirk', 'Devil', 'Darkness'],
@@ -14,7 +14,7 @@ const acronym_table = {
     M: ['Master', 'Monster', 'Magic', 'Minister', 'Music', 'Musical', 'Mustard', 'Mayor', 'Manor', 'March'],
     N: ['Nun', 'Noon', 'Nap', 'Nixon', 'Nickel', 'Nine', 'Next', 'Nexus', 'Ninety', 'Neptune', 'Normandy', 'Number'],
     O: ['Option', 'Orange', 'Original', 'Order', 'One', 'Octagon', 'Oval', 'Ostrich', 'Opal', 'Orangutan'],
-    P: ['Pokemon', 'People', 'Pineapple', 'Peach', 'Pipe', 'Pistol', 'Pervert', 'Person', 'Pasta', 'Porche'],
+    P: ['Peru', 'Pokemon', 'People', 'Pineapple', 'Peach', 'Pipe', 'Pistol', 'Periscope', 'Pork', 'Picture', 'Pascal', 'Person', 'Pasta', 'Porche'],
     Q: ['Quilt', 'Quest', 'Quale', 'Queen', 'Query', 'Quack', 'Question', 'Quitter'],
     R: ['Reader', 'Raspberry', 'Rock', 'Rope', 'Revolver', 'Rome', 'Romeo', 'Rust'],
     S: ['Salmon', 'Silver', 'Sword', 'Silk', 'Seven', 'Shroud', 'Saxaphone', 'Service', 'Serpent', 'Snake', 'Sniper'],
