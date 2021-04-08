@@ -9,7 +9,7 @@
     "debug-client": "webpack serve --config client/webpack.config.js --open --mode=development",
     "webpack:build": "webpack --config client/webpack.config.js --mode=production --watch",
     "webpack:client": "nodemon --watch client/build --exec cp -r client/build server",
-    "webpack:server": "nodemon --watch server --exec npm run start",
+    "webpack:server": "nodemon --watch server --watch utils --exec npm run start",
     "dev": "npm-run-all --parallel webpack:*"
   },
   "author": "Kaleb Loo",

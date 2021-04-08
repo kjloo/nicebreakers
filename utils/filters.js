@@ -1,12 +1,24 @@
 exports.getByID = (list, id) => {
+    if (!list)
+    {
+        return undefined;
+    }
     return list.find((item) => item.id === id);
 }
 
 exports.getByGameID = (list, gameID) => {
+    if (!list)
+    {
+        return undefined;
+    }
     return list.filter((item) => item.gameID === gameID);
 }
 
 exports.getByTeamID = (list, teamID) => {
+    if (!list)
+    {
+        return undefined;
+    }
     return list.filter((item) => item.teamID === teamID);
 }
 

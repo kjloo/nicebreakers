@@ -1,64 +1,130 @@
-const enums = require('./enums');
+const io = require('socket.io');
 const filters = require('./filters');
+const codes = require('./codes');
+const movieState = require('./movieState');
+const movieEmitter = require('./movieEmitter');
 
-// Socket functions
-const updatePlayers = (s, game) => {
-    s.in(game.id).emit('update players', filters.getPlayers(game));
-}
+const createSocket = (server) => {
+    const socket = io(server);
+    socket.on('connection', (s) => {
+        const gameID = s.handshake.query['gameID'];
+        const game = filters.getByID(movieState.globalGames, gameID);
+        if (game !== undefined) {
+            s.on('add player', ({ name }) => {
+                s.join(gameID);
+                // Check if team name and color exist
+                let players = filters.getPlayers(game);
+                if (players.find((player) => (name === player.name) && (gameID === player.gameID)) !== undefined) {
+                    s.emit('exception', 'Name is taken!');
+                    return;
+                }
+                // Create Player
+                player = {
+                    id: s.id,
+                    name: name,
+                    turn: false,
+                    teamID: -1
+                }
+                game.players.push(player);
+                s.emit('update player', player);
+                movieEmitter.updatePlayers(socket, game);
+            });
+            s.on('next state', ({ state, args }) => {
+                movieState.gameStateMachine(socket, game, state, args);
+            });
+            s.on('join team', ({ teamID }) => {
+                let player = filters.getByID(filters.getPlayers(game), s.id);
+                if (player === undefined) {
+                    s.emit('exception', 'Player is not registered');
+                } else {
+                    // check if unassigned
+                    if (player.teamID === -1) {
+                        game.players = game.players.filter((p) => p.id !== player.id);
 
-const updateTeams = (s, game) => {
-    s.in(game.id).emit('update teams', game.teams);
-}
+                    } else {
+                        // remove from team
+                        s.leave(player.teamID);
+                        let team = filters.getByID(game.teams, player.teamID);
+                        team.players = team.players.filter((p) => p.id !== player.id);
+                    }
+                    // add to team
+                    s.join(teamID);
+                    player.teamID = teamID;
+                    team = filters.getByID(game.teams, teamID);
+                    team.players.push(player);
 
-const addTeam = (s, gameID, team) => {
-    // need to tell everyone changes in teams
-    s.in(gameID).emit('add team', team);
-}
-
-const deleteTeam = (s, gameID, id) => {
-    // need to tell everyone changes in teams
-    s.in(gameID).emit('delete team', id);
-}
-
-const setStarted = (s, gameID, started) => {
-    s.in(gameID).emit('set started', started);
-}
-
-const updateChat = (s, teamID, chat) => {
-    // should only go to members of team
-    s.in(teamID).emit('team chat', chat);
-}
-
-const revealAnswer = (s, game) => {
-    s.in(game.id).emit('reveal answer', game.answer);
-    updateState(s, game.id, enums.GameState.REVEAL);
-}
-
-const updateState = (s, gameID, state) => {
-    s.in(gameID).emit('set state', state);
-}
-
-const setWinner = (s, game) => {
-    // Get winner
-    let winner = game.teams.reduce((pre, next) => {
-        return pre.score > next.score ? pre : next;
+                    s.emit('update player', player);
+                    movieEmitter.updateTeams(socket, game);
+                    movieEmitter.updatePlayers(socket, game);
+                    movieEmitter.updateChat(socket, player.teamID, movieState.getChat(player));
+                }
+            });
+            s.on('add team', ({ name, color }) => {
+                // Check if team name and color exist
+                if (game.teams.find((team) => (name === team.name)) !== undefined) {
+                    s.emit('exception', 'Team name is taken!');
+                    return;
+                }
+                if (game.teams.find((team) => (color === team.color)) !== undefined) {
+                    s.emit('exception', 'Color is taken!');
+                    return;
+                }
+                // Create Team
+                team = {
+                    id: codes.generateTeamID(game.teams),
+                    name: name,
+                    color: color,
+                    score: 0,
+                    turn: false,
+                    players: [],
+                    playerIndex: 0
+                }
+                game.teams.push(team);
+                movieEmitter.addTeam(socket, game.id, team);
+            });
+            s.on('delete team', ({ id }) => {
+                game.teams = game.teams.filter((team) => {
+                    return (id !== team.id);
+                });
+                movieEmitter.deleteTeam(socket, game.id, id);
+            });
+            s.on('team chat', ({ id, message }) => {
+                let player = filters.getByID(filters.getPlayers(game), s.id);
+                if (player === undefined || player.teamID !== id) {
+                    s.emit('exception', 'Not allowed to talk to another team.');
+                } else {
+                    const chatEntry = { player: player, message: message };
+                    let chat = movieState.globalMessages.find((chat) => chat.teamID === id);
+                    if (chat === undefined) {
+                        // Create new entry
+                        chat = {
+                            teamID: id,
+                            data: [chatEntry]
+                        }
+                        movieState.globalMessages.push(chat);
+                    } else {
+                        chat.data.push(chatEntry);
+                    }
+                    movieEmitter.updateChat(socket, id, movieState.getChat(player));
+                }
+            });
+            s.on('disconnect', () => {
+                if (game !== undefined) {
+                    // Delete player
+                    game.players = game.players.filter((player) => player.id !== s.id);
+                    // Remove from teams
+                    game.teams = game.teams.map((team) => {
+                        return { ...team, players: team.players.filter((player) => player.id !== s.id) };
+                    })
+                    movieEmitter.updatePlayers(socket, game);
+                }
+            });
+        } else {
+            console.error("Could not get gameID!");
+        }
     });
-    // There might have been more than one team with the same score
-    const tie = game.teams.filter((team) => team.score === winner.score);
-    if (tie.length > 1) {
-        winner = undefined;
-    }
-    s.in(game.id).emit('set winner', winner);
-}
+};
 
 module.exports = {
-    addTeam: addTeam,
-    deleteTeam: deleteTeam,
-    revealAnswer: revealAnswer,
-    setStarted: setStarted,
-    setWinner: setWinner,
-    updateChat: updateChat,
-    updatePlayers: updatePlayers,
-    updateState: updateState,
-    updateTeams: updateTeams
+    createSocket: createSocket
 }

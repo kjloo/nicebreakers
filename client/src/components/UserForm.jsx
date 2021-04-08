@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import FocusInput from './FocusInput'
 
-const UserForm = ({ onSubmit }) => {
+const UserForm = ({ onSubmit, text }) => {
     const [name, setName] = useState('');
 
     // handle submit
@@ -12,10 +12,15 @@ const UserForm = ({ onSubmit }) => {
 
     return (
         <form className='option-form' onSubmit={handleSubmit}>
-            <FocusInput type='text' value={name} placeholder="Enter Name" onChange={(e) => setName(e.target.value)} required="required" />
+            <FocusInput type='text' value={name} placeholder={text} onChange={(e) => setName(e.target.value)} required="required" />
             <input type='submit' value="Submit" />
         </form>
     )
+}
+
+UserForm.defaultProps = {
+    text: 'Enter Name',
+    onSubmit: (name) => { }
 }
 
 export default UserForm;

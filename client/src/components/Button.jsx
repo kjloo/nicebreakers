@@ -1,9 +1,9 @@
 import React from 'react';
 
-const Button = ({ color, text, disabled, onClick }) => {
+const Button = ({ color, text, type, disabled, onClick }) => {
 
     return (
-        <button onClick={onClick} disabled={disabled} style={{ backgroundColor: disabled ? 'grey' : color }}
+        <button onClick={onClick} type={type} disabled={disabled} style={{ backgroundColor: disabled ? 'grey' : color }}
             className='btn'>
             {text}
         </button>
@@ -12,6 +12,7 @@ const Button = ({ color, text, disabled, onClick }) => {
 
 Button.defaultProps = {
     color: 'steelblue',
+    type: 'button',
     text: 'Click Me',
     disabled: false,
     onClick: () => { }
