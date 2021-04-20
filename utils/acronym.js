@@ -14,7 +14,7 @@ const acronym_table = {
     M: ['Master', 'Monster', 'Magic', 'Minister', 'Music', 'Musical', 'Mustard', 'Mayor', 'Manor', 'March'],
     N: ['Nun', 'Noon', 'Nap', 'Nixon', 'Nickel', 'Nine', 'Next', 'Nexus', 'Ninety', 'Neptune', 'Normandy', 'Number'],
     O: ['Option', 'Orange', 'Original', 'Order', 'One', 'Octagon', 'Oval', 'Ostrich', 'Opal', 'Orangutan'],
-    P: ['Peru', 'Pokemon', 'People', 'Pineapple', 'Peach', 'Pipe', 'Pistol', 'Periscope', 'Pork', 'Picture', 'Pascal', 'Person', 'Pasta', 'Porche'],
+    P: ['Pharaoh', 'Peru', 'Pokemon', 'People', 'Pineapple', 'Peach', 'Pipe', 'Pistol', 'Periscope', 'Pork', 'Picture', 'Pascal', 'Person', 'Pasta', 'Porche'],
     Q: ['Quilt', 'Quest', 'Quale', 'Queen', 'Query', 'Quack', 'Question', 'Quitter'],
     R: ['Reader', 'Raspberry', 'Rock', 'Rope', 'Revolver', 'Rome', 'Romeo', 'Rust'],
     S: ['Salmon', 'Silver', 'Sword', 'Silk', 'Seven', 'Shroud', 'Saxaphone', 'Service', 'Serpent', 'Snake', 'Sniper'],
@@ -29,6 +29,7 @@ const acronym_table = {
 
 exports.processAcronym = (code) => {
     let rc = []
+    code = code.toUpperCase();
     // get a word for each letter
     for (let i = 0; i < code.length; i++) {
         let letter = code.charAt(i);

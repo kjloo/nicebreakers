@@ -3,18 +3,25 @@ const filters = require('./filters');
 const movieEmitter = require('./movieEmitter');
 
 // const assets
-let globalGames = [];
+let globalGames = new Map();
 let globalMessages = [];
 
 // Garbage collection
 const garbageCollection = () => {
     // remove any inactive game ids
-    globalGames = globalGames.filter((game) => {
-        return (filters.getPlayers(game).length === 0);
+    globalGames.forEach((game, key, map) => {
+        if (filters.getPlayers(game).length === 0) {
+            map.delete(key);
+            console.log("Removed inactive game: " + key);
+        }
     });
 }
 
 // Read/Write Game State
+const isGameStarted = (game) => {
+    return game.state !== enums.GameState.SETUP;
+}
+
 const getCurrentPlayer = (teams, gameState) => {
     // Get player
     const playerIndex = teams[gameState.teamIndex].playerIndex;
@@ -58,6 +65,10 @@ const changeTeamTurns = (teams, gameState) => {
 const changePlayerTurns = (teams, gameState) => {
     // Set old player to false
     let player = getCurrentPlayer(teams, gameState);
+    if (player === undefined) {
+        console.error("Could not get player");
+        return;
+    }
     player.turn = false;
 
     // Change teams
@@ -69,6 +80,8 @@ const changePlayerTurns = (teams, gameState) => {
 }
 
 const resetGameState = (s, game) => {
+    // Delete cached players
+    game.cachedPlayers = [];
     game.teams = game.teams.map((team) => {
         return {
             ...team, score: 0, turn: false, players: team.players.map((player) => {
@@ -122,9 +135,6 @@ const updateScore = (s, game, state) => {
 const gameStateMachine = (s, game, state, args) => {
     switch (state) {
         case enums.GameState.SETUP:
-            // TO DO: Should probably validate game
-            // Send started to all
-            movieEmitter.setStarted(s, game.id, true);
             // Set first turn
             incrementGameState(s, game);
             movieEmitter.updateState(s, game.id, enums.GameState.ENTRY);
@@ -158,7 +168,6 @@ const gameStateMachine = (s, game, state, args) => {
             break;
         case enums.GameState.END:
             // Reset to beginning
-            movieEmitter.setStarted(s, game.id, false);
             // Set winner
             movieEmitter.setWinner(s, game);
             // Reset game
@@ -181,6 +190,7 @@ module.exports = {
     incrementGameState: incrementGameState,
     incrementPlayerIndex: incrementPlayerIndex,
     incrementTeamIndex: incrementTeamIndex,
+    isGameStarted: isGameStarted,
     resetGameState: resetGameState,
     updateScore: updateScore,
 }

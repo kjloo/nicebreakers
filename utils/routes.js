@@ -2,7 +2,9 @@ const express = require('express');
 const path = require('path');
 const acronym = require('./acronym');
 const codes = require('./codes');
+const enums = require('./enums');
 const filters = require('./filters');
+const structs = require('./structs');
 const movieState = require('./movieState');
 const router = express.Router()
 
@@ -18,11 +20,16 @@ router.use(express.static(path.join(__basedir, 'build')));
 router.get('/acronym', function (req, res) {
     // Get code
     gameID = req.query.gameID;
-    // Process
-    data = {
-        decode: acronym.processAcronym(gameID)
+    if (gameID.length !== codeLength) {
+        console.log("Invalid Code: " + gameID);
+        res.sendStatus(404);
+    } else {
+        // Process
+        data = {
+            decode: acronym.processAcronym(gameID)
+        }
+        res.json(data);
     }
-    res.json(data);
 })
 
 router.get('/player', function (req, res) {
@@ -39,7 +46,7 @@ router.get('/player', function (req, res) {
 
 router.get('/players', function (req, res) {
     const gameID = req.query.gameID;
-    const game = filters.getByID(movieState.globalGames, gameID);
+    const game = movieState.globalGames.get(gameID);
     const players = filters.getPlayers(game);
     const data = {
         players: players
@@ -48,12 +55,24 @@ router.get('/players', function (req, res) {
     res.json(data);
 })
 
-router.get('/teams', function (req, res) {
-    let gameID = req.query.gameID;
+router.get('/state', function (req, res) {
+    const gameID = req.query.gameID;
     // retrieve game and return its teams
-    let game = filters.getByID(movieState.globalGames, gameID);
+    const game = movieState.globalGames.get(gameID);
     let data = {
-        teams: game.teams
+        state: game.state
+    };
+
+    res.json(data);
+})
+
+router.get('/teams', function (req, res) {
+    const gameID = req.query.gameID;
+    // retrieve game and return its teams
+    const game = movieState.globalGames.get(gameID);
+    const teams = filters.getTeams(game);
+    let data = {
+        teams: teams
     };
 
     res.json(data);
@@ -93,15 +112,10 @@ const validateGameID = (res, gameID) => {
     if (gameID.length !== codeLength) {
         res.send("Invalid GameID");
     }
-    else if (filters.getByID(movieState.globalGames, gameID) === undefined) {
-        let game = {
-            id: gameID,
-            teamIndex: 0,
-            teams: [],
-            players: [],
-            answer: ""
-        }
-        movieState.globalGames.push(game);
+    else if (movieState.globalGames.get(gameID) === undefined) {
+        let game = new structs.Game(gameID, 0, [], new Map(), [], enums.GameState.SETUP, "");
+        movieState.globalGames.set(gameID, game);
+        console.log("Created Game: " + gameID);
     }
 }
 

@@ -50,7 +50,10 @@ const Chat = ({ player, data, id, onSubmit }) => {
 }
 
 Chat.defaultProps = {
-    data: []
+    player: undefined,
+    data: [],
+    id: -1,
+    onSubmit: () => { }
 }
 
 export default Chat;

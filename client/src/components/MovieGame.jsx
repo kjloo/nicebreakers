@@ -12,8 +12,13 @@ import MovieInstruction from './MovieInstruction';
 let socket;
 const initializeSocket = (gameID) => {
     socket = io("http://chingloo.zapto.org:1111", {
-        query: `gameID=${gameID}`
+        reonnection: true,
+        reconnectionDelayMax: 10000,
+        query: {
+            "gameID": gameID
+        }
     });
+    socket.connect();
 }
 
 const MovieGame = () => {
@@ -22,7 +27,6 @@ const MovieGame = () => {
     const [teams, setTeams] = useState([]);
     const [chat, setChat] = useState([]);
     const [state, setState] = useState(enums.GameState.SETUP);
-    const [started, setStarted] = useState(false);
     const [answer, setAnswer] = useState('');
     const [winner, setWinner] = useState(undefined);
 
@@ -71,7 +75,7 @@ const MovieGame = () => {
     }
     // get players
     const getPlayers = () => {
-        // Request current teams
+        // Request current players
         axios({
             method: 'get',
             url: '/players',
@@ -83,6 +87,20 @@ const MovieGame = () => {
             if (response.data.players.length === 0) {
                 getDefaultPlayer();
             }
+        });
+    }
+
+    // get state
+    const getState = () => {
+        // Request state
+        axios({
+            method: 'get',
+            url: '/state',
+            params: {
+                gameID: gameID
+            }
+        }).then((response) => {
+            setState(response.data.state);
         });
     }
 
@@ -104,10 +122,14 @@ const MovieGame = () => {
         });
     }
 
+    const isStarted = () => {
+        return state !== enums.GameState.SETUP;
+    }
+
     // join team
     const joinTeam = (team) => {
         if (player.teamID !== team.id) {
-            if (started) {
+            if (isStarted()) {
                 alert('Game Already Started');
             } else {
                 if (confirm(`Join Team ${team.name}`)) {
@@ -132,6 +154,7 @@ const MovieGame = () => {
         initializeSocket(gameID);
 
         getPlayers();
+        getState();
         getTeams();
 
         socket.on('exception', (message) => {
@@ -140,15 +163,15 @@ const MovieGame = () => {
         socket.on('reveal answer', (answer) => {
             setAnswer(answer);
         })
-        socket.on('set started', (s) => {
-            setStarted(s);
-        });
         socket.on('set winner', (w) => {
             // Set winner to display
             setWinner(w);
         });
         socket.on('set state', (s) => {
             setState(s);
+        });
+        socket.on('reconnect', () => {
+            socket.emit('reconnect');
         });
 
         return function handleCleanUp() {
@@ -194,19 +217,20 @@ const MovieGame = () => {
             socket.off('add team');
             socket.off('delete team');
             socket.off('team chat');
+            socket.off('update teams');
         }
     }, [teams]);
 
     return (
         <>
             <GameMenu title="Untitled Movie Game" >
-                {started ?
-                    <MovieInstruction player={player} teams={teams} onNext={nextState} state={state} answer={answer} /> :
-                    isEmpty(player) ?
-                        <UserForm onSubmit={submitPlayer} /> :
+                {isEmpty(player) ?
+                    <UserForm onSubmit={submitPlayer} /> :
+                    isStarted() ?
+                        <MovieInstruction player={player} teams={teams} onNext={nextState} state={state} answer={answer} /> :
                         <>
                             {winner && <h3 style={{ color: winner.color }}>Team {winner.name} Wins!</h3>}
-                            <GameSetup socket={socket} players={players} teams={teams} started={started} onStart={nextState} />
+                            <GameSetup socket={socket} players={players} teams={teams} started={isStarted()} onStart={nextState} />
                         </>
                 }
             </GameMenu>

@@ -6,10 +6,14 @@ import Players from './Players';
 const Team = ({ player, team, data, onJoin, onSubmit, onDelete }) => {
     const [minimize, setMinimize] = useState(true);
 
+    const isOnTeam = () => {
+        return player.teamID === team.id;
+    }
+
     // handle click
     const bannerClick = () => {
         if (onJoin(team)) {
-            setMinimize(!minimize);
+            setMinimize(!isOnTeam() || !minimize);
         } else {
             setMinimize(true);
         }
@@ -24,8 +28,8 @@ const Team = ({ player, team, data, onJoin, onSubmit, onDelete }) => {
     }
 
     useEffect(() => {
-        setMinimize(player.teamID !== team.id);
-    }, [player]);
+        setMinimize(!isOnTeam());
+    }, [player, team]);
 
     return (
         <div className="team-container">

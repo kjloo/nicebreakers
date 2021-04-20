@@ -3,11 +3,13 @@ const filters = require('./filters');
 
 // Socket functions
 const updatePlayers = (s, game) => {
-    s.in(game.id).emit('update players', filters.getPlayers(game));
+    const players = filters.getPlayers(game);
+    s.in(game.id).emit('update players', players);
 }
 
 const updateTeams = (s, game) => {
-    s.in(game.id).emit('update teams', game.teams);
+    const teams = filters.getTeams(game);
+    s.in(game.id).emit('update teams', teams);
 }
 
 const addTeam = (s, gameID, team) => {
@@ -18,10 +20,6 @@ const addTeam = (s, gameID, team) => {
 const deleteTeam = (s, gameID, id) => {
     // need to tell everyone changes in teams
     s.in(gameID).emit('delete team', id);
-}
-
-const setStarted = (s, gameID, started) => {
-    s.in(gameID).emit('set started', started);
 }
 
 const updateChat = (s, teamID, chat) => {
@@ -55,7 +53,6 @@ module.exports = {
     addTeam: addTeam,
     deleteTeam: deleteTeam,
     revealAnswer: revealAnswer,
-    setStarted: setStarted,
     setWinner: setWinner,
     updateChat: updateChat,
     updatePlayers: updatePlayers,

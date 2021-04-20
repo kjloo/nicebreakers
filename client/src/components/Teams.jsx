@@ -9,11 +9,16 @@ const Teams = ({ player, teams, chat, onJoin, onSubmit, onDelete }) => {
             return [];
         }
     }
+    const createTeamsFooter = () => {
+        if (teams.length > 0) {
+            return teams.map((team) => {
+                return <Team id={team.id} team={team} data={getChatData(team)} player={player} onJoin={onJoin} onSubmit={onSubmit} onDelete={onDelete} />
+            });
+        }
+    }
     return (
         <div className="teams-footer">
-            {teams.length > 0 && teams.map((team) => {
-                return <Team id={team.id} team={team} data={getChatData(team)} player={player} onJoin={onJoin} onSubmit={onSubmit} onDelete={onDelete} />
-            })}
+            {createTeamsFooter()}
         </div>
     )
 }

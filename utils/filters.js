@@ -1,36 +1,64 @@
-exports.getByID = (list, id) => {
-    if (!list)
-    {
+const getByID = (list, id) => {
+    if (!list) {
         return undefined;
     }
     return list.find((item) => item.id === id);
 }
 
-exports.getByGameID = (list, gameID) => {
-    if (!list)
-    {
+const findByFilter = (map, filter) => {
+    if (!map) {
         return undefined;
     }
-    return list.filter((item) => item.gameID === gameID);
+    for (let [key, item] of map.entries()) {
+        if (filter(item)) {
+            return item;
+        }
+    }
+    return undefined;
 }
 
-exports.getByTeamID = (list, teamID) => {
-    if (!list)
-    {
+const getByGameID = (map, gameID) => {
+    if (!map) {
+        return undefined;
+    }
+    return findByFilter(map, (item) => item.gameID === gameID);
+}
+
+const getByTeamID = (list, teamID) => {
+    if (!list) {
         return undefined;
     }
     return list.filter((item) => item.teamID === teamID);
 }
 
-
+// Get Player
+const getPlayer = (game, id) => {
+    const players = getPlayers(game);
+    const player = getByID(players, id);
+    return player;
+}
 // Get Players
-exports.getPlayers = (game) => {
-    let players = game.players
+const getPlayers = (game) => {
+    let players = Array.from(game.players.values());
     // iterate through teams in game
     if (game.teams.length !== 0) {
         players = players.concat(game.teams.reduce((pre, next) => {
-            return { players: pre.players.concat(next.players) }
-        }).players);
+            return pre.concat(next.players);
+        }, []));
     }
     return players;
+}
+
+const getTeams = (game) => {
+    return game.teams;
+}
+
+module.exports = {
+    getByID: getByID,
+    findByFilter: findByFilter,
+    getByGameID: getByGameID,
+    getByTeamID: getByTeamID,
+    getPlayer: getPlayer,
+    getPlayers: getPlayers,
+    getTeams: getTeams
 }

@@ -11,7 +11,7 @@ const generateCode = (codeLength) => {
 // Create Game Code
 exports.generateGameCode = (games, codeLength) => {
     let code = generateCode(codeLength);
-    while (games.find((game) => game.id === code) !== undefined) {
+    while (games.has(code)) {
         code = generateCode(codeLength);
     }
     return code;
