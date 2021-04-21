@@ -29,11 +29,13 @@ const updateChat = (s, teamID, chat) => {
 
 const revealAnswer = (s, game) => {
     s.in(game.id).emit('reveal answer', game.answer);
-    updateState(s, game.id, enums.GameState.REVEAL);
+    updateState(s, game, enums.GameState.REVEAL);
 }
 
-const updateState = (s, gameID, state) => {
-    s.in(gameID).emit('set state', state);
+const updateState = (s, game, state) => {
+    game.state = state;
+    console.log("Game " + game.id + " State: " + game.state);
+    s.in(game.id).emit('set state', state);
 }
 
 const setWinner = (s, game) => {

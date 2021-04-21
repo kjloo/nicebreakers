@@ -13,6 +13,15 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
         return teams.find((team) => team.turn);
     }
 
+    const isTeamsTurn = () => {
+        let currentTeam = team;
+        if (currentTeam === undefined) {
+            currentTeam = getCurrentTeam();
+            setTeam(currentTeam);
+        }
+        return player.teamID === currentTeam.id;
+    }
+
     const displayTeam = () => {
         if ((team !== undefined) && (state !== enums.GameState.REVEAL)) {
             return <h2 style={{ color: team.color }}> Team {team.name}'s Turn</h2>
@@ -27,6 +36,9 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
 
     // for understanding
     const render = () => {
+        if (player.teamID === -1) {
+            return <h3>Wait For Current Game To End</h3>
+        }
         switch (state) {
             case enums.GameState.ENTRY:
                 return player.turn ?
@@ -40,7 +52,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
                     <h3>Give Hints To Team</h3> :
                     <div>
                         <h3>Listen to Hints</h3>
-                        {player.teamID === team.id &&
+                        {isTeamsTurn() &&
                             <>
                                 <h3>Hit This Button When You Know The Answer!</h3>
                                 <Button text="Stop" color="red" onClick={onNext} />
@@ -53,7 +65,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
                         <h3>Opposing Team Players Are Guessing</h3>
                         <AnswerValidator onAnswer={onNext} />
                     </> :
-                    player.teamID === team.id ?
+                    isTeamsTurn() ?
                         <h3>Wait. Opponents Are Guessing</h3> :
                         <h3>Try To Steal</h3>
             case enums.GameState.GUESS:
@@ -62,7 +74,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
                         <h3>Players Are Guessing</h3>
                         <AnswerValidator onAnswer={onNext} />
                     </> :
-                    player.teamID === team.id ?
+                    isTeamsTurn() ?
                         <h3>Make A Guess</h3> :
                         <h3>Wait. Opponents Are Guessing</h3>
             case enums.GameState.REVEAL:

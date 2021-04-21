@@ -39,8 +39,8 @@ class Chat {
 }
 
 class ChatEntry {
-    constructor(player, message) {
-        this.player = player;
+    constructor(name, message) {
+        this.name = name;
         this.message = message;
     }
 }

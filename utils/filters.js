@@ -39,12 +39,17 @@ const getPlayer = (game, id) => {
 }
 // Get Players
 const getPlayers = (game) => {
-    let players = Array.from(game.players.values());
-    // iterate through teams in game
-    if (game.teams.length !== 0) {
-        players = players.concat(game.teams.reduce((pre, next) => {
-            return pre.concat(next.players);
-        }, []));
+    let players = [];
+    if (game !== undefined) {
+        players = players.concat(Array.from(game.players.values()));
+        // iterate through teams in game
+        if (game.teams.length !== 0) {
+            players = players.concat(game.teams.reduce((pre, next) => {
+                return pre.concat(next.players);
+            }, []));
+        }
+    } else {
+        console.log("Game not defined!");
     }
     return players;
 }

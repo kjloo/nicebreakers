@@ -146,8 +146,8 @@ const MovieGame = () => {
     }
 
     // chat message submit
-    const submitMessage = (id, message) => {
-        socket.emit('team chat', { id: id, message: message });
+    const submitMessage = (teamID, message) => {
+        socket.emit('team chat', { teamID: teamID, message: message });
     }
 
     useEffect(() => {

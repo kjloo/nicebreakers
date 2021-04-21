@@ -137,20 +137,20 @@ const gameStateMachine = (s, game, state, args) => {
         case enums.GameState.SETUP:
             // Set first turn
             incrementGameState(s, game);
-            movieEmitter.updateState(s, game.id, enums.GameState.ENTRY);
+            movieEmitter.updateState(s, game, enums.GameState.ENTRY);
             break;
         case enums.GameState.ENTRY:
             game.answer = args.answer;
-            movieEmitter.updateState(s, game.id, enums.GameState.HINT);
+            movieEmitter.updateState(s, game, enums.GameState.HINT);
             break;
         case enums.GameState.HINT:
-            movieEmitter.updateState(s, game.id, enums.GameState.STEAL);
+            movieEmitter.updateState(s, game, enums.GameState.STEAL);
             break;
         case enums.GameState.STEAL:
             if (args.correct === true) {
                 updateScore(s, game, state);
             } else {
-                movieEmitter.updateState(s, game.id, enums.GameState.GUESS);
+                movieEmitter.updateState(s, game, enums.GameState.GUESS);
             }
             break;
         case enums.GameState.GUESS:
@@ -164,7 +164,7 @@ const gameStateMachine = (s, game, state, args) => {
             }
             break;
         case enums.GameState.REVEAL:
-            movieEmitter.updateState(s, game.id, enums.GameState.ENTRY);
+            movieEmitter.updateState(s, game, enums.GameState.ENTRY);
             break;
         case enums.GameState.END:
             // Reset to beginning
@@ -172,7 +172,7 @@ const gameStateMachine = (s, game, state, args) => {
             movieEmitter.setWinner(s, game);
             // Reset game
             resetGameState(s, game);
-            movieEmitter.updateState(s, game.id, enums.GameState.SETUP);
+            movieEmitter.updateState(s, game, enums.GameState.SETUP);
             break;
     }
 }

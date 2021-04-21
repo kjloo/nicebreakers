@@ -35,16 +35,31 @@ const createSocket = (server) => {
                         s.emit('exception', 'Name is taken!');
                     } else {
                         // Create Player
+                        console.log('Create Player: ' + name);
                         player = new structs.Player(s.id, name, false, -1);
                         game.players.set(s.id, player);
                     }
+                } else {
+                    // Update player team
+                    game.teams = game.teams.map((team) => {
+                        if (team.id === player.teamID) {
+                            team.players = team.players.map((p) => {
+                                if (p.name === player.name) {
+                                    return player;
+                                } else {
+                                    return p;
+                                }
+                            });
+                            return team;
+                        } else {
+                            return team;
+                        }
+                    })
                 }
                 s.emit('update player', player);
                 movieEmitter.updatePlayers(socket, game);
             });
             s.on('next state', ({ state, args }) => {
-                console.log("Game State: " + game.state);
-                game.state = state;
                 movieState.gameStateMachine(socket, game, state, args);
             });
             s.on('join team', ({ teamID }) => {
@@ -98,21 +113,21 @@ const createSocket = (server) => {
                 game.teams = game.teams.filter((team) => (id !== team.id));
                 movieEmitter.deleteTeam(socket, game.id, id);
             });
-            s.on('team chat', ({ id, message }) => {
+            s.on('team chat', ({ teamID, message }) => {
                 const player = filters.getPlayer(game, s.id);
-                if (player === undefined || player.teamID !== id) {
+                if (player === undefined || player.teamID !== teamID) {
                     s.emit('exception', 'Not allowed to talk to another team.');
                 } else {
-                    const chatEntry = new structs.ChatEntry(player, message);
-                    let chat = movieState.globalMessages.find((chat) => chat.teamID === id);
+                    const chatEntry = new structs.ChatEntry(player.name, message);
+                    let chat = movieState.globalMessages.find((chat) => chat.teamID === teamID);
                     if (chat === undefined) {
                         // Create new entry
-                        chat = new structs.Chat(id, [chatEntry]);
+                        chat = new structs.Chat(teamID, [chatEntry]);
                         movieState.globalMessages.push(chat);
                     } else {
                         chat.data.push(chatEntry);
                     }
-                    movieEmitter.updateChat(socket, id, movieState.getChat(player));
+                    movieEmitter.updateChat(socket, teamID, movieState.getChat(player));
                 }
             });
             s.on('disconnect', (reason) => {

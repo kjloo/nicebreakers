@@ -39,7 +39,7 @@ const Team = ({ player, team, data, onJoin, onSubmit, onDelete }) => {
             {!minimize &&
                 <>
                     <Players players={team.players} title="Team Members" />
-                    <Chat player={player} data={data} id={team.id} onSubmit={onSubmit} />
+                    <Chat player={player} data={data} teamID={team.id} onSubmit={onSubmit} />
                 </>
             }
         </div>

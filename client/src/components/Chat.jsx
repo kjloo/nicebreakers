@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import FocusInput from './FocusInput';
 
-const Chat = ({ player, data, id, onSubmit }) => {
+const Chat = ({ player, data, teamID, onSubmit }) => {
     const divRef = useRef(null);
     const [message, setMessage] = useState('');
 
@@ -19,7 +19,7 @@ const Chat = ({ player, data, id, onSubmit }) => {
     // submit message
     const submitMessage = (evt) => {
         evt.preventDefault();
-        onSubmit(id, message);
+        onSubmit(teamID, message);
         setMessage('');
     }
 
@@ -31,8 +31,8 @@ const Chat = ({ player, data, id, onSubmit }) => {
                     <div className='chat-area'>
                         <ul className='chat-list'>
                             {data.length > 0 && data.map((d) => {
-                                return <li className={player.id === d.player.id ? 'self-message' : 'team-message'}>
-                                    <p className='player-name'>{d.player.name}: </p>
+                                return <li className={player.name === d.name ? 'self-message' : 'team-message'}>
+                                    <p className='player-name'>{d.name}: </p>
                                     <p className='message'>{d.message}</p>
                                 </li>
                             })}
@@ -52,7 +52,7 @@ const Chat = ({ player, data, id, onSubmit }) => {
 Chat.defaultProps = {
     player: undefined,
     data: [],
-    id: -1,
+    teamID: -1,
     onSubmit: () => { }
 }
 
