@@ -10,6 +10,9 @@ const generateCode = (codeLength) => {
 
 // Create Game Code
 const generateGameCode = (games, codeLength) => {
+    if (!(games instanceof Map)) {
+        return "";
+    }
     let code = generateCode(codeLength);
     while (games.has(code)) {
         code = generateCode(codeLength);
@@ -19,6 +22,9 @@ const generateGameCode = (games, codeLength) => {
 
 // Create Team ID
 const generateTeamID = (teams) => {
+    if (!(teams instanceof Array)) {
+        return "";
+    }
     // This should be fine as incrementing should yield a new number
     let teamID = Date.now();
     while (teams.find((team) => team.id === teamID) !== undefined) {
