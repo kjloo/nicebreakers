@@ -4,7 +4,7 @@ const movieEmitter = require('./movieEmitter');
 
 // const assets
 let globalGames = new Map();
-let globalMessages = [];
+let globalMessages = new Map();
 
 // Garbage collection
 const garbageCollection = () => {
@@ -32,6 +32,15 @@ const getCurrentPlayer = (teams, gameState) => {
 const getCurrentTeam = (teams, gameState) => {
     let team = teams[gameState.teamIndex];
     return team;
+}
+
+const getGameChat = (gameID) => {
+    let gameChat = globalMessages.get(gameID);
+    if (gameChat === undefined) {
+        // Create chat
+
+    }
+    return globalMessages.get(gameID);
 }
 
 const incrementTeamIndex = (teams, gameState) => {
@@ -92,16 +101,6 @@ const resetGameState = (s, game) => {
 
     movieEmitter.updateTeams(s, game);
     movieEmitter.updatePlayers(s, game);
-}
-
-// Get Chat
-const getChat = (player) => {
-    // Only return chat with matching team id
-    let rc = globalMessages.find((chat) => chat.teamID === player.teamID);
-    if (rc === undefined) {
-        return [];
-    }
-    return rc;
 }
 
 // Game State Machine
@@ -182,9 +181,9 @@ module.exports = {
     changeTeamTurns: changeTeamTurns,
     gameStateMachine: gameStateMachine,
     garbageCollection: garbageCollection,
-    getChat: getChat,
     getCurrentPlayer: getCurrentPlayer,
     getCurrentTeam: getCurrentTeam,
+    getGameChat: getGameChat,
     globalGames: globalGames,
     globalMessages: globalMessages,
     incrementGameState: incrementGameState,

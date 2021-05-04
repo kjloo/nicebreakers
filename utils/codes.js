@@ -9,7 +9,7 @@ const generateCode = (codeLength) => {
 }
 
 // Create Game Code
-exports.generateGameCode = (games, codeLength) => {
+const generateGameCode = (games, codeLength) => {
     let code = generateCode(codeLength);
     while (games.has(code)) {
         code = generateCode(codeLength);
@@ -18,11 +18,17 @@ exports.generateGameCode = (games, codeLength) => {
 }
 
 // Create Team ID
-exports.generateTeamID = (teams) => {
+const generateTeamID = (teams) => {
     // This should be fine as incrementing should yield a new number
     let teamID = Date.now();
     while (teams.find((team) => team.id === teamID) !== undefined) {
         teamID = Date.now();
     }
     return teamID;
+}
+
+module.exports = {
+    generateCode: generateCode,
+    generateGameCode: generateGameCode,
+    generateTeamID: generateTeamID
 }

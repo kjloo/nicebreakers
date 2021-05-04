@@ -8,6 +8,7 @@ import Teams from './Teams';
 import GameMenu from './GameMenu';
 import GameSetup from './GameSetup';
 import MovieInstruction from './MovieInstruction';
+import { getGameChat } from '../../../utils/movieState';
 
 let socket;
 const initializeSocket = (gameID) => {

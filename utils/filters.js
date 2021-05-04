@@ -1,5 +1,5 @@
 const getByID = (list, id) => {
-    if (!list) {
+    if (!list || !(list instanceof Array)) {
         return undefined;
     }
     return list.find((item) => item.id === id);
@@ -17,15 +17,8 @@ const findByFilter = (map, filter) => {
     return undefined;
 }
 
-const getByGameID = (map, gameID) => {
-    if (!map) {
-        return undefined;
-    }
-    return findByFilter(map, (item) => item.gameID === gameID);
-}
-
 const getByTeamID = (list, teamID) => {
-    if (!list) {
+    if (!list || !(list instanceof Array)) {
         return undefined;
     }
     return list.filter((item) => item.teamID === teamID);
@@ -61,7 +54,6 @@ const getTeams = (game) => {
 module.exports = {
     getByID: getByID,
     findByFilter: findByFilter,
-    getByGameID: getByGameID,
     getByTeamID: getByTeamID,
     getPlayer: getPlayer,
     getPlayers: getPlayers,

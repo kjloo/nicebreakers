@@ -8,12 +8,13 @@ class Player {
 }
 
 class Team {
-    constructor(id, name, color, score, turn, players, playerIndex) {
+    constructor(id, name, color, score, turn, chat, players, playerIndex) {
         this.id = id;
         this.name = name;
         this.color = color;
         this.score = score;
         this.turn = turn;
+        this.chat = chat;
         this.players = players;
         this.playerIndex = playerIndex;
     }
@@ -31,13 +32,6 @@ class Game {
     }
 }
 
-class Chat {
-    constructor(teamID, data) {
-        this.teamID = teamID;
-        this.data = data;
-    }
-}
-
 class ChatEntry {
     constructor(name, message) {
         this.name = name;
@@ -49,6 +43,5 @@ module.exports = {
     Player: Player,
     Team: Team,
     Game: Game,
-    Chat: Chat,
     ChatEntry: ChatEntry
 }

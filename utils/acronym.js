@@ -1,3 +1,5 @@
+const { logger } = require('./logger.js');
+
 const acronym_table = {
     A: ['Apple', 'Almond', 'Albino', 'Athlete', 'Assassin', 'Assistant', 'Astronomer', 'Alien', 'Alpaca', 'America', 'Australia', 'Africa', 'Anonymous'],
     B: ['Banana', 'Basket', 'Bassoon', 'Bee', 'Bass', 'Brunch', 'Breakfast', 'Bunny', 'Boston'],
@@ -33,6 +35,11 @@ exports.processAcronym = (code) => {
     // get a word for each letter
     for (let i = 0; i < code.length; i++) {
         let letter = code.charAt(i);
+        // Validate letter in table
+        if (!(letter in acronym_table)) {
+            logger.error("Could not find " + letter + " in table");
+            return "";
+        }
         let list = acronym_table[letter];
         let word = list[Math.floor(Math.random() * list.length)];
         rc.push(word);

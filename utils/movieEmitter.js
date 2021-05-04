@@ -22,9 +22,9 @@ const deleteTeam = (s, gameID, id) => {
     s.in(gameID).emit('delete team', id);
 }
 
-const updateChat = (s, teamID, chat) => {
+const updateChat = (s, team) => {
     // should only go to members of team
-    s.in(teamID).emit('team chat', chat);
+    s.in(team.id).emit('team chat', { teamID: team.id, data: team.chat });
 }
 
 const revealAnswer = (s, game) => {

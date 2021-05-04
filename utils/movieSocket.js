@@ -4,6 +4,7 @@ const codes = require('./codes');
 const movieState = require('./movieState');
 const movieEmitter = require('./movieEmitter');
 const structs = require('./structs');
+const { globalMessages } = require('./movieState');
 
 const createSocket = (server) => {
     const socket = io(server);
@@ -54,7 +55,12 @@ const createSocket = (server) => {
                         } else {
                             return team;
                         }
-                    })
+                    });
+                    // Join team
+                    s.join(player.teamID);
+                    const team = filters.getByID(game.teams, player.teamID);
+                    // Send chat data
+                    movieEmitter.updateChat(socket, team);
                 }
                 s.emit('update player', player);
                 movieEmitter.updatePlayers(socket, game);
@@ -90,7 +96,7 @@ const createSocket = (server) => {
                         s.emit('update player', player);
                         movieEmitter.updateTeams(socket, game);
                         movieEmitter.updatePlayers(socket, game);
-                        movieEmitter.updateChat(socket, player.teamID, movieState.getChat(player));
+                        movieEmitter.updateChat(socket, team);
                     }
                 }
             });
@@ -105,7 +111,7 @@ const createSocket = (server) => {
                     return;
                 }
                 // Create Team
-                const team = new structs.Team(codes.generateTeamID(game.teams), name, color, 0, false, [], 0);
+                const team = new structs.Team(codes.generateTeamID(game.teams), name, color, 0, false, [], [], 0);
                 game.teams.push(team);
                 movieEmitter.addTeam(socket, game.id, team);
             });
@@ -118,16 +124,11 @@ const createSocket = (server) => {
                 if (player === undefined || player.teamID !== teamID) {
                     s.emit('exception', 'Not allowed to talk to another team.');
                 } else {
+                    // Get Team
+                    const team = filters.getByID(game.teams, teamID);
                     const chatEntry = new structs.ChatEntry(player.name, message);
-                    let chat = movieState.globalMessages.find((chat) => chat.teamID === teamID);
-                    if (chat === undefined) {
-                        // Create new entry
-                        chat = new structs.Chat(teamID, [chatEntry]);
-                        movieState.globalMessages.push(chat);
-                    } else {
-                        chat.data.push(chatEntry);
-                    }
-                    movieEmitter.updateChat(socket, teamID, movieState.getChat(player));
+                    team.chat.push(chatEntry);
+                    movieEmitter.updateChat(socket, team);
                 }
             });
             s.on('disconnect', (reason) => {
