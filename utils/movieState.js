@@ -1,3 +1,4 @@
+const { logger } = require('./logger.js');
 const enums = require('./enums');
 const filters = require('./filters');
 const movieEmitter = require('./movieEmitter');
@@ -23,9 +24,13 @@ const isGameStarted = (game) => {
 }
 
 const getCurrentPlayer = (teams, gameState) => {
+    const team = teams[gameState.teamIndex];
+    if (team === undefined) {
+        logger.error("Invalid team index " + gameState.teamIndex);
+        return undefined;
+    }
     // Get player
-    const playerIndex = teams[gameState.teamIndex].playerIndex;
-    const player = teams[gameState.teamIndex].players[playerIndex];
+    const player = team.players[team.playerIndex];
     return player;
 }
 
@@ -75,7 +80,8 @@ const changePlayerTurns = (teams, gameState) => {
     // Set old player to false
     let player = getCurrentPlayer(teams, gameState);
     if (player === undefined) {
-        console.error("Could not get player");
+        logger.error("Could not get player!");
+        console.error("Could not get player!");
         return;
     }
     player.turn = false;
