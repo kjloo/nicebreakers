@@ -8,7 +8,6 @@ import Teams from './Teams';
 import GameMenu from './GameMenu';
 import GameSetup from './GameSetup';
 import MovieInstruction from './MovieInstruction';
-import { getGameChat } from '../../../utils/movieState';
 
 let socket;
 const initializeSocket = (gameID) => {
@@ -231,7 +230,7 @@ const MovieGame = () => {
                         <MovieInstruction player={player} teams={teams} onNext={nextState} state={state} answer={answer} /> :
                         <>
                             {winner && <h3 style={{ color: winner.color }}>Team {winner.name} Wins!</h3>}
-                            <GameSetup socket={socket} players={players} teams={teams} started={isStarted()} onStart={nextState} />
+                            <GameSetup socket={socket} players={players} teams={teams} onStart={nextState} />
                         </>
                 }
             </GameMenu>

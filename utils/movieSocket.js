@@ -4,7 +4,6 @@ const codes = require('./codes');
 const movieState = require('./movieState');
 const movieEmitter = require('./movieEmitter');
 const structs = require('./structs');
-const { globalMessages } = require('./movieState');
 
 const createSocket = (server) => {
     const socket = io(server);
@@ -20,6 +19,11 @@ const createSocket = (server) => {
                 let player = undefined;
                 if (movieState.isGameStarted(game)) {
                     for (i = 0; i < game.cachedPlayers.length; i++) {
+                        if (game.cachedPlayers[i] === undefined) {
+                            console.log("Error getting cached player")
+                            console.log(game);
+                            continue;
+                        }
                         if (game.cachedPlayers[i].name === name) {
                             console.log("Found Cached Player: " + name);
                             player = game.cachedPlayers[i];
@@ -37,7 +41,7 @@ const createSocket = (server) => {
                     } else {
                         // Create Player
                         console.log('Create Player: ' + name);
-                        player = new structs.Player(s.id, name, false, -1);
+                        player = new structs.Player(s.id, gameID, name, false, -1);
                         game.players.set(s.id, player);
                     }
                 } else {
@@ -144,8 +148,11 @@ const createSocket = (server) => {
                     })
                     movieEmitter.updatePlayers(socket, game);
                 } else {
-                    // Store disconnected player
-                    game.cachedPlayers.push(player);
+                    if (player !== undefined) {
+                        // Store disconnected player
+                        console.log('Store ' + player.name);
+                        game.cachedPlayers.push(player);
+                    }
                 }
             });
             s.on('reconnect', () => {

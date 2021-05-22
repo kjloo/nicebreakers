@@ -16,7 +16,8 @@ const AddTeam = ({ setAddTeam, onSubmit }) => {
 
     useEffect(() => {
         let randomColor = Math.floor(Math.random() * 16777215).toString(16);
-        setColor(`#${randomColor}`);
+        // need to ensure 6 digits
+        setColor(`#${randomColor.padStart(6, '0')}`);
     }, []);
 
     return (

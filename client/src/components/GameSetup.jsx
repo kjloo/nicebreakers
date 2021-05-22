@@ -4,7 +4,7 @@ import axios from 'axios';
 import Players from './Players';
 import GameControls from './GameControls';
 
-const GameSetup = ({ socket, players, teams, started, onStart }) => {
+const GameSetup = ({ socket, players, teams, onStart }) => {
     const maxTeams = 4;
     const [decode, setDecode] = useState("");
 
@@ -21,8 +21,7 @@ const GameSetup = ({ socket, players, teams, started, onStart }) => {
         return ((players.length > 1) &&
             (teams.length > 1) &&
             (players.every((player) => player.teamID > 0)) &&
-            (teams.every((team) => (team.players.length > 0))) &&
-            !started);
+            (teams.every((team) => (team.players.length > 0))));
     }
 
     // process acronym
@@ -54,7 +53,7 @@ const GameSetup = ({ socket, players, teams, started, onStart }) => {
             <p className="value">{gameID}</p>
             <p className="value"> ({decode}) </p>
             <Players players={players} />
-            <GameControls isLocked={started || teams.length >= maxTeams} isReady={isReady()} onSubmit={submitTeam} onStart={onStart} />
+            <GameControls isLocked={teams.length >= maxTeams} isReady={isReady()} onSubmit={submitTeam} onStart={onStart} />
         </>
     )
 }

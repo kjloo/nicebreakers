@@ -95,6 +95,7 @@ const changePlayerTurns = (teams, gameState) => {
 }
 
 const resetGameState = (s, game) => {
+    console.log('Resetting game state');
     // Delete cached players
     game.cachedPlayers = [];
     game.teams = game.teams.map((team) => {
@@ -173,12 +174,12 @@ const gameStateMachine = (s, game, state, args) => {
             movieEmitter.updateState(s, game, enums.GameState.ENTRY);
             break;
         case enums.GameState.END:
-            // Reset to beginning
+            // Reset game
+            movieEmitter.updateState(s, game, enums.GameState.SETUP);
             // Set winner
             movieEmitter.setWinner(s, game);
-            // Reset game
+            // Reset to beginning
             resetGameState(s, game);
-            movieEmitter.updateState(s, game, enums.GameState.SETUP);
             break;
     }
 }

@@ -178,6 +178,19 @@ ul.navbar li {
   width: 1rem;
 }
 
+.games-container {
+  padding: 2rem;
+  height: 100%;
+  width: auto;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.games-container img{
+  height: 30rem;
+  width: 30rem;
+}
+
 .game-container {
   background-color: aliceblue;
   border-width: 1px;
