@@ -29,7 +29,6 @@ const updateChat = (s, team) => {
 
 const revealAnswer = (s, game) => {
     s.in(game.id).emit('reveal answer', game.answer);
-    updateState(s, game, enums.GameState.REVEAL);
 }
 
 const updateState = (s, game, state) => {

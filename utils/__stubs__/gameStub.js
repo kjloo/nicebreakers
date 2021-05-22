@@ -12,12 +12,13 @@ const bob = new structs.Player(4, "Bob", false, 1042);
 const sean = new structs.Player(5, "Sean", false, 1042);
 const phil = new structs.Player(6, "Phil", false, 5431);
 const sam = new structs.Player(7, "Sam", false, 5431);
+const charles = new structs.Player(8, "Charles", false, 5431);
 
 const fish = new structs.Team(1042, 'Fish', '#FF6622', 0, false, [], [bob, sean], 0);
 const cat = new structs.Team(5431, 'Cat', '#993355', 0, true, [], [phil, sam], 0);
 teams.push(fish, cat);
 players.push(jake, finn, tom, bob, sean, phil, sam);
-let game = new structs.Game("ABDS", 0, teams, [jake, finn, tom], [], enums.GameState.SETUP, "");
+let game = new structs.Game("ABDS", 0, teams, [jake, finn, tom], [charles], enums.GameState.SETUP, "");
 
 module.exports = {
     game: game,
@@ -30,6 +31,7 @@ module.exports = {
     sean: sean,
     phil: phil,
     sam: sam,
+    charles: charles,
     fish: fish,
     cat: cat
 };

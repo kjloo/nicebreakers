@@ -119,22 +119,36 @@ const incrementGameState = (s, game) => {
     movieEmitter.updateTeams(s, game);
 }
 
-const updateScore = (s, game, state) => {
-    // give point based on state
-    // give point to team with turn if GUESS else STEAL
-    let point = (state === enums.GameState.GUESS);
-    // update score
-    game.teams = game.teams.map((team) => {
-        if (team.turn === point) {
-            return { ...team, score: team.score + 1 }
-        } else {
-            return team;
-        }
-    });
+const nextRound = (s, game) => {
     // change turns
     incrementGameState(s, game);
     // back to beginning
     movieEmitter.revealAnswer(s, game);
+    movieEmitter.updateState(s, game, enums.GameState.REVEAL);
+}
+
+const updateScore = (s, game, state, correct) => {
+    // check if correct answer given
+    if (correct) {
+        // give point based on state
+        // give point to team with turn if GUESS else STEAL
+        let point = (state === enums.GameState.GUESS);
+        // update score
+        game.teams = game.teams.map((team) => {
+            if (team.turn === point) {
+                return { ...team, score: team.score + 1 }
+            } else {
+                return team;
+            }
+        });
+        nextRound(s, game);
+    } else {
+        if (state === enums.GameState.STEAL) {
+            movieEmitter.updateState(s, game, enums.GameState.GUESS);
+        } else {
+            nextRound(s, game);
+        }
+    }
 }
 
 const gameStateMachine = (s, game, state, args) => {
@@ -152,21 +166,8 @@ const gameStateMachine = (s, game, state, args) => {
             movieEmitter.updateState(s, game, enums.GameState.STEAL);
             break;
         case enums.GameState.STEAL:
-            if (args.correct === true) {
-                updateScore(s, game, state);
-            } else {
-                movieEmitter.updateState(s, game, enums.GameState.GUESS);
-            }
-            break;
         case enums.GameState.GUESS:
-            if (args.correct === true) {
-                updateScore(s, game, state);
-            } else {
-                // change turns
-                incrementGameState(s, game);
-                // back to beginning
-                movieEmitter.revealAnswer(s, game);
-            }
+            updateScore(s, game, state, args.correct);
             break;
         case enums.GameState.REVEAL:
             movieEmitter.updateState(s, game, enums.GameState.ENTRY);
