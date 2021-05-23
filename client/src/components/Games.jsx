@@ -6,10 +6,10 @@ import triviaLogo from '../../../images/trivia.svg';
 const Games = () => {
     return (
         <div className='games-container'>
-            <Link to="/movie">
+            <Link className="game-icon" to="/movie">
                 <img src={movieLogo} alt="movie" />
             </Link>
-            <Link to="/trivia">
+            <Link className="game-icon" to="/trivia">
                 <img src={triviaLogo} alt="movie" />
             </Link>
         </div>
