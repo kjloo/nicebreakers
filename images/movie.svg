@@ -24,7 +24,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="11.2"
-     inkscape:cx="18.863291"
+     inkscape:cx="13.193648"
      inkscape:cy="28.183457"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -48,7 +48,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -103,16 +103,16 @@
     </g>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:6.12002px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.152999"
-       x="20.482668"
-       y="17.934441"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.01113px;line-height:1.25;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.150278"
+       x="23.179968"
+       y="18.212034"
        id="text979"
-       transform="scale(0.47424004,2.1086368)"
-       inkscape:transform-center-x="-0.84179962"><tspan
+       transform="scale(0.48582419,2.0583578)"
+       inkscape:transform-center-x="-0.84698701"><tspan
          sodipodi:role="line"
          id="tspan977"
-         x="20.482668"
-         y="17.934441"
-         style="stroke-width:0.152999">Untitled Movie Game</tspan></text>
+         x="23.179968"
+         y="18.212034"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.01113px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.150278">Untitled Movie Game</tspan></text>
   </g>
 </svg>

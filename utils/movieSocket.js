@@ -13,7 +13,7 @@ const createSocket = (server) => {
         const game = movieState.globalGames.get(gameID);
         if (game !== undefined) {
             s.on('add player', ({ name }) => {
-                console.log("Add Player: " + name);
+                console.log(gameID + " Add Player: " + name);
                 s.join(gameID);
                 // Check if player is cached
                 let player = undefined;
@@ -36,12 +36,12 @@ const createSocket = (server) => {
                 if (player === undefined) {
                     // Check if player name exists
                     let players = filters.getPlayers(game);
-                    if (filters.findByFilter(players, (player) => (name === player.name) && (gameID === player.gameID)) !== undefined) {
+                    if (filters.findByFilter(players, (player) => (name === player.name))) {
                         s.emit('exception', 'Name is taken!');
                     } else {
                         // Create Player
                         console.log('Create Player: ' + name);
-                        player = new structs.Player(s.id, gameID, name, false, -1);
+                        player = new structs.Player(s.id, name, false, -1);
                         game.players.set(s.id, player);
                     }
                 } else {
