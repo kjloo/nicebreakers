@@ -1,152 +1,173 @@
-const io = require('socket.io');
+const { Server } = require('socket.io');
 const filters = require('./filters');
 const codes = require('./codes');
 const movieState = require('./movieState');
 const movieEmitter = require('./movieEmitter');
 const structs = require('./structs');
 
+const updatePlayerClient = (io, socket, game, player) => {
+    if (player === undefined) {
+        console.error("Undefined player");
+        return;
+    }
+    player.id = socket.id;
+
+    if (player.teamID !== -1) {
+        console.log('Player is on team ' + player.teamID);
+        // Update player object in teams
+        game.teams = game.teams.map((team) => {
+            if (team.id === player.teamID) {
+                team.players = team.players.map((p) => {
+                    if (p.name === player.name) {
+                        return player;
+                    } else {
+                        return p;
+                    }
+                });
+                return team;
+            } else {
+                return team;
+            }
+        });
+
+        // Join team
+        socket.join(player.teamID);
+        const team = filters.getByID(game.teams, player.teamID);
+        // Send chat data
+        movieEmitter.updateChat(socket, team);
+    } else {
+        game.players.set(socket.id, player);
+    }
+
+    // Update client
+    console.log('Update player ' + player.name + ' on ' + socket.id);
+    socket.emit('update player', player);
+    movieEmitter.updatePlayers(io, game);
+}
+
 const createSocket = (server) => {
-    const socket = io(server);
-    socket.on('connection', (s) => {
-        const gameID = s.handshake.query['gameID'];
-        console.log(s.id + ": Connected to Game: " + gameID);
+    const io = new Server(server);
+    io.on('connection', (socket) => {
+        const gameID = socket.handshake.query.gameID;
+        console.log(socket.id + ": Connected to Game: " + gameID);
         const game = movieState.globalGames.get(gameID);
         if (game !== undefined) {
-            s.on('add player', ({ name }) => {
-                console.log(gameID + " Add Player: " + name);
-                s.join(gameID);
+            socket.on('add player', ({ name, id }) => {
+                console.log(gameID + " Add Player: " + name + "[" + id + "]");
+                socket.join(gameID);
                 // Check if player is cached
-                let player = undefined;
+                let player = filters.getPlayer(game, id);
                 if (movieState.isGameStarted(game)) {
-                    for (i = 0; i < game.cachedPlayers.length; i++) {
-                        if (game.cachedPlayers[i] === undefined) {
-                            console.log("Error getting cached player")
-                            console.log(game);
-                            continue;
-                        }
-                        if (game.cachedPlayers[i].name === name) {
-                            console.log("Found Cached Player: " + name);
-                            player = game.cachedPlayers[i];
-                            player.id = s.id;
-                            game.cachedPlayers.splice(i, 1);
-                            break;
+                    if (player === undefined) {
+                        // Can't find by id so search by name in cached players
+                        for (i = 0; i < game.cachedPlayers.length; i++) {
+                            if (game.cachedPlayers[i] === undefined) {
+                                console.log("Error getting cached player")
+                                console.log(game);
+                                continue;
+                            }
+                            if (game.cachedPlayers[i].name === name) {
+                                console.log("Found Cached Player: " + name);
+                                player = game.cachedPlayers[i];
+                                game.cachedPlayers.splice(i, 1);
+                                break;
+                            }
                         }
                     }
                 }
+                // Create player if not found
                 if (player === undefined) {
                     // Check if player name exists
                     let players = filters.getPlayers(game);
                     if (filters.findByFilter(players, (player) => (name === player.name))) {
-                        s.emit('exception', 'Name is taken!');
+                        socket.emit('exception', 'Name is taken!');
                     } else {
                         // Create Player
                         console.log('Create Player: ' + name);
-                        player = new structs.Player(s.id, name, false, -1);
-                        game.players.set(s.id, player);
+                        player = new structs.Player(socket.id, name, false, -1);
                     }
-                } else {
-                    // Update player team
-                    game.teams = game.teams.map((team) => {
-                        if (team.id === player.teamID) {
-                            team.players = team.players.map((p) => {
-                                if (p.name === player.name) {
-                                    return player;
-                                } else {
-                                    return p;
-                                }
-                            });
-                            return team;
-                        } else {
-                            return team;
-                        }
-                    });
-                    // Join team
-                    s.join(player.teamID);
-                    const team = filters.getByID(game.teams, player.teamID);
-                    // Send chat data
-                    movieEmitter.updateChat(socket, team);
                 }
-                s.emit('update player', player);
-                movieEmitter.updatePlayers(socket, game);
+                updatePlayerClient(io, socket, game, player);
             });
-            s.on('next state', ({ state, args }) => {
-                movieState.gameStateMachine(socket, game, state, args);
+            socket.on('next state', ({ state, args }) => {
+                movieState.gameStateMachine(io, game, state, args);
             });
-            s.on('join team', ({ teamID }) => {
-                let player = filters.getPlayer(game, s.id);
+            socket.on('join team', ({ teamID }) => {
+                let player = filters.getPlayer(game, socket.id);
                 if (player === undefined) {
                     console.log("Unregistered Player")
-                    s.emit('exception', 'Player is not registered');
+                    socket.emit('exception', 'Player is not registered');
                 } else {
                     // check if unassigned
                     if (player.teamID === -1) {
                         game.players.delete(player.id);
                     } else {
                         // remove from team
-                        s.leave(player.teamID);
+                        socket.leave(player.teamID);
                         let team = filters.getByID(game.teams, player.teamID);
                         team.players = team.players.filter((p) => p.id !== player.id);
                     }
                     // add to team
-                    s.join(teamID);
+                    socket.join(teamID);
                     player.teamID = teamID;
                     team = filters.getByID(game.teams, teamID);
                     if (team === undefined) {
                         console.log("Team not found")
-                        s.emit('exception', 'Team not found');
+                        socket.emit('exception', 'Team not found');
                     } else {
                         team.players.push(player);
 
-                        s.emit('update player', player);
-                        movieEmitter.updateTeams(socket, game);
-                        movieEmitter.updatePlayers(socket, game);
-                        movieEmitter.updateChat(socket, team);
+                        socket.emit('update player', player);
+                        movieEmitter.updateTeams(io, game);
+                        movieEmitter.updatePlayers(io, game);
+                        movieEmitter.updateChat(io, team);
                     }
                 }
             });
-            s.on('add team', ({ name, color }) => {
+            socket.on('add team', ({ name, color }) => {
                 // Check if team name and color exist
                 if (game.teams.find((team) => (name === team.name)) !== undefined) {
-                    s.emit('exception', 'Team name is taken!');
+                    socket.emit('exception', 'Team name is taken!');
                     return;
                 }
                 if (game.teams.find((team) => (color === team.color)) !== undefined) {
-                    s.emit('exception', 'Color is taken!');
+                    socket.emit('exception', 'Color is taken!');
                     return;
                 }
                 // Create Team
                 const team = new structs.Team(codes.generateTeamID(game.teams), name, color, 0, false, [], [], 0);
                 game.teams.push(team);
-                movieEmitter.addTeam(socket, game.id, team);
+                movieEmitter.addTeam(io, game.id, team);
             });
-            s.on('delete team', ({ id }) => {
+            socket.on('delete team', ({ id }) => {
                 game.teams = game.teams.filter((team) => (id !== team.id));
-                movieEmitter.deleteTeam(socket, game.id, id);
+                movieEmitter.deleteTeam(io, game.id, id);
             });
-            s.on('team chat', ({ teamID, message }) => {
-                const player = filters.getPlayer(game, s.id);
+            socket.on('team chat', ({ teamID, message }) => {
+                const player = filters.getPlayer(game, socket.id);
                 if (player === undefined || player.teamID !== teamID) {
-                    s.emit('exception', 'Not allowed to talk to another team.');
+                    socket.emit('exception', 'Not allowed to talk to another team.');
                 } else {
                     // Get Team
                     const team = filters.getByID(game.teams, teamID);
                     const chatEntry = new structs.ChatEntry(player.name, message);
                     team.chat.push(chatEntry);
-                    movieEmitter.updateChat(socket, team);
+                    movieEmitter.updateChat(io, team);
                 }
             });
-            s.on('disconnect', (reason) => {
-                const player = filters.getPlayer(game, s.id);
-                console.log("Disconnecting due to " + reason + ": " + s.id + " - " + ((player !== undefined) && player.name));
+            socket.on('disconnect', (reason) => {
+                const player = filters.getPlayer(game, socket.id);
+                console.log("Disconnecting due to " + reason + ": " + socket.id + " - " + ((player !== undefined) && player.name));
+
                 if ((game !== undefined) && !movieState.isGameStarted(game)) {
-                    console.log("Delete Player: " + s.id + " - " + ((player !== undefined) && player.name));
+                    console.log("Delete Player: " + socket.id + " - " + ((player !== undefined) && player.name));
                     // Delete player
-                    game.players.delete(s.id);
+                    game.players.delete(socket.id);
                     // Remove from teams
                     game.teams = game.teams.map((team) => {
-                        return { ...team, players: team.players.filter((player) => player.id !== s.id) };
+                        return { ...team, players: team.players.filter((player) => player.id !== socket.id) };
                     })
-                    movieEmitter.updatePlayers(socket, game);
+                    movieEmitter.updatePlayers(io, game);
                 } else {
                     if (player !== undefined) {
                         // Store disconnected player
@@ -155,8 +176,8 @@ const createSocket = (server) => {
                     }
                 }
             });
-            s.on('reconnect', () => {
-                console.log("Attempting to reconnect to socket: " + s.id);
+            socket.on('reconnect', () => {
+                console.log("Attempting to reconnect to io: " + socket.id);
             });
         } else {
             console.error("Game " + gameID + " does not exist!");

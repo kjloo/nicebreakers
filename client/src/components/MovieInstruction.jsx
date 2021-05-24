@@ -19,7 +19,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
             currentTeam = getCurrentTeam();
             setTeam(currentTeam);
         }
-        return player.teamID === currentTeam.id;
+        return (player && (player.teamID === currentTeam.id));
     }
 
     const displayTeam = () => {
@@ -36,7 +36,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
 
     // for understanding
     const render = () => {
-        if (player.teamID === -1) {
+        if (player && (player.teamID === -1)) {
             return <h3>Wait For Current Game To End</h3>
         }
         switch (state) {

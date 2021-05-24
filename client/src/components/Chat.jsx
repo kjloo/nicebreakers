@@ -25,7 +25,7 @@ const Chat = ({ player, data, teamID, onSubmit }) => {
 
     return (
         <div>
-            {(player.turn === false) &&
+            {(player && (player.turn === false)) &&
                 <>
                     <h4>Chat</h4>
                     <div className='chat-area'>

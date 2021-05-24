@@ -7,7 +7,7 @@ const Team = ({ player, team, data, onJoin, onSubmit, onDelete }) => {
     const [minimize, setMinimize] = useState(true);
 
     const isOnTeam = () => {
-        return player.teamID === team.id;
+        return (player && (player.teamID === team.id));
     }
 
     // handle click

@@ -10,19 +10,17 @@ import GameSetup from './GameSetup';
 import MovieInstruction from './MovieInstruction';
 
 let socket;
-const initializeSocket = (gameID) => {
+const connectSocket = (gameID) => {
     socket = io("http://chingloo.zapto.org:1111", {
-        reonnection: true,
-        reconnectionDelayMax: 10000,
         query: {
-            "gameID": gameID
+            gameID: gameID
         }
     });
     socket.connect();
 }
 
 const MovieGame = () => {
-    const [player, setPlayer] = useState({});
+    const [player, setPlayer] = useState(undefined);
     const [players, setPlayers] = useState([]);
     const [teams, setTeams] = useState([]);
     const [chat, setChat] = useState([]);
@@ -70,8 +68,8 @@ const MovieGame = () => {
         });
     }
     // submit player
-    const submitPlayer = (name) => {
-        socket.emit('add player', { name: name });
+    const submitPlayer = (name, id = -1) => {
+        socket.emit('add player', { name: name, id: id });
     }
     // get players
     const getPlayers = () => {
@@ -128,7 +126,7 @@ const MovieGame = () => {
 
     // join team
     const joinTeam = (team) => {
-        if (player.teamID !== team.id) {
+        if (player && (player.teamID !== team.id)) {
             if (isStarted()) {
                 alert('Game Already Started');
             } else {
@@ -151,7 +149,7 @@ const MovieGame = () => {
     }
 
     useEffect(() => {
-        initializeSocket(gameID);
+        connectSocket(gameID);
 
         getPlayers();
         getState();
@@ -170,10 +168,6 @@ const MovieGame = () => {
         socket.on('set state', (s) => {
             setState(s);
         });
-        socket.on('reconnect', () => {
-            socket.emit('reconnect');
-        });
-
         return function handleCleanUp() {
             socket.disconnect();
         }
@@ -189,12 +183,22 @@ const MovieGame = () => {
             setPlayers(p);
             // See if new information about self
             if (!isEmpty(player)) {
-                setPlayer(p.find((update) => update.id === player.id));
+                const update = p.find((update) => update.id === player.id);
+                if (update !== undefined) {
+                    setPlayer(update);
+                }
+            }
+        });
+        socket.on('connect', () => {
+            // Player was previously defined
+            if (player !== undefined) {
+                submitPlayer(player.name, player.id);
             }
         });
         return () => {
             socket.off('update player');
             socket.off('update players');
+            socket.off('connect')
         }
     }, [player, players])
 
