@@ -5,12 +5,11 @@ const movieEmitter = require('./movieEmitter');
 
 // const assets
 let globalGames = new Map();
-let globalMessages = new Map();
 
 // Garbage collection
-const garbageCollection = () => {
+const garbageCollection = (games) => {
     // remove any inactive game ids
-    globalGames.forEach((game, key, map) => {
+    games.forEach((game, key, map) => {
         if (filters.getPlayers(game).length === 0) {
             map.delete(key);
             console.log("Removed inactive game: " + key);
@@ -37,15 +36,6 @@ const getCurrentPlayer = (teams, gameState) => {
 const getCurrentTeam = (teams, gameState) => {
     let team = teams[gameState.teamIndex];
     return team;
-}
-
-const getGameChat = (gameID) => {
-    let gameChat = globalMessages.get(gameID);
-    if (gameChat === undefined) {
-        // Create chat
-
-    }
-    return globalMessages.get(gameID);
 }
 
 const incrementTeamIndex = (teams, gameState) => {
@@ -95,16 +85,17 @@ const changePlayerTurns = (teams, gameState) => {
 }
 
 const resetGameState = (s, game) => {
-    console.log('Resetting game state');
+    logger.info('Resetting game state');
     // Delete cached players
     game.cachedPlayers = [];
     game.teams = game.teams.map((team) => {
         return {
             ...team, score: 0, turn: false, players: team.players.map((player) => {
                 return { ...player, turn: false }
-            })
+            }), playerIndex: 0
         };
     });
+    game.teamIndex = 0;
 
     movieEmitter.updateTeams(s, game);
     movieEmitter.updatePlayers(s, game);
@@ -191,9 +182,7 @@ module.exports = {
     garbageCollection: garbageCollection,
     getCurrentPlayer: getCurrentPlayer,
     getCurrentTeam: getCurrentTeam,
-    getGameChat: getGameChat,
     globalGames: globalGames,
-    globalMessages: globalMessages,
     incrementGameState: incrementGameState,
     incrementPlayerIndex: incrementPlayerIndex,
     incrementTeamIndex: incrementTeamIndex,

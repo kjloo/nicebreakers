@@ -1,8 +1,27 @@
 const movieState = require('../movieState');
 const enums = require('../enums');
+const structs = require('../structs')
 const stub = require('../__stubs__/gameStub');
 
 jest.mock('../movieEmitter');
+
+beforeEach(() => {
+    movieState.resetGameState(undefined, stub.game);
+});
+
+test('clear out unused games', () => {
+    // Setup games
+    const games = new Map();
+    const gameID = "ABCD";
+    const game = new structs.Game(gameID);
+    games.set(gameID, game);
+
+    // Validate game
+    expect(games.get(gameID)).toEqual(game);
+    // Run cleanup
+    movieState.garbageCollection(games);
+    expect(games.get(gameID)).toBeUndefined();
+});
 
 test('check game started', () => {
     expect(movieState.isGameStarted(stub.game)).toBe(false);
@@ -13,10 +32,37 @@ test('check game started', () => {
     expect(movieState.isGameStarted(stub.game)).toBe(true);
 });
 
+test('check current player', () => {
+    // Player should be bob
+    expect(movieState.getCurrentPlayer(stub.teams, stub.game)).toEqual(stub.bob);
+    // Move to next player
+    movieState.incrementPlayerIndex(stub.teams, stub.game);
+    // Player should be sean
+    expect(movieState.getCurrentPlayer(stub.teams, stub.game)).toEqual(stub.sean);
+    // Move to next player
+    movieState.incrementPlayerIndex(stub.teams, stub.game);
+    // Should wrap back around. Player should be bob
+    expect(movieState.getCurrentPlayer(stub.teams, stub.game)).toEqual(stub.bob);
+});
+
+test('check current team', () => {
+    // Team should be fish
+    expect(movieState.getCurrentTeam(stub.teams, stub.game)).toEqual(stub.fish);
+    // Move to next team
+    movieState.incrementTeamIndex(stub.teams, stub.game);
+    // Team should be cat
+    expect(movieState.getCurrentTeam(stub.teams, stub.game)).toEqual(stub.cat);
+    // Move to next team
+    movieState.incrementTeamIndex(stub.teams, stub.game);
+    // Should wrap back around. Team should be fish
+    expect(movieState.getCurrentTeam(stub.teams, stub.game)).toEqual(stub.fish);
+
+});
+
 test('increment game state', () => {
     // Init state
     expect(stub.game.answer).toBe("");
-    expect(stub.game.cachedPlayers).toEqual([stub.charles]);
+    expect(stub.game.cachedPlayers).toEqual([]);
     // check sum of scores is 0
     let scores = stub.game.teams.reduce((acc, cur) => acc + cur.score, 0);
     expect(scores).toBe(0);

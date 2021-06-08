@@ -1,3 +1,5 @@
+const enums = require('./enums');
+
 class Player {
     constructor(id, name, turn, teamID) {
         this.id = id;
@@ -21,7 +23,7 @@ class Team {
 }
 
 class Game {
-    constructor(id, teamIndex, teams, players, cachedPlayers, state, answer) {
+    constructor(id, teamIndex = 0, teams = [], players = new Map(), cachedPlayers = [], state = enums.GameState.SETUP, answer = "") {
         this.id = id;
         this.teamIndex = teamIndex;
         this.teams = teams;

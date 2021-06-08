@@ -11,6 +11,6 @@ app.use('/', router);
 // Consts
 const timeout = 60000; // 60 sec
 // Execute code
-setInterval(movieState.garbageCollection, timeout);
+setInterval(movieState.garbageCollection, timeout, movieState.globalGames);
 
 module.exports = app;
