@@ -80,7 +80,7 @@ const createSocket = (server) => {
                     // Check if player name exists
                     let players = filters.getPlayers(game);
                     if (filters.findByFilter(players, (player) => (name === player.name))) {
-                        socket.emit('exception', 'Name is taken!');
+                        movieEmitter.sendError(socket, 'Name is taken!');
                     } else {
                         // Create Player
                         console.log('Create Player: ' + name);
@@ -96,7 +96,7 @@ const createSocket = (server) => {
                 let player = filters.getPlayer(game, socket.id);
                 if (player === undefined) {
                     console.log("Unregistered Player")
-                    socket.emit('exception', 'Player is not registered');
+                    movieEmitter.sendError(socket, 'Player is not registered');
                 } else {
                     // check if unassigned
                     if (player.teamID === -1) {
@@ -113,7 +113,7 @@ const createSocket = (server) => {
                     team = filters.getByID(game.teams, teamID);
                     if (team === undefined) {
                         console.log("Team not found")
-                        socket.emit('exception', 'Team not found');
+                        movieEmitter.sendError(socket, 'Team not found');
                     } else {
                         team.players.push(player);
 
@@ -127,11 +127,11 @@ const createSocket = (server) => {
             socket.on('add team', ({ name, color }) => {
                 // Check if team name and color exist
                 if (game.teams.find((team) => (name === team.name)) !== undefined) {
-                    socket.emit('exception', 'Team name is taken!');
+                    movieEmitter.sendError(socket, 'Team name is taken!');
                     return;
                 }
                 if (game.teams.find((team) => (color === team.color)) !== undefined) {
-                    socket.emit('exception', 'Color is taken!');
+                    movieEmitter.sendError(socket, 'Color is taken!');
                     return;
                 }
                 // Create Team
@@ -146,7 +146,7 @@ const createSocket = (server) => {
             socket.on('team chat', ({ teamID, message }) => {
                 const player = filters.getPlayer(game, socket.id);
                 if (player === undefined || player.teamID !== teamID) {
-                    socket.emit('exception', 'Not allowed to talk to another team.');
+                    movieEmitter.sendError(socket, 'Not allowed to talk to another team.');
                 } else {
                     // Get Team
                     const team = filters.getByID(game.teams, teamID);

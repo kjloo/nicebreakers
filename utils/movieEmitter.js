@@ -37,6 +37,10 @@ const updateState = (io, game, state) => {
     io.in(game.id).emit('set state', state);
 }
 
+const sendError = (s, message) => {
+    s.emit('exception', message);
+}
+
 const setWinner = (io, game) => {
     // Get winner
     let winner = game.teams.reduce((pre, next) => {

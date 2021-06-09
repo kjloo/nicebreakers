@@ -22,31 +22,30 @@ const isGameStarted = (game) => {
     return game.state !== enums.GameState.SETUP;
 }
 
-const getCurrentPlayer = (teams, gameState) => {
-    const team = teams[gameState.teamIndex];
+const getCurrentPlayer = (gameState) => {
+    const team = getCurrentTeam(gameState);
     if (team === undefined) {
         logger.error("Invalid team index " + gameState.teamIndex);
         return undefined;
     }
     // Get player
-    const player = team.players[team.playerIndex];
-    return player;
+    return team.players[team.playerIndex];
 }
 
-const getCurrentTeam = (teams, gameState) => {
-    let team = teams[gameState.teamIndex];
-    return team;
+const getCurrentTeam = (gameState) => {
+    return gameState.teams[gameState.teamIndex];
 }
 
-const incrementTeamIndex = (teams, gameState) => {
+const incrementTeamIndex = (gameState) => {
     gameState.teamIndex++;
     // Check if valid
-    if (gameState.teamIndex >= teams.length) {
+    if (gameState.teamIndex >= gameState.teams.length) {
         gameState.teamIndex = 0;
     }
 }
 
-const incrementPlayerIndex = (teams, gameState) => {
+const incrementPlayerIndex = (gameState) => {
+    let teams = gameState.teams;
     teams[gameState.teamIndex].playerIndex++;
     // Check if valid
     if (teams[gameState.teamIndex].playerIndex >= teams[gameState.teamIndex].players.length) {
@@ -54,33 +53,34 @@ const incrementPlayerIndex = (teams, gameState) => {
     }
 }
 
-const changeTeamTurns = (teams, gameState) => {
+const changeTeamTurns = (gameState) => {
     // Set old team to false
-    let team = getCurrentTeam(teams, gameState);
+    let team = getCurrentTeam(gameState);
     team.turn = false;
 
     // Increment
-    incrementTeamIndex(teams, gameState);
+    incrementTeamIndex(gameState);
     // Set new team to true
-    team = getCurrentTeam(teams, gameState);
+    team = getCurrentTeam(gameState);
     team.turn = true;
 }
 
-const changePlayerTurns = (teams, gameState) => {
+const changePlayerTurns = (gameState) => {
     // Set old player to false
-    let player = getCurrentPlayer(teams, gameState);
+    let player = getCurrentPlayer(gameState);
     if (player === undefined) {
         logger.error("Could not get player!");
         console.error("Could not get player!");
         return;
     }
     player.turn = false;
+    // Move to next player
+    incrementPlayerIndex(gameState);
 
     // Change teams
-    changeTeamTurns(teams, gameState);
+    changeTeamTurns(gameState);
     // Set new player to true
-    incrementPlayerIndex(teams, gameState);
-    player = getCurrentPlayer(teams, gameState);
+    player = getCurrentPlayer(gameState);
     player.turn = true;
 }
 
@@ -103,9 +103,8 @@ const resetGameState = (s, game) => {
 
 // Game State Machine
 const incrementGameState = (s, game) => {
-    let teams = game.teams;
     // Move the turn along
-    changePlayerTurns(teams, game);
+    changePlayerTurns(game);
     // Update sockets
     movieEmitter.updatePlayers(s, game);
     movieEmitter.updateTeams(s, game);

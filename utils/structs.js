@@ -10,7 +10,7 @@ class Player {
 }
 
 class Team {
-    constructor(id, name, color, score, turn, chat, players, playerIndex) {
+    constructor(id, name, color, score, turn, chat, players = [], playerIndex = 0) {
         this.id = id;
         this.name = name;
         this.color = color;

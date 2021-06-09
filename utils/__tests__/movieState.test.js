@@ -15,12 +15,14 @@ test('clear out unused games', () => {
     const gameID = "ABCD";
     const game = new structs.Game(gameID);
     games.set(gameID, game);
+    games.set(stub.game.gameID, stub.game);
 
     // Validate game
     expect(games.get(gameID)).toEqual(game);
     // Run cleanup
     movieState.garbageCollection(games);
     expect(games.get(gameID)).toBeUndefined();
+    expect(games.get(stub.game.gameID)).toEqual(stub.game);
 });
 
 test('check game started', () => {
@@ -33,30 +35,72 @@ test('check game started', () => {
 });
 
 test('check current player', () => {
-    // Player should be bob
-    expect(movieState.getCurrentPlayer(stub.teams, stub.game)).toEqual(stub.bob);
+    let teamIndex = 0;
+    let playerIndex = 0;
+    // Player should be first player on first team
+    expect(movieState.getCurrentPlayer(stub.game)).toEqual(stub.game.teams[teamIndex].players[playerIndex]);
     // Move to next player
-    movieState.incrementPlayerIndex(stub.teams, stub.game);
+    movieState.incrementPlayerIndex(stub.game);
+    playerIndex = 1;
     // Player should be sean
-    expect(movieState.getCurrentPlayer(stub.teams, stub.game)).toEqual(stub.sean);
+    expect(movieState.getCurrentPlayer(stub.game)).toEqual(stub.game.teams[teamIndex].players[playerIndex]);
     // Move to next player
-    movieState.incrementPlayerIndex(stub.teams, stub.game);
+    movieState.incrementPlayerIndex(stub.game);
     // Should wrap back around. Player should be bob
-    expect(movieState.getCurrentPlayer(stub.teams, stub.game)).toEqual(stub.bob);
+    playerIndex = 0;
+    expect(movieState.getCurrentPlayer(stub.game)).toEqual(stub.game.teams[teamIndex].players[playerIndex]);
+
+    // Excercise player turn change
+    movieState.changePlayerTurns(stub.game);
+    teamIndex = 1;
+    expect(movieState.getCurrentPlayer(stub.game)).toEqual(stub.game.teams[teamIndex].players[playerIndex]);
+    expect(stub.game.teams[0].players[0].turn).toBe(false);
+    expect(stub.game.teams[teamIndex].players[playerIndex].turn).toBe(true);
+    expect(movieState.getCurrentTeam(stub.game)).toEqual(stub.game.teams[teamIndex]);
+
+    // Exercise increment game state
+    movieState.incrementGameState(undefined, stub.game);
+    teamIndex = 0;
+    playerIndex = 1;
+    expect(movieState.getCurrentPlayer(stub.game)).toEqual(stub.game.teams[teamIndex].players[playerIndex]);
+    expect(stub.game.teams[1].players[0].turn).toBe(false);
+    expect(stub.game.teams[teamIndex].players[playerIndex].turn).toBe(true);
+    expect(movieState.getCurrentTeam(stub.game)).toEqual(stub.game.teams[teamIndex]);
 });
 
 test('check current team', () => {
+    teamIndex = 0;
     // Team should be fish
-    expect(movieState.getCurrentTeam(stub.teams, stub.game)).toEqual(stub.fish);
+    expect(movieState.getCurrentTeam(stub.game)).toEqual(stub.game.teams[teamIndex]);
     // Move to next team
-    movieState.incrementTeamIndex(stub.teams, stub.game);
+    movieState.incrementTeamIndex(stub.game);
+    teamIndex = 1;
     // Team should be cat
-    expect(movieState.getCurrentTeam(stub.teams, stub.game)).toEqual(stub.cat);
+    expect(movieState.getCurrentTeam(stub.game)).toEqual(stub.game.teams[teamIndex]);
     // Move to next team
-    movieState.incrementTeamIndex(stub.teams, stub.game);
+    movieState.incrementTeamIndex(stub.game);
+    teamIndex = 0;
     // Should wrap back around. Team should be fish
-    expect(movieState.getCurrentTeam(stub.teams, stub.game)).toEqual(stub.fish);
+    expect(movieState.getCurrentTeam(stub.game)).toEqual(stub.game.teams[teamIndex]);
 
+    // Use change team turns
+    movieState.changeTeamTurns(stub.game);
+    teamIndex = 1;
+    // Team should be cat
+    expect(movieState.getCurrentTeam(stub.game)).toEqual(stub.game.teams[teamIndex]);
+    expect(stub.game.teams[teamIndex].turn).toBe(true);
+    expect(stub.game.teams[0].turn).toBe(false);
+
+
+});
+
+test('reset game state', () => {
+    movieState.resetGameState(undefined, stub.game);
+    expect(stub.game.cachedPlayers).toEqual([]);
+    stub.game.teams.forEach((team) => {
+        expect(team.score).toBe(0);
+    });
+    expect(stub.game.teamIndex).toBe(0);
 });
 
 test('increment game state', () => {
@@ -145,8 +189,4 @@ test('increment game state', () => {
     // check no turn set
     let turn = stub.game.teams.reduce((acc, cur) => acc || cur.turn, false);
     expect(turn).toBe(false);
-});
-
-test('clear state', () => {
-    expect(undefined).toBeUndefined();
 });
