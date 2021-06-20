@@ -135,7 +135,7 @@ const createSocket = (server) => {
                     return;
                 }
                 // Create Team
-                const team = new structs.Team(codes.generateTeamID(game.teams), name, color, 0, false, [], [], 0);
+                const team = new structs.Team(codes.generateTeamID(game.teams), name, color);
                 game.teams.push(team);
                 movieEmitter.addTeam(io, game.id, team);
             });

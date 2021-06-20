@@ -58,6 +58,7 @@ module.exports = {
     addTeam: addTeam,
     deleteTeam: deleteTeam,
     revealAnswer: revealAnswer,
+    sendError: sendError,
     setWinner: setWinner,
     updateChat: updateChat,
     updatePlayers: updatePlayers,
