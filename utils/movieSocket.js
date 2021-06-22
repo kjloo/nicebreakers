@@ -40,8 +40,7 @@ const updatePlayerClient = (io, socket, game, player) => {
     }
 
     // Update client
-    console.log('Update player ' + player.name + ' on ' + socket.id);
-    socket.emit('update player', player);
+    movieEmitter.updatePlayer(socket, player);
     movieEmitter.updatePlayers(io, game);
 }
 
@@ -116,8 +115,7 @@ const createSocket = (server) => {
                         movieEmitter.sendError(socket, 'Team not found');
                     } else {
                         team.players.push(player);
-
-                        socket.emit('update player', player);
+                        movieEmitter.updatePlayer(socket, player);
                         movieEmitter.updateTeams(io, game);
                         movieEmitter.updatePlayers(io, game);
                         movieEmitter.updateChat(io, team);

@@ -31,6 +31,13 @@ describe("socket emitter tests", () => {
         clientSocket.close();
     });
 
+    test('update player', (done) => {
+        clientSocket.on('update player', (player) => {
+            expect(player).toEqual(stub.tom);
+            done();
+        });
+        movieEmitter.updatePlayer(serverSocket, stub.tom);
+    });
 
     test('update players', (done) => {
         clientSocket.on('update players', (players) => {

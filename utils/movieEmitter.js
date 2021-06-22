@@ -2,6 +2,11 @@ const enums = require('./enums');
 const filters = require('./filters');
 
 // Socket functions
+const updatePlayer = (s, player) => {
+    console.log('Update player ' + player.name + ' on ' + s.id);
+    s.emit('update player', player);
+}
+
 const updatePlayers = (io, game) => {
     const players = filters.getPlayers(game);
     io.in(game.id).emit('update players', players);
@@ -61,6 +66,7 @@ module.exports = {
     sendError: sendError,
     setWinner: setWinner,
     updateChat: updateChat,
+    updatePlayer: updatePlayer,
     updatePlayers: updatePlayers,
     updateState: updateState,
     updateTeams: updateTeams

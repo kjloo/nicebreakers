@@ -48,6 +48,9 @@ const getPlayers = (game) => {
 }
 
 const getTeams = (game) => {
+    if (game === undefined) {
+        return undefined;
+    }
     return game.teams;
 }
 

@@ -51,7 +51,6 @@ router.get('/players', function (req, res) {
     const data = {
         players: players
     };
-
     res.json(data);
 })
 
@@ -59,8 +58,9 @@ router.get('/state', function (req, res) {
     const gameID = req.query.gameID;
     // retrieve game and return its teams
     const game = movieState.globalGames.get(gameID);
+    const state = (game !== undefined) ? game.state : enums.GameState.SETUP;
     let data = {
-        state: game.state
+        state: state
     };
 
     res.json(data);
@@ -83,7 +83,6 @@ router.get('/movie/game/', function (req, res) {
     let gameID = req.query.gameID === undefined ? codes.generateGameCode(movieState.globalGames, codeLength) : req.query.gameID;
     // register player name in cache
     playerCache[gameID] = player;
-
     //validateGameID(res, gameID);
     res.redirect(`/movie/game/${gameID}`);
 });
