@@ -15,7 +15,7 @@ const fish = new structs.Team(1042, 'Fish', '#FF6622', 0, true, [], [bob, sean],
 const cat = new structs.Team(5431, 'Cat', '#993355', 0, false, [], [phil, sam], 0);
 const teams = [fish, cat];
 const players = [jake, finn, tom, bob, sean, phil, sam];
-const game = new structs.Game("ABDS", 0, teams, new Map([[jake.id, jake], [finn.id, finn], [tom.id, tom]]), [charles], enums.GameState.SETUP, "");
+const game = new structs.Game("ABDS", enums.GameType.MOVIE, 0, teams, new Map([[jake.id, jake], [finn.id, finn], [tom.id, tom]]), [charles], enums.GameState.SETUP, "");
 
 module.exports = {
     game: game,

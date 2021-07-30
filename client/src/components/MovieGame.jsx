@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
-import enums from '../../../utils/enums';
+import { GameState } from '../../../utils/enums';
 import UserForm from './UserForm';
 import Teams from './Teams';
 import GameMenu from './GameMenu';
@@ -24,7 +24,7 @@ const MovieGame = () => {
     const [players, setPlayers] = useState([]);
     const [teams, setTeams] = useState([]);
     const [chat, setChat] = useState([]);
-    const [state, setState] = useState(enums.GameState.SETUP);
+    const [state, setState] = useState(GameState.SETUP);
     const [answer, setAnswer] = useState('');
     const [winner, setWinner] = useState(undefined);
 
@@ -44,7 +44,7 @@ const MovieGame = () => {
             args = undefined;
         }
         if (args !== undefined && args.isEnd !== undefined && args.isEnd === true) {
-            socket.emit('next state', { state: enums.GameState.END, args: args });
+            socket.emit('next state', { state: GameState.END, args: args });
         } else {
             socket.emit('next state', { state: state, args: args });
         }
@@ -121,7 +121,7 @@ const MovieGame = () => {
     }
 
     const isStarted = () => {
-        return state !== enums.GameState.SETUP;
+        return state !== GameState.SETUP;
     }
 
     // join team

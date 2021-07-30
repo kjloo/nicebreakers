@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import enums from '../../../utils/enums';
+import { GameState } from '../../../utils/enums';
 import FocusInput from './FocusInput';
 import Button from './Button';
 import AnswerValidator from './AnswerValidator';
@@ -23,7 +23,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
     }
 
     const displayTeam = () => {
-        if ((team !== undefined) && (state !== enums.GameState.REVEAL)) {
+        if ((team !== undefined) && (state !== GameState.REVEAL)) {
             return <h2 style={{ color: team.color }}> Team {team.name}'s Turn</h2>
         }
     }
@@ -40,14 +40,14 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
             return <h3>Wait For Current Game To End</h3>
         }
         switch (state) {
-            case enums.GameState.ENTRY:
+            case GameState.ENTRY:
                 return player.turn ?
                     <form className='option-form' onSubmit={submitMovie}>
                         <FocusInput type='text' onChange={(e) => setMovie(e.target.value)} placeholder="Enter Movie" value={movie} required="required" />
                         <input type='submit' value='Submit' />
                     </form> :
                     <h3>Wait For Hint Giver</h3>
-            case enums.GameState.HINT:
+            case GameState.HINT:
                 return player.turn ?
                     <h3>Give Hints To Team</h3> :
                     <div>
@@ -59,7 +59,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
                             </>
                         }
                     </div >
-            case enums.GameState.STEAL:
+            case GameState.STEAL:
                 return player.turn ?
                     <>
                         <h3>Opposing Team Players Are Guessing</h3>
@@ -68,7 +68,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
                     isTeamsTurn() ?
                         <h3>Wait. Opponents Are Guessing</h3> :
                         <h3>Try To Steal</h3>
-            case enums.GameState.GUESS:
+            case GameState.GUESS:
                 return player.turn ?
                     <>
                         <h3>Players Are Guessing</h3>
@@ -77,7 +77,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
                     isTeamsTurn() ?
                         <h3>Make A Guess</h3> :
                         <h3>Wait. Opponents Are Guessing</h3>
-            case enums.GameState.REVEAL:
+            case GameState.REVEAL:
                 return <div>
                     <h3>The Answer Is: {answer}</h3>
                     <Button text="Next" color="blue" onClick={onNext} />

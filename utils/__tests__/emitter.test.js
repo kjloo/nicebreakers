@@ -1,7 +1,7 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const Client = require("socket.io-client");
-const movieEmitter = require('../movieEmitter');
+const emitter = require('../emitter');
 const filters = require('../filters');
 const structs = require('../structs');
 const enums = require('../enums');
@@ -36,7 +36,7 @@ describe("socket emitter tests", () => {
             expect(player).toEqual(stub.tom);
             done();
         });
-        movieEmitter.updatePlayer(serverSocket, stub.tom);
+        emitter.updatePlayer(serverSocket, stub.tom);
     });
 
     test('update players', (done) => {
@@ -44,7 +44,7 @@ describe("socket emitter tests", () => {
             expect(players).toEqual(filters.getPlayers(stub.game));
             done();
         });
-        movieEmitter.updatePlayers(io, stub.game);
+        emitter.updatePlayers(io, stub.game);
     });
 
     test('update teams', (done) => {
@@ -52,7 +52,7 @@ describe("socket emitter tests", () => {
             expect(teams).toEqual(filters.getTeams(stub.game));
             done();
         });
-        movieEmitter.updateTeams(io, stub.game);
+        emitter.updateTeams(io, stub.game);
     });
 
     test('add/delete team', (done) => {
@@ -66,8 +66,8 @@ describe("socket emitter tests", () => {
             done();
         });
 
-        movieEmitter.addTeam(io, stub.game.id, dragon);
-        movieEmitter.deleteTeam(io, stub.game.id, dragon);
+        emitter.addTeam(io, stub.game.id, dragon);
+        emitter.deleteTeam(io, stub.game.id, dragon);
     });
 
     test('update chat', (done) => {
@@ -81,7 +81,7 @@ describe("socket emitter tests", () => {
             expect(data).toEqual(chat);
             done();
         });
-        movieEmitter.updateChat(io, dragon);
+        emitter.updateChat(io, dragon);
         serverSocket.leave(dragonID);
     });
 
@@ -90,7 +90,7 @@ describe("socket emitter tests", () => {
             expect(answer).toBe(stub.game.answer);
             done();
         });
-        movieEmitter.revealAnswer(io, stub.game);
+        emitter.revealAnswer(io, stub.game);
     });
 
     test('update state', (done) => {
@@ -99,7 +99,7 @@ describe("socket emitter tests", () => {
             expect(state).toBe(steal);
             done();
         });
-        movieEmitter.updateState(io, stub.game, steal);
+        emitter.updateState(io, stub.game, steal);
     });
 
     test('send error', (done) => {
@@ -108,7 +108,7 @@ describe("socket emitter tests", () => {
             expect(message).toBe(error);
             done();
         });
-        movieEmitter.sendError(serverSocket, error);
+        emitter.sendError(serverSocket, error);
     });
 
     test('send tie game', (done) => {
@@ -119,7 +119,7 @@ describe("socket emitter tests", () => {
             expect(winner).toBeNull();
             done();
         });
-        movieEmitter.setWinner(io, stub.game);
+        emitter.setWinner(io, stub.game);
         done();
     });
 
@@ -129,7 +129,7 @@ describe("socket emitter tests", () => {
             expect(winner).toBe(stub.game.teams[0]);
             done();
         });
-        movieEmitter.setWinner(io, stub.game);
+        emitter.setWinner(io, stub.game);
         done();
     });
 });

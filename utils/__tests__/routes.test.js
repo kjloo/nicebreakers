@@ -1,14 +1,14 @@
-const app = require('../../server/app');
+import 'regenerator-runtime/runtime';
+import app from '../../server/app';
 const enums = require('../enums');
-const movieState = require('../movieState');
+const stateManager = require('../stateManager');
 const stub = require('../__stubs__/gameStub');
 const supertest = require('supertest');
-const movieEmitter = require('../movieEmitter');
 
 describe("rest api routes", () => {
 
     beforeEach(() => {
-        movieState.globalGames = new Map();
+        stateManager.globalGames = new Map();
     });
 
     test("GET /acronym", async () => {
@@ -55,7 +55,7 @@ describe("rest api routes", () => {
                 expect(response.body.players).toEqual([]);
             });
         // Add game and players
-        movieState.globalGames.set(stub.game.id, stub.game);
+        stateManager.globalGames.set(stub.game.id, stub.game);
         await supertest(app).get('/players/')
             .query({ gameID: gameID })
             .expect(200)
@@ -73,7 +73,7 @@ describe("rest api routes", () => {
                 expect(response.body.state).toBe(enums.GameState.SETUP);
             });
         // change state
-        movieState.globalGames.set(stub.game.id, stub.game);
+        stateManager.globalGames.set(stub.game.id, stub.game);
         stub.game.state = enums.GameState.ANSWER;
         await supertest(app).get('/state/')
             .query({ gameID: gameID })
@@ -93,7 +93,7 @@ describe("rest api routes", () => {
                 expect(response.body.teams).toBeUndefined();
             });
         // Add game and teams
-        movieState.globalGames.set(stub.game.id, stub.game);
+        stateManager.globalGames.set(stub.game.id, stub.game);
         await supertest(app).get('/teams/')
             .query({ gameID: gameID })
             .expect(200)

@@ -1,16 +1,14 @@
-global.__basedir = __dirname;
-const { router } = require('../utils/routes');
-const movieState = require('../utils/movieState');
-const express = require('express');
-
-const app = express();
-
+"use strict";
+exports.__esModule = true;
+globalThis.__basedir = __dirname;
+var routes_1 = require("../utils/routes");
+var stateManager = require('../utils/stateManager');
+var express = require('express');
+var app = express();
 // Middleware
-app.use('/', router);
-
+app.use('/', routes_1["default"]);
 // Consts
-const timeout = 60000; // 60 sec
+var timeout = 60000; // 60 sec
 // Execute code
-setInterval(movieState.garbageCollection, timeout, movieState.globalGames);
-
-module.exports = app;
+setInterval(stateManager.garbageCollection, timeout, stateManager.globalGames);
+exports["default"] = app;

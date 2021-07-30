@@ -1,8 +1,6 @@
-"use strict";
-exports.__esModule = true;
-exports.processAcronym = void 0;
-var logger_1 = require("./logger");
-var acronymTable = {
+import logger from './logger';
+
+const acronymTable = {
     A: ['Apple', 'Almond', 'Albino', 'Athlete', 'Assassin', 'Assistant', 'Astronomer', 'Alien', 'Alpaca', 'America', 'Australia', 'Africa', 'Anonymous'],
     B: ['Banana', 'Basket', 'Bassoon', 'Bee', 'Bass', 'Brunch', 'Breakfast', 'Bunny', 'Boston'],
     C: ['Cast', 'Crow', 'Case', 'Child', 'Church', 'Chicken', 'Chile', 'Capcom', 'Captain', 'Century'],
@@ -29,22 +27,22 @@ var acronymTable = {
     X: ['Xylophone', 'Xenophobe', 'Xenogenesis', 'Xenon'],
     Y: ['Yesterday', 'Youth', 'Yogurt', 'Yoga', 'Yacht', 'Yahoo', 'Yak', 'Yard', 'Yankee', 'Yesterday'],
     Z: ['Zebra', 'Zillion', 'Zygote', 'Zealot', 'Zeitgeist', 'Zenith', 'Zephyr', 'Zigzag', 'Zipline', 'Zipper']
-};
-function processAcronym(code) {
-    var rc = [];
+}
+
+export function processAcronym(code: string): string {
+    let rc = []
     code = code.toUpperCase();
     // get a word for each letter
-    for (var i = 0; i < code.length; i++) {
-        var letter = code.charAt(i);
+    for (let i = 0; i < code.length; i++) {
+        let letter = code.charAt(i);
         // Validate letter in table
         if (!(letter in acronymTable)) {
-            logger_1["default"].error("Could not find " + letter + " in table");
+            logger.error("Could not find " + letter + " in table");
             return "";
         }
-        var list = acronymTable[letter];
-        var word = list[Math.floor(Math.random() * list.length)];
+        let list = acronymTable[letter];
+        let word = list[Math.floor(Math.random() * list.length)];
         rc.push(word);
     }
     return rc.join(' ');
 }
-exports.processAcronym = processAcronym;

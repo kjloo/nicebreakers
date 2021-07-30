@@ -7,11 +7,12 @@
     "start": "HOST=server node server/server.js",
     "build": "webpack --config client/webpack.config.js --mode=production && cp -r client/build server",
     "debug-client": "webpack serve --config client/webpack.config.js --open --mode=development",
+    "webpack:compile": "tsc -w",
     "webpack:build": "webpack --config client/webpack.config.js --mode=production --watch",
     "webpack:client": "nodemon --watch client/build --exec cp -r client/build server",
     "webpack:server": "nodemon --watch server --watch utils --exec npm run start",
     "dev": "HOST=server npm-run-all --parallel webpack:*",
-    "test": "jest"
+    "test": "HOST=server jest"
   },
   "author": "Kaleb Loo",
   "license": "ISC",
@@ -19,6 +20,8 @@
     "@babel/core": "^7.13.8",
     "@babel/preset-env": "^7.13.8",
     "@babel/preset-react": "^7.12.13",
+    "@babel/preset-typescript": "^7.14.5",
+    "@types/winston": "^2.4.4",
     "babel-jest": "^26.6.3",
     "babel-loader": "^8.2.2",
     "css-loader": "^5.1.0",
@@ -30,6 +33,7 @@
     "prop-types": "^15.7.2",
     "style-loader": "^2.0.0",
     "supertest": "^6.1.3",
+    "typescript": "^4.3.5",
     "url-loader": "^4.1.1",
     "webpack": "^5.24.2",
     "webpack-cli": "^4.5.0",
@@ -43,6 +47,6 @@
     "react-router-dom": "^5.2.0",
     "socket.io": "^3.1.2",
     "socket.io-client": "^3.1.2",
-    "winston": "^3.3.3"
+    "winston": "^3.3.0"
   }
 }

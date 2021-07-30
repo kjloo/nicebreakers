@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "noImplicitOverride": true
+    },
+    "watchOptions": {
+        "excludeDirectories": [
+            "**/node_modules"
+        ]
+    }
+}

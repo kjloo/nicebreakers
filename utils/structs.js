@@ -23,8 +23,9 @@ class Team {
 }
 
 class Game {
-    constructor(id, teamIndex = 0, teams = [], players = new Map(), cachedPlayers = [], state = enums.GameState.SETUP, answer = "") {
+    constructor(id, type = enums.GameType.MOVIE, teamIndex = 0, teams = [], players = new Map(), cachedPlayers = [], state = enums.GameState.SETUP, answer = "") {
         this.id = id;
+        this.type = type;
         this.teamIndex = teamIndex;
         this.teams = teams;
         this.players = players;
