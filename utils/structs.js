@@ -3,8 +3,9 @@ exports.__esModule = true;
 exports.ChatEntry = exports.Game = exports.Team = exports.Player = void 0;
 var enums_1 = require("./enums");
 var Player = /** @class */ (function () {
-    function Player(id, name, turn, teamID) {
+    function Player(id, type, name, turn, teamID) {
         this.id = id;
+        this.type = type;
         this.name = name;
         this.turn = turn;
         this.teamID = teamID;

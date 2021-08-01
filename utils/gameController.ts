@@ -1,5 +1,6 @@
-import { GameState } from './enums';
+import { GameState, PlayerType } from './enums';
 import logger from './logger';
+import { Player } from './structs';
 const emitter = require('./emitter');
 
 export class GameController {
@@ -33,5 +34,9 @@ export class GameController {
 
     public gameStateMachine(s, game, state, args): void {
 
+    }
+
+    public createPlayer(id: string, name: string): Player {
+        return new Player(id, PlayerType.PLAYER, name, false, -1);
     }
 };

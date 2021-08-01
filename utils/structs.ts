@@ -1,13 +1,15 @@
-import { GameState, GameType } from './enums';
+import { GameState, GameType, PlayerType } from './enums';
 
 export class Player {
     public id: string;
+    public type: PlayerType;
     public name: string;
     public turn: boolean;
     public teamID: number;
 
-    constructor(id: string, name: string, turn: boolean, teamID: number) {
+    constructor(id: string, type: PlayerType, name: string, turn: boolean, teamID: number) {
         this.id = id;
+        this.type = type;
         this.name = name;
         this.turn = turn;
         this.teamID = teamID;

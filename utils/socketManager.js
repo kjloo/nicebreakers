@@ -100,10 +100,23 @@ function createSocket(server) {
                     else {
                         // Create Player
                         console.log('Create Player: ' + name);
-                        player = new structs_1.Player(socket.id, name, false, -1);
+                        player = controller_1.createPlayer(socket.id, name);
                     }
                 }
                 updatePlayerClient(io, socket, game, player);
+            });
+            socket.on('change role', function (_a) {
+                var type = _a.type;
+                // Update player in game
+                var player = game.players.get(socket.id);
+                if (player === undefined) {
+                    // Could not find player
+                    console.error('Player not found: ' + socket.id);
+                    return;
+                }
+                player.type = type;
+                emitter.updatePlayer(socket, player);
+                emitter.updatePlayers(io, game);
             });
             socket.on('next state', function (_a) {
                 var state = _a.state, args = _a.args;

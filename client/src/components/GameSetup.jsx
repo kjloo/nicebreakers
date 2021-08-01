@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Players from './Players';
 import GameControls from './GameControls';
+import { PlayerType } from '../../../utils/enums';
 
 const GameSetup = ({ socket, players, teams, onStart }) => {
     const maxTeams = 4;
@@ -15,12 +16,12 @@ const GameSetup = ({ socket, players, teams, onStart }) => {
         // ready when
         // there is at least 2 players
         // there are at least 2 teams
-        // each player is on a team
+        // each player that is a player is on a team
         // each team has a player
         // game not started
         return ((players.length > 1) &&
             (teams.length > 1) &&
-            (players.every((player) => player.teamID > 0)) &&
+            (players.every((player) => (player.type !== PlayerType.PLAYER) || (player.teamID > 0))) &&
             (teams.every((team) => (team.players.length > 0))));
     }
 
@@ -38,11 +39,6 @@ const GameSetup = ({ socket, players, teams, onStart }) => {
         });
     };
 
-    // submit team
-    const submitTeam = (name, color) => {
-        socket.emit('add team', { name: name, color: color });
-    }
-
     useEffect(() => {
         processAcronym();
     }, [])
@@ -53,7 +49,7 @@ const GameSetup = ({ socket, players, teams, onStart }) => {
             <p className="value">{gameID}</p>
             <p className="value"> ({decode}) </p>
             <Players players={players} />
-            <GameControls isLocked={teams.length >= maxTeams} isReady={isReady()} onSubmit={submitTeam} onStart={onStart} />
+            <GameControls socket={socket} isLocked={teams.length >= maxTeams} isReady={isReady()} onStart={onStart} />
         </>
     )
 }

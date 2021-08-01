@@ -12,3 +12,10 @@ export enum GameType {
     MOVIE,
     TRIVIA
 };
+
+export enum PlayerType {
+    ADMIN,
+    MASTER,
+    PLAYER,
+    OBSERVER
+};

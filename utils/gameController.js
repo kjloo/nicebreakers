@@ -14,6 +14,7 @@ exports.__esModule = true;
 exports.GameController = void 0;
 var enums_1 = require("./enums");
 var logger_1 = require("./logger");
+var structs_1 = require("./structs");
 var emitter = require('./emitter');
 var GameController = /** @class */ (function () {
     function GameController(game) {
@@ -37,6 +38,9 @@ var GameController = /** @class */ (function () {
         emitter.updatePlayers(s, game);
     };
     GameController.prototype.gameStateMachine = function (s, game, state, args) {
+    };
+    GameController.prototype.createPlayer = function (id, name) {
+        return new structs_1.Player(id, enums_1.PlayerType.PLAYER, name, false, -1);
     };
     return GameController;
 }());

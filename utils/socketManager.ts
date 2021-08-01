@@ -5,6 +5,7 @@ import { Player, Team, Game, ChatEntry } from './structs';
 import { Server, Socket } from 'socket.io';
 import { generateTeamID } from './codes';
 import { findByFilter, getByID, getPlayer, getPlayers } from './filters';
+import { PlayerType } from './enums';
 const emitter = require('./emitter');
 
 function updatePlayerClient(io: Server, socket: Socket, game: Game, player: Player): null {
@@ -82,15 +83,27 @@ export function createSocket(server) {
                 if (player === undefined) {
                     // Check if player name exists
                     let players: Array<Player> = getPlayers(game);
-                    if (findByFilter(players, (player) => (name === player.name))) {
+                    if (findByFilter(players, (player: Player) => (name === player.name))) {
                         emitter.sendError(socket, 'Name is taken!');
                     } else {
                         // Create Player
                         console.log('Create Player: ' + name);
-                        player = new Player(socket.id, name, false, -1);
+                        player = controller.createPlayer(socket.id, name);
                     }
                 }
                 updatePlayerClient(io, socket, game, player);
+            });
+            socket.on('change role', ({ type }) => {
+                // Update player in game
+                const player: Player = game.players.get(socket.id);
+                if (player === undefined) {
+                    // Could not find player
+                    console.error('Player not found: ' + socket.id);
+                    return;
+                }
+                player.type = type;
+                emitter.updatePlayer(socket, player);
+                emitter.updatePlayers(io, game);
             });
             socket.on('next state', ({ state, args }) => {
                 controller.gameStateMachine(io, game, state, args);

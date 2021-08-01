@@ -1,4 +1,4 @@
-import React, { Children, cloneElement, useEffect, useState } from 'react'
+import React, { cloneElement, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
@@ -7,6 +7,8 @@ import UserForm from './UserForm';
 import Teams from './Teams';
 import GameContainer from './GameContainer';
 import GameSetup from './GameSetup';
+import { PlayerType } from '../../../utils/enums';
+import Button from './Button';
 
 let socket;
 const connectSocket = (gameID) => {
@@ -18,7 +20,7 @@ const connectSocket = (gameID) => {
     socket.connect();
 }
 
-const GameSocket = ({ children, title }) => {
+const GameSocket = ({ children, title, roles }) => {
     const [player, setPlayer] = useState(undefined);
     const [players, setPlayers] = useState([]);
     const [teams, setTeams] = useState([]);
@@ -62,7 +64,6 @@ const GameSocket = ({ children, title }) => {
             let player = response.data.player;
             if (player !== undefined) {
                 submitPlayer(player);
-                setPlayer(player);
             }
         });
     }
@@ -123,9 +124,39 @@ const GameSocket = ({ children, title }) => {
         return state !== GameState.SETUP;
     }
 
+    const hasGameMaster = () => {
+        return roles.includes(PlayerType.MASTER);
+    }
+
+    const playerRoleButton = () => {
+        if (!hasGameMaster()) {
+            return;
+        }
+        if (!player) {
+            return;
+        }
+        const text = (player.type === PlayerType.PLAYER) ? "Player" : "Master";
+        const newRole = (player.type === PlayerType.PLAYER) ? PlayerType.MASTER : PlayerType.PLAYER;
+        return <div className='role-button'>
+            <Button
+                color="darkviolet"
+                text={text}
+                disabled={player.teamID !== -1}
+                onClick={() => socket.emit('change role', { type: newRole })} />
+        </div>
+
+    }
+
     // join team
     const joinTeam = (team) => {
-        if (player && (player.teamID !== team.id)) {
+        if (!player) {
+            return false;
+        }
+        if (player.type === PlayerType.MASTER) {
+            alert('Game Master Cannot Join Teams');
+            return false;
+        }
+        if (player.teamID !== team.id) {
             if (isStarted()) {
                 alert('Game Already Started');
             } else {
@@ -226,6 +257,7 @@ const GameSocket = ({ children, title }) => {
 
     return (
         <>
+            {playerRoleButton()}
             <GameContainer title={title} >
                 {isEmpty(player) ?
                     <UserForm onSubmit={submitPlayer} /> :
@@ -243,4 +275,9 @@ const GameSocket = ({ children, title }) => {
     )
 }
 
-export default GameSocket
+GameSocket.defaultProps = {
+    title: 'No Title',
+    roles: [PlayerType.PLAYER]
+}
+
+export default GameSocket;
