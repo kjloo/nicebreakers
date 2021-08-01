@@ -10,7 +10,7 @@ const Games = () => {
                 <img src={movieLogo} alt="movie" />
             </Link>
             <Link className="game-icon" to="/trivia">
-                <img src={triviaLogo} alt="movie" />
+                <img src={triviaLogo} alt="trivia" />
             </Link>
         </div>
     )

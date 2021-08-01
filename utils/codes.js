@@ -1,40 +1,38 @@
+"use strict";
+exports.__esModule = true;
+exports.generateTeamID = exports.generateGameCode = exports.generateCode = void 0;
 // Generate code
-const generateCode = (codeLength) => {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let code = "";
+function generateCode(codeLength) {
+    var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    var code = "";
     while (code.length < codeLength) {
         code += letters.charAt(Math.floor(Math.random() * letters.length));
     }
     return code;
 }
-
+exports.generateCode = generateCode;
 // Create Game Code
-const generateGameCode = (games, codeLength) => {
+function generateGameCode(games, codeLength) {
     if (!(games instanceof Map)) {
         return "";
     }
-    let code = generateCode(codeLength);
+    var code = generateCode(codeLength);
     while (games.has(code)) {
         code = generateCode(codeLength);
     }
     return code;
 }
-
+exports.generateGameCode = generateGameCode;
 // Create Team ID
-const generateTeamID = (teams) => {
+function generateTeamID(teams) {
     if (!(teams instanceof Array)) {
-        return "";
+        return -1;
     }
     // This should be fine as incrementing should yield a new number
-    let teamID = Date.now();
-    while (teams.find((team) => team.id === teamID) !== undefined) {
+    var teamID = Date.now();
+    while (teams.find(function (team) { return team.id === teamID; }) !== undefined) {
         teamID = Date.now();
     }
     return teamID;
 }
-
-module.exports = {
-    generateCode: generateCode,
-    generateGameCode: generateGameCode,
-    generateTeamID: generateTeamID
-}
+exports.generateTeamID = generateTeamID;

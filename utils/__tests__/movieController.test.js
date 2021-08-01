@@ -1,5 +1,5 @@
 import { MovieController } from '../movieController';
-const enums = require('../enums');
+import { GameState } from '../enums';
 const stub = require('../__stubs__/gameStub');
 
 jest.mock('../emitter');
@@ -77,14 +77,14 @@ test('increment game state', () => {
     expect(scores).toBe(0);
 
     // Start game
-    let startState = enums.GameState.SETUP;
-    let nextState = enums.GameState.ENTRY;
+    let startState = GameState.SETUP;
+    let nextState = GameState.ENTRY;
     controller.gameStateMachine({}, stub.game, startState, {});
     expect(stub.game.state).toBe(nextState);
 
     // Hint
-    startState = enums.GameState.ENTRY;
-    nextState = enums.GameState.HINT;
+    startState = GameState.ENTRY;
+    nextState = GameState.HINT;
     const answer = "Cats";
     controller.gameStateMachine({}, stub.game, startState, { answer: answer });
     expect(stub.game.state).toBe(nextState);
@@ -92,14 +92,14 @@ test('increment game state', () => {
     expect(stub.game.answer).toBe(answer);
 
     // Steal
-    startState = enums.GameState.HINT;
-    nextState = enums.GameState.STEAL;
+    startState = GameState.HINT;
+    nextState = GameState.STEAL;
     controller.gameStateMachine({}, stub.game, startState, {});
     expect(stub.game.state).toBe(nextState);
 
     // Guess
-    startState = enums.GameState.STEAL;
-    nextState = enums.GameState.GUESS;
+    startState = GameState.STEAL;
+    nextState = GameState.GUESS;
     controller.gameStateMachine({}, stub.game, startState, { correct: false });
     expect(stub.game.state).toBe(nextState);
 
@@ -108,8 +108,8 @@ test('increment game state', () => {
     expect(scores).toBe(0);
 
     // Reveal
-    startState = enums.GameState.STEAL;
-    nextState = enums.GameState.REVEAL;
+    startState = GameState.STEAL;
+    nextState = GameState.REVEAL;
     controller.gameStateMachine({}, stub.game, startState, { correct: true });
     expect(stub.game.state).toBe(nextState);
 
@@ -117,8 +117,8 @@ test('increment game state', () => {
     scores = stub.game.teams.reduce((acc, cur) => acc + cur.score, 0);
     expect(scores).toBe(1);
 
-    startState = enums.GameState.GUESS;
-    nextState = enums.GameState.REVEAL;
+    startState = GameState.GUESS;
+    nextState = GameState.REVEAL;
     controller.gameStateMachine({}, stub.game, startState, { correct: true });
     expect(stub.game.state).toBe(nextState);
 
@@ -126,8 +126,8 @@ test('increment game state', () => {
     scores = stub.game.teams.reduce((acc, cur) => acc + cur.score, 0);
     expect(scores).toBe(2);
 
-    startState = enums.GameState.GUESS;
-    nextState = enums.GameState.REVEAL;
+    startState = GameState.GUESS;
+    nextState = GameState.REVEAL;
     controller.gameStateMachine({}, stub.game, startState, { correct: false });
     expect(stub.game.state).toBe(nextState);
 
@@ -136,14 +136,14 @@ test('increment game state', () => {
     expect(scores).toBe(2);
 
     // ENTRY
-    startState = enums.GameState.REVEAL;
-    nextState = enums.GameState.ENTRY;
+    startState = GameState.REVEAL;
+    nextState = GameState.ENTRY;
     controller.gameStateMachine({}, stub.game, startState, {});
     expect(stub.game.state).toBe(nextState);
 
     // END
-    startState = enums.GameState.END;
-    nextState = enums.GameState.SETUP;
+    startState = GameState.END;
+    nextState = GameState.SETUP;
     controller.gameStateMachine({}, stub.game, startState, {});
     expect(stub.game.state).toBe(nextState);
     // check no cached players

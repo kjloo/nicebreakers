@@ -6,6 +6,7 @@ import Games from './components/Games';
 import MovieMenu from './components/MovieMenu';
 import MovieGame from './components/MovieGame';
 import TriviaMenu from './components/TriviaMenu';
+import TriviaGame from './components/TriviaGame';
 import About from './components/About';
 import Footer from './components/Footer';
 
@@ -21,6 +22,7 @@ const App = () => {
                         <Route exact path="/movie" component={MovieMenu} />
                         <Route exact path="/movie/game/:gameID" component={MovieGame} />
                         <Route exact path="/trivia" component={TriviaMenu} />
+                        <Route exact path="/trivia/game/:gameID" component={TriviaGame} />
                         <Route exact path="/about" component={About} />
                     </Switch>
                 </div>

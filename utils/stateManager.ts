@@ -1,6 +1,8 @@
+import { GameType } from './enums';
 import { GameController } from './gameController';
 import { MovieController } from './movieController';
-const filters = require('./filters');
+import { TriviaController } from './triviaController';
+import { getPlayers } from './filters';
 
 // const assets
 export let globalGames = new Map();
@@ -9,7 +11,7 @@ export let globalGames = new Map();
 export function garbageCollection(games): void {
     // remove any inactive game ids
     games.forEach((game, key, map) => {
-        if (filters.getPlayers(game).length === 0) {
+        if (getPlayers(game).length === 0) {
             map.delete(key);
             console.log("Removed inactive game: " + key);
         }
@@ -18,5 +20,10 @@ export function garbageCollection(games): void {
 
 // Factory
 export function gameControllerFactory(game): GameController {
-    return new MovieController(game);
+    if (game.type == GameType.MOVIE) {
+        return new MovieController(game);
+    } else if (game.type == GameType.TRIVIA) {
+        return new TriviaController(game);
+    }
+    return null;
 }

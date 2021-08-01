@@ -1,64 +1,56 @@
-const getByID = (list, id) => {
+"use strict";
+exports.__esModule = true;
+exports.getTeams = exports.getPlayers = exports.getPlayer = exports.getByTeamID = exports.findByFilter = exports.getByID = void 0;
+function getByID(list, id) {
     if (!list || !(list instanceof Array)) {
         return undefined;
     }
-    return list.find((item) => item.id === id);
+    return list.find(function (item) { return item.id === id; });
 }
-
-const findByFilter = (map, filter) => {
-    if (!map) {
-        return undefined;
-    }
-    for (let [key, item] of map.entries()) {
-        if (filter(item)) {
-            return item;
-        }
-    }
-    return undefined;
-}
-
-const getByTeamID = (list, teamID) => {
+exports.getByID = getByID;
+function findByFilter(list, filter) {
     if (!list || !(list instanceof Array)) {
         return undefined;
     }
-    return list.filter((item) => item.teamID === teamID);
+    return list.find(filter);
 }
-
+exports.findByFilter = findByFilter;
+function getByTeamID(list, teamID) {
+    if (!list || !(list instanceof Array)) {
+        return undefined;
+    }
+    return list.filter(function (item) { return item.teamID === teamID; });
+}
+exports.getByTeamID = getByTeamID;
 // Get Player
-const getPlayer = (game, id) => {
-    const players = getPlayers(game);
-    const player = getByID(players, id);
+function getPlayer(game, id) {
+    var players = getPlayers(game);
+    var player = getByID(players, id);
     return player;
 }
+exports.getPlayer = getPlayer;
 // Get Players
-const getPlayers = (game) => {
-    let players = [];
+function getPlayers(game) {
+    var players = [];
     if (game !== undefined) {
         players = players.concat(Array.from(game.players.values()));
         // iterate through teams in game
         if (game.teams.length !== 0) {
-            players = players.concat(game.teams.reduce((pre, next) => {
+            players = players.concat(game.teams.reduce(function (pre, next) {
                 return pre.concat(next.players);
             }, []));
         }
-    } else {
+    }
+    else {
         console.log("Game not defined!");
     }
     return players;
 }
-
-const getTeams = (game) => {
+exports.getPlayers = getPlayers;
+function getTeams(game) {
     if (game === undefined) {
         return undefined;
     }
     return game.teams;
 }
-
-module.exports = {
-    getByID: getByID,
-    findByFilter: findByFilter,
-    getByTeamID: getByTeamID,
-    getPlayer: getPlayer,
-    getPlayers: getPlayers,
-    getTeams: getTeams
-}
+exports.getTeams = getTeams;

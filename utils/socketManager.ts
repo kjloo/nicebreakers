@@ -1,13 +1,13 @@
 import { gameControllerFactory, globalGames } from './stateManager';
 import { GameController } from './gameController';
 import logger from './logger';
-const { Server } = require('socket.io');
-const filters = require('./filters');
-const codes = require('./codes');
+import { Player, Team, Game, ChatEntry } from './structs';
+import { Server, Socket } from 'socket.io';
+import { generateTeamID } from './codes';
+import { findByFilter, getByID, getPlayer, getPlayers } from './filters';
 const emitter = require('./emitter');
-const structs = require('./structs');
 
-function updatePlayerClient(io, socket, game, player) {
+function updatePlayerClient(io: Server, socket: Socket, game: Game, player: Player): null {
     if (player === undefined) {
         console.error("Undefined player");
         return;
@@ -33,8 +33,8 @@ function updatePlayerClient(io, socket, game, player) {
         });
 
         // Join team
-        socket.join(player.teamID);
-        const team = filters.getByID(game.teams, player.teamID);
+        socket.join(player.teamID.toString());
+        const team = getByID(game.teams, player.teamID);
         // Send chat data
         emitter.updateChat(socket, team);
     } else {
@@ -47,19 +47,19 @@ function updatePlayerClient(io, socket, game, player) {
 }
 
 export function createSocket(server) {
-    const io = new Server(server);
-    io.on('connection', (socket) => {
-        const gameID = socket.handshake.query.gameID;
+    const io: Server = new Server(server);
+    io.on('connection', (socket: Socket) => {
+        const gameID: string | string[] = socket.handshake.query.gameID;
         logger.info(socket.id + ": Connected to Game: " + gameID);
         console.log(socket.id + ": Connected to Game: " + gameID);
-        const game = globalGames.get(gameID);
+        const game: Game = globalGames.get(gameID);
         if (game !== undefined) {
             const controller: GameController = gameControllerFactory(game);
             socket.on('add player', ({ name, id }) => {
                 console.log(gameID + " Add Player: " + name + "[" + id + "]");
                 socket.join(gameID);
                 // Check if player is cached
-                let player = filters.getPlayer(game, id);
+                let player: Player = getPlayer(game, id);
                 if (controller.isGameStarted(game)) {
                     if (player === undefined) {
                         // Can't find by id so search by name in cached players
@@ -81,13 +81,13 @@ export function createSocket(server) {
                 // Create player if not found
                 if (player === undefined) {
                     // Check if player name exists
-                    let players = filters.getPlayers(game);
-                    if (filters.findByFilter(players, (player) => (name === player.name))) {
+                    let players: Array<Player> = getPlayers(game);
+                    if (findByFilter(players, (player) => (name === player.name))) {
                         emitter.sendError(socket, 'Name is taken!');
                     } else {
                         // Create Player
                         console.log('Create Player: ' + name);
-                        player = new structs.Player(socket.id, name, false, -1);
+                        player = new Player(socket.id, name, false, -1);
                     }
                 }
                 updatePlayerClient(io, socket, game, player);
@@ -96,7 +96,7 @@ export function createSocket(server) {
                 controller.gameStateMachine(io, game, state, args);
             });
             socket.on('join team', ({ teamID }) => {
-                let player = filters.getPlayer(game, socket.id);
+                let player: Player = getPlayer(game, socket.id);
                 if (player === undefined) {
                     console.log("Unregistered Player")
                     emitter.sendError(socket, 'Player is not registered');
@@ -106,14 +106,14 @@ export function createSocket(server) {
                         game.players.delete(player.id);
                     } else {
                         // remove from team
-                        socket.leave(player.teamID);
-                        let team = filters.getByID(game.teams, player.teamID);
+                        socket.leave(player.teamID.toString());
+                        let team: Team = getByID(game.teams, player.teamID);
                         team.players = team.players.filter((p) => p.id !== player.id);
                     }
                     // add to team
                     socket.join(teamID);
                     player.teamID = teamID;
-                    let team = filters.getByID(game.teams, teamID);
+                    let team: Team = getByID(game.teams, teamID);
                     if (team === undefined) {
                         console.log("Team not found")
                         emitter.sendError(socket, 'Team not found');
@@ -137,7 +137,7 @@ export function createSocket(server) {
                     return;
                 }
                 // Create Team
-                const team = new structs.Team(codes.generateTeamID(game.teams), name, color);
+                const team = new Team(generateTeamID(game.teams), name, color);
                 game.teams.push(team);
                 emitter.addTeam(io, game.id, team);
             });
@@ -146,19 +146,19 @@ export function createSocket(server) {
                 emitter.deleteTeam(io, game.id, id);
             });
             socket.on('team chat', ({ teamID, message }) => {
-                const player = filters.getPlayer(game, socket.id);
+                const player: Player = getPlayer(game, socket.id);
                 if (player === undefined || player.teamID !== teamID) {
                     emitter.sendError(socket, 'Not allowed to talk to another team.');
                 } else {
                     // Get Team
-                    const team = filters.getByID(game.teams, teamID);
-                    const chatEntry = new structs.ChatEntry(player.name, message);
+                    const team: Team = getByID(game.teams, teamID);
+                    const chatEntry: ChatEntry = new ChatEntry(player.name, message);
                     team.chat.push(chatEntry);
                     emitter.updateChat(io, team);
                 }
             });
             socket.on('disconnect', (reason) => {
-                const player = filters.getPlayer(game, socket.id);
+                const player: Player = getPlayer(game, socket.id);
                 console.log("Disconnecting due to " + reason + ": " + socket.id + " - " + ((player !== undefined) && player.name));
 
                 if ((game !== undefined) && !controller.isGameStarted(game)) {

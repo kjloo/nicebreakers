@@ -1,10 +1,16 @@
 {
     "compilerOptions": {
-        "noImplicitOverride": true
+        "noImplicitOverride": true,
+        "typeRoots": [
+            "**/node_modules/@types"
+        ]
     },
     "watchOptions": {
         "excludeDirectories": [
             "**/node_modules"
         ]
-    }
+    },
+    "exclude": [
+        "**/node_modules"
+    ]
 }

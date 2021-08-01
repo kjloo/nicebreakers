@@ -22,11 +22,8 @@ test('list of players', () => {
 });
 
 test('find', () => {
-    // Test still valid, but Players are usually not in Maps
-    const map = new Map([[1, stub.bob], [2, stub.sean], [3, stub.phil], [4, stub.sam]]);
-
     // get current player named Phil
-    let act = filters.findByFilter(map, (player) => player.name === "Phil");
+    let act = filters.findByFilter(stub.players, (player) => player.name === "Phil");
     expect(act).toEqual(stub.phil);
 });
 

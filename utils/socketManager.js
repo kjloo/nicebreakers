@@ -14,11 +14,11 @@ exports.__esModule = true;
 exports.createSocket = void 0;
 var stateManager_1 = require("./stateManager");
 var logger_1 = require("./logger");
-var Server = require('socket.io').Server;
-var filters = require('./filters');
-var codes = require('./codes');
+var structs_1 = require("./structs");
+var socket_io_1 = require("socket.io");
+var codes_1 = require("./codes");
+var filters_1 = require("./filters");
 var emitter = require('./emitter');
-var structs = require('./structs');
 function updatePlayerClient(io, socket, game, player) {
     if (player === undefined) {
         console.error("Undefined player");
@@ -45,8 +45,8 @@ function updatePlayerClient(io, socket, game, player) {
             }
         });
         // Join team
-        socket.join(player.teamID);
-        var team = filters.getByID(game.teams, player.teamID);
+        socket.join(player.teamID.toString());
+        var team = filters_1.getByID(game.teams, player.teamID);
         // Send chat data
         emitter.updateChat(socket, team);
     }
@@ -58,7 +58,7 @@ function updatePlayerClient(io, socket, game, player) {
     emitter.updatePlayers(io, game);
 }
 function createSocket(server) {
-    var io = new Server(server);
+    var io = new socket_io_1.Server(server);
     io.on('connection', function (socket) {
         var gameID = socket.handshake.query.gameID;
         logger_1["default"].info(socket.id + ": Connected to Game: " + gameID);
@@ -71,7 +71,7 @@ function createSocket(server) {
                 console.log(gameID + " Add Player: " + name + "[" + id + "]");
                 socket.join(gameID);
                 // Check if player is cached
-                var player = filters.getPlayer(game, id);
+                var player = filters_1.getPlayer(game, id);
                 if (controller_1.isGameStarted(game)) {
                     if (player === undefined) {
                         // Can't find by id so search by name in cached players
@@ -93,14 +93,14 @@ function createSocket(server) {
                 // Create player if not found
                 if (player === undefined) {
                     // Check if player name exists
-                    var players = filters.getPlayers(game);
-                    if (filters.findByFilter(players, function (player) { return (name === player.name); })) {
+                    var players = filters_1.getPlayers(game);
+                    if (filters_1.findByFilter(players, function (player) { return (name === player.name); })) {
                         emitter.sendError(socket, 'Name is taken!');
                     }
                     else {
                         // Create Player
                         console.log('Create Player: ' + name);
-                        player = new structs.Player(socket.id, name, false, -1);
+                        player = new structs_1.Player(socket.id, name, false, -1);
                     }
                 }
                 updatePlayerClient(io, socket, game, player);
@@ -111,7 +111,7 @@ function createSocket(server) {
             });
             socket.on('join team', function (_a) {
                 var teamID = _a.teamID;
-                var player = filters.getPlayer(game, socket.id);
+                var player = filters_1.getPlayer(game, socket.id);
                 if (player === undefined) {
                     console.log("Unregistered Player");
                     emitter.sendError(socket, 'Player is not registered');
@@ -123,14 +123,14 @@ function createSocket(server) {
                     }
                     else {
                         // remove from team
-                        socket.leave(player.teamID);
-                        var team_1 = filters.getByID(game.teams, player.teamID);
+                        socket.leave(player.teamID.toString());
+                        var team_1 = filters_1.getByID(game.teams, player.teamID);
                         team_1.players = team_1.players.filter(function (p) { return p.id !== player.id; });
                     }
                     // add to team
                     socket.join(teamID);
                     player.teamID = teamID;
-                    var team = filters.getByID(game.teams, teamID);
+                    var team = filters_1.getByID(game.teams, teamID);
                     if (team === undefined) {
                         console.log("Team not found");
                         emitter.sendError(socket, 'Team not found');
@@ -156,7 +156,7 @@ function createSocket(server) {
                     return;
                 }
                 // Create Team
-                var team = new structs.Team(codes.generateTeamID(game.teams), name, color);
+                var team = new structs_1.Team(codes_1.generateTeamID(game.teams), name, color);
                 game.teams.push(team);
                 emitter.addTeam(io, game.id, team);
             });
@@ -167,20 +167,20 @@ function createSocket(server) {
             });
             socket.on('team chat', function (_a) {
                 var teamID = _a.teamID, message = _a.message;
-                var player = filters.getPlayer(game, socket.id);
+                var player = filters_1.getPlayer(game, socket.id);
                 if (player === undefined || player.teamID !== teamID) {
                     emitter.sendError(socket, 'Not allowed to talk to another team.');
                 }
                 else {
                     // Get Team
-                    var team = filters.getByID(game.teams, teamID);
-                    var chatEntry = new structs.ChatEntry(player.name, message);
+                    var team = filters_1.getByID(game.teams, teamID);
+                    var chatEntry = new structs_1.ChatEntry(player.name, message);
                     team.chat.push(chatEntry);
                     emitter.updateChat(io, team);
                 }
             });
             socket.on('disconnect', function (reason) {
-                var player = filters.getPlayer(game, socket.id);
+                var player = filters_1.getPlayer(game, socket.id);
                 console.log("Disconnecting due to " + reason + ": " + socket.id + " - " + ((player !== undefined) && player.name));
                 if ((game !== undefined) && !controller_1.isGameStarted(game)) {
                     console.log("Delete Player: " + socket.id + " - " + ((player !== undefined) && player.name));

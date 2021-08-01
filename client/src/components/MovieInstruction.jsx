@@ -9,6 +9,9 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
     const [team, setTeam] = useState(undefined);
 
     const getCurrentTeam = () => {
+        if (!Array.isArray(teams)) {
+            return undefined;
+        }
         // Get which teams turn it is
         return teams.find((team) => team.turn);
     }
@@ -17,6 +20,9 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
         let currentTeam = team;
         if (currentTeam === undefined) {
             currentTeam = getCurrentTeam();
+            if (currentTeam === undefined) {
+                return false;
+            }
             setTeam(currentTeam);
         }
         return (player && (player.teamID === currentTeam.id));
@@ -82,6 +88,8 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
                     <h3>The Answer Is: {answer}</h3>
                     <Button text="Next" color="blue" onClick={onNext} />
                 </div>
+            case GameState.SETUP:
+                return <h3>Still In Setup</h3>
             default:
                 return <h3>No Instructions</h3>
         }
@@ -98,7 +106,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
     }, [teams])
 
     return (
-        <div className="movie-instruction">
+        <div className="instruction">
             {displayTeam()}
             {render()}
             <Button text="End Game" color="firebrick" onClick={endGame} />
