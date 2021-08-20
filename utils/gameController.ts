@@ -39,4 +39,28 @@ export class GameController {
     public createPlayer(id: string, name: string): Player {
         return new Player(id, PlayerType.PLAYER, name, false, -1);
     }
+
+    protected changeTeamTurns(game) {
+        // Set old team to false
+        let team = this.getCurrentTeam(game);
+        team.turn = false;
+
+        // Increment
+        this.incrementTeamIndex(game);
+        // Set new team to true
+        team = this.getCurrentTeam(game);
+        team.turn = true;
+    }
+
+    protected getCurrentTeam(game) {
+        return game.teams[game.teamIndex];
+    }
+
+    private incrementTeamIndex(game) {
+        game.teamIndex++;
+        // Check if valid
+        if (game.teamIndex >= game.teams.length) {
+            game.teamIndex = 0;
+        }
+    }
 };

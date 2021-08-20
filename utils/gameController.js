@@ -42,6 +42,26 @@ var GameController = /** @class */ (function () {
     GameController.prototype.createPlayer = function (id, name) {
         return new structs_1.Player(id, enums_1.PlayerType.PLAYER, name, false, -1);
     };
+    GameController.prototype.changeTeamTurns = function (game) {
+        // Set old team to false
+        var team = this.getCurrentTeam(game);
+        team.turn = false;
+        // Increment
+        this.incrementTeamIndex(game);
+        // Set new team to true
+        team = this.getCurrentTeam(game);
+        team.turn = true;
+    };
+    GameController.prototype.getCurrentTeam = function (game) {
+        return game.teams[game.teamIndex];
+    };
+    GameController.prototype.incrementTeamIndex = function (game) {
+        game.teamIndex++;
+        // Check if valid
+        if (game.teamIndex >= game.teams.length) {
+            game.teamIndex = 0;
+        }
+    };
     return GameController;
 }());
 exports.GameController = GameController;

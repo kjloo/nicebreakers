@@ -15,18 +15,6 @@ export class MovieController extends GameController {
         return team.players[team.playerIndex];
     }
 
-    private getCurrentTeam(game) {
-        return game.teams[game.teamIndex];
-    }
-
-    private incrementTeamIndex(game) {
-        game.teamIndex++;
-        // Check if valid
-        if (game.teamIndex >= game.teams.length) {
-            game.teamIndex = 0;
-        }
-    }
-
     private incrementPlayerIndex(game) {
         let teams = game.teams;
         teams[game.teamIndex].playerIndex++;
@@ -34,18 +22,6 @@ export class MovieController extends GameController {
         if (teams[game.teamIndex].playerIndex >= teams[game.teamIndex].players.length) {
             teams[game.teamIndex].playerIndex = 0;
         }
-    }
-
-    private changeTeamTurns(game) {
-        // Set old team to false
-        let team = this.getCurrentTeam(game);
-        team.turn = false;
-
-        // Increment
-        this.incrementTeamIndex(game);
-        // Set new team to true
-        team = this.getCurrentTeam(game);
-        team.turn = true;
     }
 
     private changePlayerTurns(game) {

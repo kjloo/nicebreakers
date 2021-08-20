@@ -45,16 +45,6 @@ var MovieController = /** @class */ (function (_super) {
         // Get player
         return team.players[team.playerIndex];
     };
-    MovieController.prototype.getCurrentTeam = function (game) {
-        return game.teams[game.teamIndex];
-    };
-    MovieController.prototype.incrementTeamIndex = function (game) {
-        game.teamIndex++;
-        // Check if valid
-        if (game.teamIndex >= game.teams.length) {
-            game.teamIndex = 0;
-        }
-    };
     MovieController.prototype.incrementPlayerIndex = function (game) {
         var teams = game.teams;
         teams[game.teamIndex].playerIndex++;
@@ -62,16 +52,6 @@ var MovieController = /** @class */ (function (_super) {
         if (teams[game.teamIndex].playerIndex >= teams[game.teamIndex].players.length) {
             teams[game.teamIndex].playerIndex = 0;
         }
-    };
-    MovieController.prototype.changeTeamTurns = function (game) {
-        // Set old team to false
-        var team = this.getCurrentTeam(game);
-        team.turn = false;
-        // Increment
-        this.incrementTeamIndex(game);
-        // Set new team to true
-        team = this.getCurrentTeam(game);
-        team.turn = true;
     };
     MovieController.prototype.changePlayerTurns = function (game) {
         // Set old player to false
