@@ -17,7 +17,7 @@ export class GameController {
     }
 
     public resetGameState(s: Server, game: Game): void {
-        //console.log('Resetting game state');
+        logger.info('Resetting game state');
         // Delete cached players
         game.cachedPlayers = [];
         game.teams = game.teams.map((team: Team) => {
