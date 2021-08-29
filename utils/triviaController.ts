@@ -91,7 +91,7 @@ export class TriviaController extends GameController {
     }
 
     /**
-     * Set game context based on which team buzzes in.
+     * Set game context based on which team buzzes in. 
      * @param s SocketIO connected to client
      * @param game current game context
      * @param teamID ID of team that buzzed in
@@ -106,6 +106,7 @@ export class TriviaController extends GameController {
             if (team.id !== teamID) {
                 return team;
             }
+            game.teamIndex = game.teams.indexOf(team);
             return { ...team, turn: true };
         });
         this.sendState(s, game)

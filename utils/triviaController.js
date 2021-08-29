@@ -110,6 +110,12 @@ var TriviaController = /** @class */ (function (_super) {
             }
         }
     };
+    /**
+     * Set game context based on which team buzzes in.
+     * @param s SocketIO connected to client
+     * @param game current game context
+     * @param teamID ID of team that buzzed in
+     */
     TriviaController.prototype.buzzIn = function (s, game, teamID) {
         // Prevent race condition. Make sure only 1 team is set
         if (game.teams.some(function (team) { return team.turn; })) {
@@ -120,6 +126,7 @@ var TriviaController = /** @class */ (function (_super) {
             if (team.id !== teamID) {
                 return team;
             }
+            game.teamIndex = game.teams.indexOf(team);
             return __assign(__assign({}, team), { turn: true });
         });
         this.sendState(s, game);
