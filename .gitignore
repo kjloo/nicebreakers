@@ -5,3 +5,6 @@ build
 .vscode
 *.log
 .data
+
+# compiled js
+utils/*.js

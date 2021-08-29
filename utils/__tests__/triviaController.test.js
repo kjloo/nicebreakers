@@ -1,20 +1,21 @@
 import { TriviaController } from '../triviaController';
 import { GameState } from '../enums';
-const stub = require('../__stubs__/gameStub');
+import { game } from '../__stubs__/gameStub';
 
 jest.mock('../emitter');
 
-let controller = new TriviaController(stub.game);
+console.log(game);
+let controller = new TriviaController(game);
 
 describe("Trivia Controller Test", () => {
 
     beforeEach(() => {
-        controller.resetGameState(undefined, stub.game);
+        controller.resetGameState(undefined, game);
     });
 
     test('check start state state', () => {
-        expect(controller.isGameStarted(stub.game)).toBe(false);
-        controller.gameStateMachine({}, stub.game, GameState.SETUP, {});
-        expect(stub.game.state).toBe(GameState.ENTRY);
+        expect(controller.isGameStarted(game)).toBe(false);
+        controller.gameStateMachine({}, game, GameState.SETUP, {});
+        expect(game.state).toBe(GameState.ENTRY);
     });
 });

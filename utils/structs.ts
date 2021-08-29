@@ -50,7 +50,7 @@ export class Game {
     public question: Question;
     public controller: GameController;
 
-    constructor(id: string, type = GameType.MOVIE, teamIndex = 0, teams = [], players = new Map(), cachedPlayers = [], state = GameState.SETUP, question = null) {
+    constructor(id: string, type = GameType.MOVIE, teamIndex = 0, teams = [], players = new Map(), cachedPlayers = [], state = GameState.SETUP, question = undefined) {
         this.id = id;
         this.type = type;
         this.teamIndex = teamIndex;
