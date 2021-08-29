@@ -151,8 +151,14 @@ export class TriviaController extends GameController {
                 updateState(s, game, GameState.HINT);
                 break;
             case GameState.HINT:
-                this.buzzIn(s, game, args.teamID);
-                updateState(s, game, GameState.GUESS);
+                const teamID: number = args.teamID;
+                // Skip if teamID is -1
+                if (teamID === undefined) {
+                    updateState(s, game, GameState.REVEAL);
+                } else {
+                    this.buzzIn(s, game, teamID);
+                    updateState(s, game, GameState.GUESS);
+                }
                 break;
             case GameState.STEAL:
             case GameState.GUESS:

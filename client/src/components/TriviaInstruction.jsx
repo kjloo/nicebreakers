@@ -46,16 +46,17 @@ const TriviaInstruction = ({ player, teams, onNext, state, question }) => {
                 return (player.type === PlayerType.MASTER) ?
                     <>
                         <h3>Category: {question.category}</h3>
-                        <p>{question.question}</p>
+                        <p className='question'>{question.question}</p>
                         <Button text="Done" color="lightgreen" onClick={onNext} />
                     </> :
                     <h3>Listen To Question</h3>
             case GameState.HINT:
                 return <>
                     <h3>Category: {question.category}</h3>
-                    <p>{question.question}</p>
-                    {(player.type !== PlayerType.MASTER) &&
-                        <Button text="Buzz" color="red" onClick={() => onNext({ teamID: player.teamID })} />}
+                    <p className='question'>{question.question}</p>
+                    {(player.type !== PlayerType.MASTER) ?
+                        <Button text="Buzz" color="red" onClick={() => onNext({ teamID: player.teamID })} /> :
+                        <Button text="Skip" color="red" onClick={() => onNext({})} />}
                 </>
             case GameState.STEAL:
             case GameState.GUESS:

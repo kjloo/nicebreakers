@@ -279,6 +279,10 @@ ul.navbar li {
   margin: 0;
 }
 
+.question {
+  max-width: 55ch;
+}
+
 .role-button {
   display: flex;
 }
