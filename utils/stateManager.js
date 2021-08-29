@@ -19,12 +19,12 @@ function garbageCollection(games) {
 }
 exports.garbageCollection = garbageCollection;
 // Factory
-function gameControllerFactory(game) {
+function gameControllerFactory(io, game) {
     if (game.type == enums_1.GameType.MOVIE) {
-        return new movieController_1.MovieController(game);
+        return new movieController_1.MovieController(io, game);
     }
     else if (game.type == enums_1.GameType.TRIVIA) {
-        return new triviaController_1.TriviaController(game);
+        return new triviaController_1.TriviaController(io, game);
     }
     return null;
 }

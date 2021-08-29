@@ -80,6 +80,12 @@ ul.navbar li {
 }
 
 /* classes */
+.admin-buttons {
+  display: flex;
+  margin: 0.5em 0.5em 0 0.5em;
+  justify-content: space-between;
+}
+
 .app-container {
   display: flex;
   flex-direction: column;
@@ -275,7 +281,6 @@ ul.navbar li {
 
 .role-button {
   display: flex;
-  padding: 0.5em 0 0 0.5em;
 }
 
 .team-container {
@@ -303,6 +308,10 @@ ul.navbar li {
 
 .teams-footer .team-container {
   margin: 0.5em;
+}
+
+.upload-button {
+  display: flex;
 }
 
 .value {

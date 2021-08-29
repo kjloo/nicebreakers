@@ -3,9 +3,11 @@ import { GameController } from './gameController';
 import { MovieController } from './movieController';
 import { TriviaController } from './triviaController';
 import { getPlayers } from './filters';
+import { Game } from './structs';
+import { Server } from 'socket.io';
 
 // const assets
-export let globalGames = new Map();
+export let globalGames: Map<string, Game> = new Map();
 
 // Garbage collection
 export function garbageCollection(games): void {
@@ -19,11 +21,11 @@ export function garbageCollection(games): void {
 }
 
 // Factory
-export function gameControllerFactory(game): GameController {
+export function gameControllerFactory(io: Server, game: Game): GameController {
     if (game.type == GameType.MOVIE) {
-        return new MovieController(game);
+        return new MovieController(io, game);
     } else if (game.type == GameType.TRIVIA) {
-        return new TriviaController(game);
+        return new TriviaController(io, game);
     }
     return null;
 }

@@ -30,11 +30,14 @@ exports.MovieController = void 0;
 var logger_1 = require("./logger");
 var enums_1 = require("./enums");
 var gameController_1 = require("./gameController");
-var emitter = require('./emitter');
+var emitter_1 = require("./emitter");
 var MovieController = /** @class */ (function (_super) {
     __extends(MovieController, _super);
-    function MovieController() {
-        return _super !== null && _super.apply(this, arguments) || this;
+    function MovieController(s, game) {
+        var _this = _super.call(this, s, game) || this;
+        // ready flag set by default
+        emitter_1.setReady(s, game.id, true);
+        return _this;
     }
     MovieController.prototype.getCurrentPlayer = function (game) {
         var team = this.getCurrentTeam(game);
@@ -75,15 +78,15 @@ var MovieController = /** @class */ (function (_super) {
         // Move the turn along
         this.changePlayerTurns(game);
         // Update sockets
-        emitter.updatePlayers(s, game);
-        emitter.updateTeams(s, game);
+        emitter_1.updatePlayers(s, game);
+        emitter_1.updateTeams(s, game);
     };
     MovieController.prototype.nextRound = function (s, game) {
         // change turns
         this.incrementGameState(s, game);
         // back to beginning
-        emitter.revealAnswer(s, game);
-        emitter.updateState(s, game, enums_1.GameState.REVEAL);
+        emitter_1.revealAnswer(s, game);
+        emitter_1.updateState(s, game, enums_1.GameState.REVEAL);
     };
     MovieController.prototype.updateScore = function (s, game, state, correct) {
         // check if correct answer given
@@ -104,7 +107,7 @@ var MovieController = /** @class */ (function (_super) {
         }
         else {
             if (state === enums_1.GameState.STEAL) {
-                emitter.updateState(s, game, enums_1.GameState.GUESS);
+                emitter_1.updateState(s, game, enums_1.GameState.GUESS);
             }
             else {
                 this.nextRound(s, game);
@@ -116,31 +119,29 @@ var MovieController = /** @class */ (function (_super) {
             case enums_1.GameState.SETUP:
                 // Set first turn
                 this.incrementGameState(s, game);
-                emitter.updateState(s, game, enums_1.GameState.ENTRY);
+                emitter_1.updateState(s, game, enums_1.GameState.ENTRY);
                 break;
             case enums_1.GameState.ENTRY:
-                game.answer = args.answer;
-                emitter.updateState(s, game, enums_1.GameState.HINT);
+                game.question.answer = args.answer;
+                emitter_1.updateState(s, game, enums_1.GameState.HINT);
                 break;
             case enums_1.GameState.HINT:
-                emitter.updateState(s, game, enums_1.GameState.STEAL);
+                emitter_1.updateState(s, game, enums_1.GameState.STEAL);
                 break;
             case enums_1.GameState.STEAL:
             case enums_1.GameState.GUESS:
                 this.updateScore(s, game, state, args.correct);
                 break;
             case enums_1.GameState.REVEAL:
-                emitter.updateState(s, game, enums_1.GameState.ENTRY);
+                emitter_1.updateState(s, game, enums_1.GameState.ENTRY);
                 break;
             case enums_1.GameState.END:
-                // Reset game
-                emitter.updateState(s, game, enums_1.GameState.SETUP);
-                // Set winner
-                emitter.setWinner(s, game);
-                // Reset to beginning
-                this.resetGameState(s, game);
+                this.endGame(s, game);
                 break;
         }
+    };
+    MovieController.prototype.loadData = function (s, gameID, data) {
+        return true;
     };
     return MovieController;
 }(gameController_1.GameController));

@@ -1,46 +1,47 @@
 import { GameState, PlayerType } from './enums';
 import logger from './logger';
-import { Player } from './structs';
-const emitter = require('./emitter');
+import { Game, Player, Team } from './structs';
+import { setWinner, updatePlayers, updateState, updateTeams } from './emitter';
+import { Server } from 'socket.io';
 
-export class GameController {
+export abstract class GameController {
     public id: string;
 
-    public constructor(game) {
+    public constructor(s: Server, game: Game) {
         this.id = game.id;
     }
 
     // Read/Write Game State
-    public isGameStarted(game): boolean {
+    public isGameStarted(game: Game): boolean {
         return game.state !== GameState.SETUP;
     }
 
-    public resetGameState(s, game): void {
+    public resetGameState(s: Server, game: Game): void {
         logger.info('Resetting game state');
         // Delete cached players
         game.cachedPlayers = [];
-        game.teams = game.teams.map((team) => {
+        game.teams = game.teams.map((team: Team) => {
             return {
-                ...team, score: 0, turn: false, players: team.players.map((player) => {
+                ...team, score: 0, turn: false, players: team.players.map((player: Player) => {
                     return { ...player, turn: false }
                 }), playerIndex: 0
             };
         });
         game.teamIndex = 0;
 
-        emitter.updateTeams(s, game);
-        emitter.updatePlayers(s, game);
+        updateTeams(s, game);
+        updatePlayers(s, game);
     }
 
-    public gameStateMachine(s, game, state, args): void {
+    public abstract gameStateMachine(s: Server, game: Game, state: GameState, args): void;
 
-    }
+    public abstract loadData(s: Server, gameID: string, data: Buffer): boolean;
 
     public createPlayer(id: string, name: string): Player {
         return new Player(id, PlayerType.PLAYER, name, false, -1);
     }
 
-    protected changeTeamTurns(game) {
+    protected changeTeamTurns(game: Game) {
         // Set old team to false
         let team = this.getCurrentTeam(game);
         team.turn = false;
@@ -52,11 +53,25 @@ export class GameController {
         team.turn = true;
     }
 
-    protected getCurrentTeam(game) {
+    protected getCurrentTeam(game: Game) {
         return game.teams[game.teamIndex];
     }
 
-    private incrementTeamIndex(game) {
+    /**
+     * Resets the game state and ends game.
+     * @param s SocketIO connected to client
+     * @param game current game context
+     */
+    protected endGame(s: Server, game: Game): void {
+        // Reset game
+        updateState(s, game, GameState.SETUP);
+        // Set winner
+        setWinner(s, game);
+        // Reset to beginning
+        this.resetGameState(s, game);
+    }
+
+    private incrementTeamIndex(game: Game) {
         game.teamIndex++;
         // Check if valid
         if (game.teamIndex >= game.teams.length) {

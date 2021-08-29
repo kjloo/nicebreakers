@@ -18,7 +18,7 @@ var structs_1 = require("./structs");
 var socket_io_1 = require("socket.io");
 var codes_1 = require("./codes");
 var filters_1 = require("./filters");
-var emitter = require('./emitter');
+var emitter_1 = require("./emitter");
 function updatePlayerClient(io, socket, game, player) {
     if (player === undefined) {
         console.error("Undefined player");
@@ -48,14 +48,14 @@ function updatePlayerClient(io, socket, game, player) {
         socket.join(player.teamID.toString());
         var team = filters_1.getByID(game.teams, player.teamID);
         // Send chat data
-        emitter.updateChat(socket, team);
+        emitter_1.updateChat(io, team);
     }
     else {
         game.players.set(socket.id, player);
     }
     // Update client
-    emitter.updatePlayer(socket, player);
-    emitter.updatePlayers(io, game);
+    emitter_1.updatePlayer(socket, player);
+    emitter_1.updatePlayers(io, game);
 }
 function createSocket(server) {
     var io = new socket_io_1.Server(server);
@@ -63,9 +63,12 @@ function createSocket(server) {
         var gameID = socket.handshake.query.gameID;
         logger_1["default"].info(socket.id + ": Connected to Game: " + gameID);
         console.log(socket.id + ": Connected to Game: " + gameID);
-        var game = stateManager_1.globalGames.get(gameID);
+        var game = stateManager_1.globalGames.get(gameID.toString());
         if (game !== undefined) {
-            var controller_1 = stateManager_1.gameControllerFactory(game);
+            // Create controller for game
+            var controller_1 = stateManager_1.gameControllerFactory(io, game);
+            // Register controller
+            game.controller = controller_1;
             socket.on('add player', function (_a) {
                 var name = _a.name, id = _a.id;
                 console.log(gameID + " Add Player: " + name + "[" + id + "]");
@@ -95,7 +98,7 @@ function createSocket(server) {
                     // Check if player name exists
                     var players = filters_1.getPlayers(game);
                     if (filters_1.findByFilter(players, function (player) { return (name === player.name); })) {
-                        emitter.sendError(socket, 'Name is taken!');
+                        emitter_1.sendError(socket, 'Name is taken!');
                     }
                     else {
                         // Create Player
@@ -115,19 +118,18 @@ function createSocket(server) {
                     return;
                 }
                 player.type = type;
-                emitter.updatePlayer(socket, player);
-                emitter.updatePlayers(io, game);
+                emitter_1.updatePlayer(socket, player);
+                emitter_1.updatePlayers(io, game);
             });
             socket.on('next state', function (_a) {
                 var state = _a.state, args = _a.args;
                 controller_1.gameStateMachine(io, game, state, args);
             });
-            socket.on('join team', function (_a) {
-                var teamID = _a.teamID;
+            socket.on('join team', function (teamID) {
                 var player = filters_1.getPlayer(game, socket.id);
                 if (player === undefined) {
                     console.log("Unregistered Player");
-                    emitter.sendError(socket, 'Player is not registered');
+                    emitter_1.sendError(socket, 'Player is not registered');
                 }
                 else {
                     // check if unassigned
@@ -141,19 +143,19 @@ function createSocket(server) {
                         team_1.players = team_1.players.filter(function (p) { return p.id !== player.id; });
                     }
                     // add to team
-                    socket.join(teamID);
+                    socket.join(teamID.toString());
                     player.teamID = teamID;
                     var team = filters_1.getByID(game.teams, teamID);
                     if (team === undefined) {
                         console.log("Team not found");
-                        emitter.sendError(socket, 'Team not found');
+                        emitter_1.sendError(socket, 'Team not found');
                     }
                     else {
                         team.players.push(player);
-                        emitter.updatePlayer(socket, player);
-                        emitter.updateTeams(io, game);
-                        emitter.updatePlayers(io, game);
-                        emitter.updateChat(io, team);
+                        emitter_1.updatePlayer(socket, player);
+                        emitter_1.updateTeams(io, game);
+                        emitter_1.updatePlayers(io, game);
+                        emitter_1.updateChat(io, team);
                     }
                 }
             });
@@ -161,35 +163,40 @@ function createSocket(server) {
                 var name = _a.name, color = _a.color;
                 // Check if team name and color exist
                 if (game.teams.find(function (team) { return (name === team.name); }) !== undefined) {
-                    emitter.sendError(socket, 'Team name is taken!');
+                    emitter_1.sendError(socket, 'Team name is taken!');
                     return;
                 }
                 if (game.teams.find(function (team) { return (color === team.color); }) !== undefined) {
-                    emitter.sendError(socket, 'Color is taken!');
+                    emitter_1.sendError(socket, 'Color is taken!');
                     return;
                 }
                 // Create Team
                 var team = new structs_1.Team(codes_1.generateTeamID(game.teams), name, color);
                 game.teams.push(team);
-                emitter.addTeam(io, game.id, team);
+                emitter_1.addTeam(io, game.id, team);
             });
             socket.on('delete team', function (_a) {
                 var id = _a.id;
                 game.teams = game.teams.filter(function (team) { return (id !== team.id); });
-                emitter.deleteTeam(io, game.id, id);
+                emitter_1.deleteTeam(io, game.id, id);
             });
             socket.on('team chat', function (_a) {
                 var teamID = _a.teamID, message = _a.message;
                 var player = filters_1.getPlayer(game, socket.id);
                 if (player === undefined || player.teamID !== teamID) {
-                    emitter.sendError(socket, 'Not allowed to talk to another team.');
+                    emitter_1.sendError(socket, 'Not allowed to talk to another team.');
                 }
                 else {
                     // Get Team
                     var team = filters_1.getByID(game.teams, teamID);
                     var chatEntry = new structs_1.ChatEntry(player.name, message);
                     team.chat.push(chatEntry);
-                    emitter.updateChat(io, team);
+                    emitter_1.updateChat(io, team);
+                }
+            });
+            socket.on('upload data', function (data) {
+                if (!controller_1.loadData(io, game.id, data)) {
+                    emitter_1.sendError(socket, "Failed to load data!");
                 }
             });
             socket.on('disconnect', function (reason) {
@@ -203,7 +210,7 @@ function createSocket(server) {
                     game.teams = game.teams.map(function (team) {
                         return __assign(__assign({}, team), { players: team.players.filter(function (player) { return player.id !== socket.id; }) });
                     });
-                    emitter.updatePlayers(io, game);
+                    emitter_1.updatePlayers(io, game);
                 }
                 else {
                     if (player !== undefined) {

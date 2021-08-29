@@ -1,7 +1,7 @@
+import { updatePlayer, updateState, updateTeams, updatePlayers, updateChat, setReady } from '../emitter';
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const Client = require("socket.io-client");
-const emitter = require('../emitter');
 const filters = require('../filters');
 const structs = require('../structs');
 const enums = require('../enums');
@@ -36,7 +36,7 @@ describe("socket emitter tests", () => {
             expect(player).toEqual(stub.tom);
             done();
         });
-        emitter.updatePlayer(serverSocket, stub.tom);
+        updatePlayer(serverSocket, stub.tom);
     });
 
     test('update players', (done) => {
@@ -44,7 +44,7 @@ describe("socket emitter tests", () => {
             expect(players).toEqual(filters.getPlayers(stub.game));
             done();
         });
-        emitter.updatePlayers(io, stub.game);
+        updatePlayers(io, stub.game);
     });
 
     test('update teams', (done) => {
@@ -52,7 +52,7 @@ describe("socket emitter tests", () => {
             expect(teams).toEqual(filters.getTeams(stub.game));
             done();
         });
-        emitter.updateTeams(io, stub.game);
+        updateTeams(io, stub.game);
     });
 
     test('add/delete team', (done) => {
@@ -66,8 +66,8 @@ describe("socket emitter tests", () => {
             done();
         });
 
-        emitter.addTeam(io, stub.game.id, dragon);
-        emitter.deleteTeam(io, stub.game.id, dragon);
+        addTeam(io, stub.game.id, dragon);
+        deleteTeam(io, stub.game.id, dragon);
     });
 
     test('update chat', (done) => {
@@ -81,7 +81,7 @@ describe("socket emitter tests", () => {
             expect(data).toEqual(chat);
             done();
         });
-        emitter.updateChat(io, dragon);
+        updateChat(io, dragon);
         serverSocket.leave(dragonID);
     });
 
@@ -90,7 +90,16 @@ describe("socket emitter tests", () => {
             expect(answer).toBe(stub.game.answer);
             done();
         });
-        emitter.revealAnswer(io, stub.game);
+        revealAnswer(io, stub.game);
+    });
+
+    test('ready', (done) => {
+        const readyFlag = true
+        clientSocket.on('ready', (ready) => {
+            expect(ready).toBe(readyFlag);
+            done();
+        });
+        setReady(io, stub.game.id, readyFlag);
     });
 
     test('update state', (done) => {
@@ -99,7 +108,7 @@ describe("socket emitter tests", () => {
             expect(state).toBe(steal);
             done();
         });
-        emitter.updateState(io, stub.game, steal);
+        updateState(io, stub.game, steal);
     });
 
     test('send error', (done) => {
@@ -108,7 +117,7 @@ describe("socket emitter tests", () => {
             expect(message).toBe(error);
             done();
         });
-        emitter.sendError(serverSocket, error);
+        sendError(serverSocket, error);
     });
 
     test('send tie game', (done) => {
@@ -119,7 +128,7 @@ describe("socket emitter tests", () => {
             expect(winner).toBeNull();
             done();
         });
-        emitter.setWinner(io, stub.game);
+        setWinner(io, stub.game);
         done();
     });
 
@@ -129,7 +138,7 @@ describe("socket emitter tests", () => {
             expect(winner).toBe(stub.game.teams[0]);
             done();
         });
-        emitter.setWinner(io, stub.game);
+        setWinner(io, stub.game);
         done();
     });
 });

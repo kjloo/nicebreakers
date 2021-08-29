@@ -1,11 +1,19 @@
 import logger from './logger';
 import { GameState } from './enums';
 import { GameController } from './gameController';
-const emitter = require('./emitter');
+import { Game } from './structs';
+import { revealAnswer, setReady, setWinner, updatePlayers, updateState, updateTeams } from './emitter';
+import { Server } from 'socket.io';
 
 export class MovieController extends GameController {
 
-    private getCurrentPlayer(game) {
+    public constructor(s: Server, game: Game) {
+        super(s, game);
+        // ready flag set by default
+        setReady(s, game.id, true);
+    }
+
+    private getCurrentPlayer(game: Game) {
         const team = this.getCurrentTeam(game);
         if (team === undefined) {
             logger.error("Invalid team index " + game.teamIndex);
@@ -15,7 +23,7 @@ export class MovieController extends GameController {
         return team.players[team.playerIndex];
     }
 
-    private incrementPlayerIndex(game) {
+    private incrementPlayerIndex(game: Game) {
         let teams = game.teams;
         teams[game.teamIndex].playerIndex++;
         // Check if valid
@@ -24,7 +32,7 @@ export class MovieController extends GameController {
         }
     }
 
-    private changePlayerTurns(game) {
+    private changePlayerTurns(game: Game) {
         // Set old player to false
         let player = this.getCurrentPlayer(game);
         if (player === undefined) {
@@ -44,23 +52,23 @@ export class MovieController extends GameController {
     }
 
     // Game State Machine
-    private incrementGameState(s, game) {
+    private incrementGameState(s: Server, game: Game) {
         // Move the turn along
         this.changePlayerTurns(game);
         // Update sockets
-        emitter.updatePlayers(s, game);
-        emitter.updateTeams(s, game);
+        updatePlayers(s, game);
+        updateTeams(s, game);
     }
 
-    private nextRound(s, game) {
+    private nextRound(s: Server, game: Game) {
         // change turns
         this.incrementGameState(s, game);
         // back to beginning
-        emitter.revealAnswer(s, game);
-        emitter.updateState(s, game, GameState.REVEAL);
+        revealAnswer(s, game);
+        updateState(s, game, GameState.REVEAL);
     }
 
-    private updateScore(s, game, state, correct) {
+    private updateScore(s: Server, game: Game, state: GameState, correct: boolean) {
         // check if correct answer given
         if (correct) {
             // give point based on state
@@ -77,42 +85,41 @@ export class MovieController extends GameController {
             this.nextRound(s, game);
         } else {
             if (state === GameState.STEAL) {
-                emitter.updateState(s, game, GameState.GUESS);
+                updateState(s, game, GameState.GUESS);
             } else {
                 this.nextRound(s, game);
             }
         }
     }
 
-    public override gameStateMachine(s, game, state, args): void {
+    public override gameStateMachine(s: Server, game: Game, state: GameState, args): void {
         switch (state) {
             case GameState.SETUP:
                 // Set first turn
                 this.incrementGameState(s, game);
-                emitter.updateState(s, game, GameState.ENTRY);
+                updateState(s, game, GameState.ENTRY);
                 break;
             case GameState.ENTRY:
-                game.answer = args.answer;
-                emitter.updateState(s, game, GameState.HINT);
+                game.question.answer = args.answer;
+                updateState(s, game, GameState.HINT);
                 break;
             case GameState.HINT:
-                emitter.updateState(s, game, GameState.STEAL);
+                updateState(s, game, GameState.STEAL);
                 break;
             case GameState.STEAL:
             case GameState.GUESS:
                 this.updateScore(s, game, state, args.correct);
                 break;
             case GameState.REVEAL:
-                emitter.updateState(s, game, GameState.ENTRY);
+                updateState(s, game, GameState.ENTRY);
                 break;
             case GameState.END:
-                // Reset game
-                emitter.updateState(s, game, GameState.SETUP);
-                // Set winner
-                emitter.setWinner(s, game);
-                // Reset to beginning
-                this.resetGameState(s, game);
+                this.endGame(s, game);
                 break;
         }
+    }
+
+    public override loadData(s: Server, gameID: string, data: Buffer): boolean {
+        return true;
     }
 };

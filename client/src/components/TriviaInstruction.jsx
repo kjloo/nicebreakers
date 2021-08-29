@@ -4,7 +4,7 @@ import { GameState, PlayerType } from '../../../utils/enums';
 import Button from './Button';
 import AnswerValidator from './AnswerValidator'
 
-const TriviaInstruction = ({ player, teams, onNext, state, answer }) => {
+const TriviaInstruction = ({ player, teams, onNext, state, question }) => {
     const [team, setTeam] = useState(undefined);
     const endGame = () => {
         if (confirm("Are you sure you want to end the game?")) {
@@ -45,22 +45,24 @@ const TriviaInstruction = ({ player, teams, onNext, state, answer }) => {
             case GameState.ENTRY:
                 return (player.type === PlayerType.MASTER) ?
                     <>
-                        <h3>Read Question</h3>
+                        <h3>Category: {question.category}</h3>
+                        <p>{question.question}</p>
                         <Button text="Done" color="lightgreen" onClick={onNext} />
                     </> :
                     <h3>Listen To Question</h3>
             case GameState.HINT:
-                return (player.type === PlayerType.MASTER) ?
-                    <h3>Read Question</h3> :
-                    <>
-                        <h3>Hit This Button When You Know The Answer!</h3>
-                        <Button text="Buzz" color="red" onClick={() => onNext({ teamID: player.teamID })} />
-                    </>
+                return <>
+                    <h3>Category: {question.category}</h3>
+                    <p>{question.question}</p>
+                    {(player.type !== PlayerType.MASTER) &&
+                        <Button text="Buzz" color="red" onClick={() => onNext({ teamID: player.teamID })} />}
+                </>
             case GameState.STEAL:
             case GameState.GUESS:
                 return (player.type === PlayerType.MASTER) ?
                     <>
                         <h3 style={{ color: getCurrentTeam().color }}>Team {getCurrentTeam().name} Is Guessing</h3>
+                        <h4>Answer: {question.answer}</h4>
                         <AnswerValidator onAnswer={onNext} />
                     </> :
                     isTeamsTurn() ?
@@ -68,7 +70,7 @@ const TriviaInstruction = ({ player, teams, onNext, state, answer }) => {
                         <h3>Opponents Are Guessing</h3>
             case GameState.REVEAL:
                 return <div>
-                    <h3>The Answer Is: Robot</h3>
+                    <h3>The Answer Is: {question.answer}</h3>
                     {player.type === PlayerType.MASTER &&
                         <Button text="Next" color="blue" onClick={onNext} />}
                 </div>

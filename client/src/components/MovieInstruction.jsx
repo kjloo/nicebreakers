@@ -4,7 +4,7 @@ import FocusInput from './FocusInput';
 import Button from './Button';
 import AnswerValidator from './AnswerValidator';
 
-const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
+const MovieInstruction = ({ player, teams, onNext, state, question }) => {
     const [movie, setMovie] = useState('');
     const [team, setTeam] = useState(undefined);
 
@@ -85,7 +85,7 @@ const MovieInstruction = ({ player, teams, onNext, state, answer }) => {
                         <h3>Wait. Opponents Are Guessing</h3>
             case GameState.REVEAL:
                 return <div>
-                    <h3>The Answer Is: {answer}</h3>
+                    <h3>The Answer Is: {question.answer}</h3>
                     <Button text="Next" color="blue" onClick={onNext} />
                 </div>
             case GameState.SETUP:

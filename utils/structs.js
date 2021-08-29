@@ -35,14 +35,14 @@ var Team = /** @class */ (function () {
 }());
 exports.Team = Team;
 var Game = /** @class */ (function () {
-    function Game(id, type, teamIndex, teams, players, cachedPlayers, state, answer) {
+    function Game(id, type, teamIndex, teams, players, cachedPlayers, state, question) {
         if (type === void 0) { type = enums_1.GameType.MOVIE; }
         if (teamIndex === void 0) { teamIndex = 0; }
         if (teams === void 0) { teams = []; }
         if (players === void 0) { players = new Map(); }
         if (cachedPlayers === void 0) { cachedPlayers = []; }
         if (state === void 0) { state = enums_1.GameState.SETUP; }
-        if (answer === void 0) { answer = ""; }
+        if (question === void 0) { question = null; }
         this.id = id;
         this.type = type;
         this.teamIndex = teamIndex;
@@ -50,7 +50,7 @@ var Game = /** @class */ (function () {
         this.players = players;
         this.cachedPlayers = cachedPlayers;
         this.state = state;
-        this.answer = answer;
+        this.question = question;
     }
     return Game;
 }());

@@ -5,7 +5,7 @@ import Players from './Players';
 import GameControls from './GameControls';
 import { PlayerType } from '../../../utils/enums';
 
-const GameSetup = ({ socket, players, teams, onStart }) => {
+const GameSetup = ({ socket, readyFlag, players, teams, onStart }) => {
     const maxTeams = 4;
     const [decode, setDecode] = useState("");
 
@@ -14,12 +14,13 @@ const GameSetup = ({ socket, players, teams, onStart }) => {
     // is ready
     const isReady = () => {
         // ready when
+        // ready flag is set
         // there is at least 2 players
         // there are at least 2 teams
         // each player that is a player is on a team
         // each team has a player
         // game not started
-        return ((players.length > 1) &&
+        return readyFlag && ((players.length > 1) &&
             (teams.length > 1) &&
             (players.every((player) => (player.type !== PlayerType.PLAYER) || (player.teamID > 0))) &&
             (teams.every((team) => (team.players.length > 0))));

@@ -15,9 +15,9 @@ exports.GameController = void 0;
 var enums_1 = require("./enums");
 var logger_1 = require("./logger");
 var structs_1 = require("./structs");
-var emitter = require('./emitter');
+var emitter_1 = require("./emitter");
 var GameController = /** @class */ (function () {
-    function GameController(game) {
+    function GameController(s, game) {
         this.id = game.id;
     }
     // Read/Write Game State
@@ -34,10 +34,8 @@ var GameController = /** @class */ (function () {
                 }), playerIndex: 0 });
         });
         game.teamIndex = 0;
-        emitter.updateTeams(s, game);
-        emitter.updatePlayers(s, game);
-    };
-    GameController.prototype.gameStateMachine = function (s, game, state, args) {
+        emitter_1.updateTeams(s, game);
+        emitter_1.updatePlayers(s, game);
     };
     GameController.prototype.createPlayer = function (id, name) {
         return new structs_1.Player(id, enums_1.PlayerType.PLAYER, name, false, -1);
@@ -54,6 +52,19 @@ var GameController = /** @class */ (function () {
     };
     GameController.prototype.getCurrentTeam = function (game) {
         return game.teams[game.teamIndex];
+    };
+    /**
+     * Resets the game state and ends game.
+     * @param s SocketIO connected to client
+     * @param game current game context
+     */
+    GameController.prototype.endGame = function (s, game) {
+        // Reset game
+        emitter_1.updateState(s, game, enums_1.GameState.SETUP);
+        // Set winner
+        emitter_1.setWinner(s, game);
+        // Reset to beginning
+        this.resetGameState(s, game);
     };
     GameController.prototype.incrementTeamIndex = function (game) {
         game.teamIndex++;

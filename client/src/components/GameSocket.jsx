@@ -1,4 +1,4 @@
-import React, { cloneElement, useEffect, useState } from 'react'
+import React, { cloneElement, useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
@@ -21,15 +21,18 @@ const connectSocket = (gameID) => {
 }
 
 const GameSocket = ({ children, title, roles }) => {
+    const [readyFlag, setReadyFlag] = useState(false);
     const [player, setPlayer] = useState(undefined);
     const [players, setPlayers] = useState([]);
     const [teams, setTeams] = useState([]);
     const [chat, setChat] = useState([]);
     const [state, setState] = useState(GameState.SETUP);
-    const [answer, setAnswer] = useState('');
+    const [question, setQuestion] = useState(undefined);
     const [winner, setWinner] = useState(undefined);
 
     const { gameID } = useParams();
+
+    const inputFile = useRef(null);
 
     // basic util
     function isEmpty(obj) {
@@ -144,7 +147,34 @@ const GameSocket = ({ children, title, roles }) => {
                 disabled={player.teamID !== -1}
                 onClick={() => socket.emit('change role', { type: newRole })} />
         </div>
+    }
 
+    const handleChange = (evt) => {
+        evt.defaultPrevented;
+        if (evt.target.files.length == 0) {
+            evt.target.value = null;
+            return;
+        }
+        const fileUpload = evt.target.files[0];
+        evt.target.value = null;
+        uploadData(fileUpload);
+    }
+
+    const uploadDataButton = () => {
+        if (!hasGameMaster()) {
+            return;
+        }
+        if (!player) {
+            return;
+        }
+
+        return player.type === PlayerType.MASTER && <div className='upload-button'>
+            <input type='file' id='file' ref={inputFile} onChange={handleChange} style={{ display: 'none' }} />
+            <Button
+                color="darkslategrey"
+                text="Upload Data"
+                onClick={() => inputFile.current.click()} />
+        </div>
     }
 
     // join team
@@ -162,7 +192,7 @@ const GameSocket = ({ children, title, roles }) => {
             } else {
                 if (confirm(`Join Team ${team.name}`)) {
                     // update server
-                    socket.emit('join team', { teamID: team.id });
+                    socket.emit('join team', team.id);
                     return true;
                 } else {
                     return false;
@@ -178,6 +208,10 @@ const GameSocket = ({ children, title, roles }) => {
         socket.emit('team chat', { teamID: teamID, message: message });
     }
 
+    const uploadData = (data) => {
+        socket.emit('upload data', data)
+    }
+
     useEffect(() => {
         connectSocket(gameID);
 
@@ -188,8 +222,12 @@ const GameSocket = ({ children, title, roles }) => {
         socket.on('exception', (message) => {
             alert(message);
         });
-        socket.on('reveal answer', (answer) => {
-            setAnswer(answer);
+        socket.on('ready', (ready) => {
+            setReadyFlag(ready);
+        })
+        socket.on('reveal answer', (question) => {
+            console.log(question);
+            setQuestion(question);
         })
         socket.on('set winner', (w) => {
             // Set winner to display
@@ -257,15 +295,19 @@ const GameSocket = ({ children, title, roles }) => {
 
     return (
         <>
-            {playerRoleButton()}
+            <div className="admin-buttons">
+                {playerRoleButton()}
+                {uploadDataButton()}
+            </div>
+
             <GameContainer title={title} >
                 {isEmpty(player) ?
                     <UserForm onSubmit={submitPlayer} /> :
                     isStarted() ?
-                        cloneElement(children, { player: player, teams: teams, onNext: nextState, state: state, answer: answer }) :
+                        cloneElement(children, { player: player, teams: teams, onNext: nextState, state: state, question: question }) :
                         <>
                             {winner && <h3 style={{ color: winner.color }}>Team {winner.name} Wins!</h3>}
-                            <GameSetup socket={socket} players={players} teams={teams} onStart={nextState} />
+                            <GameSetup socket={socket} readyFlag={readyFlag} players={players} teams={teams} onStart={nextState} />
                         </>
                 }
             </GameContainer>

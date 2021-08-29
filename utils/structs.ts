@@ -1,4 +1,5 @@
 import { GameState, GameType, PlayerType } from './enums';
+import { GameController } from './gameController';
 
 export class Player {
     public id: string;
@@ -46,9 +47,10 @@ export class Game {
     public players: Map<string, Player>;
     public cachedPlayers: Array<Player>;
     public state: GameState;
-    public answer: string;
+    public question: Question;
+    public controller: GameController;
 
-    constructor(id: string, type = GameType.MOVIE, teamIndex = 0, teams = [], players = new Map(), cachedPlayers = [], state = GameState.SETUP, answer = "") {
+    constructor(id: string, type = GameType.MOVIE, teamIndex = 0, teams = [], players = new Map(), cachedPlayers = [], state = GameState.SETUP, question = null) {
         this.id = id;
         this.type = type;
         this.teamIndex = teamIndex;
@@ -56,7 +58,7 @@ export class Game {
         this.players = players;
         this.cachedPlayers = cachedPlayers;
         this.state = state;
-        this.answer = answer;
+        this.question = question;
     }
 }
 
@@ -68,4 +70,16 @@ export class ChatEntry {
         this.name = name;
         this.message = message;
     }
+}
+
+export interface Question {
+    category: string;
+    question: string;
+    answer: string;
+    points: number;
+}
+
+export interface Card {
+    category: string;
+    questions: Array<Question>
 }

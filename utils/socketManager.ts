@@ -5,8 +5,7 @@ import { Player, Team, Game, ChatEntry } from './structs';
 import { Server, Socket } from 'socket.io';
 import { generateTeamID } from './codes';
 import { findByFilter, getByID, getPlayer, getPlayers } from './filters';
-import { PlayerType } from './enums';
-const emitter = require('./emitter');
+import { addTeam, deleteTeam, sendError, updateChat, updatePlayer, updatePlayers, updateTeams } from './emitter';
 
 function updatePlayerClient(io: Server, socket: Socket, game: Game, player: Player): null {
     if (player === undefined) {
@@ -37,14 +36,14 @@ function updatePlayerClient(io: Server, socket: Socket, game: Game, player: Play
         socket.join(player.teamID.toString());
         const team = getByID(game.teams, player.teamID);
         // Send chat data
-        emitter.updateChat(socket, team);
+        updateChat(io, team);
     } else {
         game.players.set(socket.id, player);
     }
 
     // Update client
-    emitter.updatePlayer(socket, player);
-    emitter.updatePlayers(io, game);
+    updatePlayer(socket, player);
+    updatePlayers(io, game);
 }
 
 export function createSocket(server) {
@@ -53,9 +52,12 @@ export function createSocket(server) {
         const gameID: string | string[] = socket.handshake.query.gameID;
         logger.info(socket.id + ": Connected to Game: " + gameID);
         console.log(socket.id + ": Connected to Game: " + gameID);
-        const game: Game = globalGames.get(gameID);
+        const game: Game = globalGames.get(gameID.toString());
         if (game !== undefined) {
-            const controller: GameController = gameControllerFactory(game);
+            // Create controller for game
+            const controller: GameController = gameControllerFactory(io, game);
+            // Register controller
+            game.controller = controller;
             socket.on('add player', ({ name, id }) => {
                 console.log(gameID + " Add Player: " + name + "[" + id + "]");
                 socket.join(gameID);
@@ -84,7 +86,7 @@ export function createSocket(server) {
                     // Check if player name exists
                     let players: Array<Player> = getPlayers(game);
                     if (findByFilter(players, (player: Player) => (name === player.name))) {
-                        emitter.sendError(socket, 'Name is taken!');
+                        sendError(socket, 'Name is taken!');
                     } else {
                         // Create Player
                         console.log('Create Player: ' + name);
@@ -102,17 +104,17 @@ export function createSocket(server) {
                     return;
                 }
                 player.type = type;
-                emitter.updatePlayer(socket, player);
-                emitter.updatePlayers(io, game);
+                updatePlayer(socket, player);
+                updatePlayers(io, game);
             });
             socket.on('next state', ({ state, args }) => {
                 controller.gameStateMachine(io, game, state, args);
             });
-            socket.on('join team', ({ teamID }) => {
+            socket.on('join team', (teamID: number) => {
                 let player: Player = getPlayer(game, socket.id);
                 if (player === undefined) {
                     console.log("Unregistered Player")
-                    emitter.sendError(socket, 'Player is not registered');
+                    sendError(socket, 'Player is not registered');
                 } else {
                     // check if unassigned
                     if (player.teamID === -1) {
@@ -124,50 +126,55 @@ export function createSocket(server) {
                         team.players = team.players.filter((p) => p.id !== player.id);
                     }
                     // add to team
-                    socket.join(teamID);
+                    socket.join(teamID.toString());
                     player.teamID = teamID;
                     let team: Team = getByID(game.teams, teamID);
                     if (team === undefined) {
                         console.log("Team not found")
-                        emitter.sendError(socket, 'Team not found');
+                        sendError(socket, 'Team not found');
                     } else {
                         team.players.push(player);
-                        emitter.updatePlayer(socket, player);
-                        emitter.updateTeams(io, game);
-                        emitter.updatePlayers(io, game);
-                        emitter.updateChat(io, team);
+                        updatePlayer(socket, player);
+                        updateTeams(io, game);
+                        updatePlayers(io, game);
+                        updateChat(io, team);
                     }
                 }
             });
             socket.on('add team', ({ name, color }) => {
                 // Check if team name and color exist
                 if (game.teams.find((team) => (name === team.name)) !== undefined) {
-                    emitter.sendError(socket, 'Team name is taken!');
+                    sendError(socket, 'Team name is taken!');
                     return;
                 }
                 if (game.teams.find((team) => (color === team.color)) !== undefined) {
-                    emitter.sendError(socket, 'Color is taken!');
+                    sendError(socket, 'Color is taken!');
                     return;
                 }
                 // Create Team
                 const team = new Team(generateTeamID(game.teams), name, color);
                 game.teams.push(team);
-                emitter.addTeam(io, game.id, team);
+                addTeam(io, game.id, team);
             });
             socket.on('delete team', ({ id }) => {
                 game.teams = game.teams.filter((team) => (id !== team.id));
-                emitter.deleteTeam(io, game.id, id);
+                deleteTeam(io, game.id, id);
             });
             socket.on('team chat', ({ teamID, message }) => {
                 const player: Player = getPlayer(game, socket.id);
                 if (player === undefined || player.teamID !== teamID) {
-                    emitter.sendError(socket, 'Not allowed to talk to another team.');
+                    sendError(socket, 'Not allowed to talk to another team.');
                 } else {
                     // Get Team
                     const team: Team = getByID(game.teams, teamID);
                     const chatEntry: ChatEntry = new ChatEntry(player.name, message);
                     team.chat.push(chatEntry);
-                    emitter.updateChat(io, team);
+                    updateChat(io, team);
+                }
+            });
+            socket.on('upload data', (data) => {
+                if (!controller.loadData(io, game.id, data)) {
+                    sendError(socket, "Failed to load data!");
                 }
             });
             socket.on('disconnect', (reason) => {
@@ -182,7 +189,7 @@ export function createSocket(server) {
                     game.teams = game.teams.map((team) => {
                         return { ...team, players: team.players.filter((player) => player.id !== socket.id) };
                     })
-                    emitter.updatePlayers(io, game);
+                    updatePlayers(io, game);
                 } else {
                     if (player !== undefined) {
                         // Store disconnected player
