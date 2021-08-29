@@ -8,3 +8,4 @@ build
 
 # compiled js
 utils/*.js
+utils/__stubs__/*.js

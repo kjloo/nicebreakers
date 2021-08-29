@@ -15,4 +15,4 @@ export const fish: Team = new Team(1042, 'Fish', '#FF6622', 0, true, [], [bob, s
 export const cat: Team = new Team(5431, 'Cat', '#993355', 0, false, [], [phil, sam], 0);
 export const teams: Array<Team> = [fish, cat];
 export const players: Array<Player> = [jake, finn, tom, bob, sean, phil, sam];
-export const game: Game = new Game("ABDS", GameType.MOVIE, 0, teams, new Map([[jake.id, jake], [finn.id, finn], [tom.id, tom]]), [charles], GameState.SETUP, undefined);
+export const stubGame: Game = new Game("ABDS", GameType.MOVIE, 0, teams, new Map([[jake.id, jake], [finn.id, finn], [tom.id, tom]]), [charles], GameState.SETUP, undefined);

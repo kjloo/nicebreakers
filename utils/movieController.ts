@@ -2,7 +2,7 @@ import logger from './logger';
 import { GameState } from './enums';
 import { GameController } from './gameController';
 import { Game } from './structs';
-import { revealAnswer, setReady, setWinner, updatePlayers, updateState, updateTeams } from './emitter';
+import { revealAnswer, setReady, updatePlayers, updateState, updateTeams } from './emitter';
 import { Server } from 'socket.io';
 
 export class MovieController extends GameController {
@@ -100,7 +100,7 @@ export class MovieController extends GameController {
                 updateState(s, game, GameState.ENTRY);
                 break;
             case GameState.ENTRY:
-                game.question.answer = args.answer;
+                game.question = { answer: args.answer };
                 updateState(s, game, GameState.HINT);
                 break;
             case GameState.HINT:

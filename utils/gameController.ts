@@ -4,7 +4,7 @@ import { Game, Player, Team } from './structs';
 import { setWinner, updatePlayers, updateState, updateTeams } from './emitter';
 import { Server } from 'socket.io';
 
-export abstract class GameController {
+export class GameController {
     public id: string;
 
     public constructor(s: Server, game: Game) {
@@ -17,7 +17,7 @@ export abstract class GameController {
     }
 
     public resetGameState(s: Server, game: Game): void {
-        logger.info('Resetting game state');
+        //console.log('Resetting game state');
         // Delete cached players
         game.cachedPlayers = [];
         game.teams = game.teams.map((team: Team) => {
@@ -33,9 +33,9 @@ export abstract class GameController {
         updatePlayers(s, game);
     }
 
-    public abstract gameStateMachine(s: Server, game: Game, state: GameState, args): void;
+    public gameStateMachine(s: Server, game: Game, state: GameState, args): void { }
 
-    public abstract loadData(s: Server, gameID: string, data: Buffer): boolean;
+    public loadData(s: Server, gameID: string, data: Buffer): boolean { return true; }
 
     public createPlayer(id: string, name: string): Player {
         return new Player(id, PlayerType.PLAYER, name, false, -1);

@@ -1,32 +1,32 @@
 import { GameController } from '../gameController';
-const enums = require('../enums');
-const stub = require('../__stubs__/gameStub');
+import { stubGame } from '../__stubs__/gameStub';
+import { GameState } from '../enums';
 
 jest.mock('../emitter');
 
-let controller = new GameController(stub.game);
+let controller = new GameController(undefined, stubGame);
 
 describe("Base State Manager Test", () => {
 
     beforeEach(() => {
-        controller.resetGameState(undefined, stub.game);
+        controller.resetGameState(undefined, stubGame);
     });
 
-    test('check game started', () => {
-        expect(controller.isGameStarted(stub.game)).toBe(false);
+    test('check stubGame started', () => {
+        expect(controller.isGameStarted(stubGame)).toBe(false);
 
-        // Start game
-        stub.game.state = enums.GameState.ANSWER;
+        // Start stubGame
+        stubGame.state = GameState.ANSWER;
 
-        expect(controller.isGameStarted(stub.game)).toBe(true);
+        expect(controller.isGameStarted(stubGame)).toBe(true);
     });
 
-    test('reset game state', () => {
-        controller.resetGameState(undefined, stub.game);
-        expect(stub.game.cachedPlayers).toEqual([]);
-        stub.game.teams.forEach((team) => {
+    test('reset stubGame state', () => {
+        controller.resetGameState(undefined, stubGame);
+        expect(stubGame.cachedPlayers).toEqual([]);
+        stubGame.teams.forEach((team) => {
             expect(team.score).toBe(0);
         });
-        expect(stub.game.teamIndex).toBe(0);
+        expect(stubGame.teamIndex).toBe(0);
     });
 });

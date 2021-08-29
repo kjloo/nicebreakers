@@ -10,9 +10,9 @@ import { Server } from 'socket.io';
 export let globalGames: Map<string, Game> = new Map();
 
 // Garbage collection
-export function garbageCollection(games): void {
+export function garbageCollection(games: Map<string, Game>): void {
     // remove any inactive game ids
-    games.forEach((game, key, map) => {
+    games.forEach((game: Game, key: string, map: Map<string, Game>) => {
         if (getPlayers(game).length === 0) {
             map.delete(key);
             console.log("Removed inactive game: " + key);

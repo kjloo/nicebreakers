@@ -2,9 +2,9 @@ import 'regenerator-runtime/runtime';
 import app from '../../server/app';
 import { GameState, GameType } from '../enums';
 import { registerGame, validateGameID } from '../routes';
+import { stubGame, players, teams } from '../__stubs__/gameStub';
 
 const stateManager = require('../stateManager');
-const stub = require('../__stubs__/gameStub');
 const supertest = require('supertest');
 
 describe("rest api routes", () => {
@@ -57,7 +57,7 @@ describe("rest api routes", () => {
     });
 
     test('GET /players', async () => {
-        const gameID = stub.game.id;
+        const gameID = stubGame.id;
         await supertest(app).get('/players/')
             .query({ gameID: gameID })
             .expect(200)
@@ -65,17 +65,17 @@ describe("rest api routes", () => {
                 expect(response.body.players).toEqual([]);
             });
         // Add game and players
-        stateManager.globalGames.set(stub.game.id, stub.game);
+        stateManager.globalGames.set(stubGame.id, stubGame);
         await supertest(app).get('/players/')
             .query({ gameID: gameID })
             .expect(200)
             .then((response) => {
-                expect(response.body.players).toEqual(stub.players);
+                expect(response.body.players).toEqual(players);
             });
     });
 
     test('GET /state', async () => {
-        const gameID = stub.game.id;
+        const gameID = stubGame.id;
         await supertest(app).get('/state/')
             .query({ gameID: gameID })
             .expect(200)
@@ -83,8 +83,8 @@ describe("rest api routes", () => {
                 expect(response.body.state).toBe(GameState.SETUP);
             });
         // change state
-        stateManager.globalGames.set(stub.game.id, stub.game);
-        stub.game.state = GameState.ANSWER;
+        stateManager.globalGames.set(stubGame.id, stubGame);
+        stubGame.state = GameState.ANSWER;
         await supertest(app).get('/state/')
             .query({ gameID: gameID })
             .expect(200)
@@ -95,7 +95,7 @@ describe("rest api routes", () => {
     });
 
     test('GET /teams', async () => {
-        const gameID = stub.game.id;
+        const gameID = stubGame.id;
         await supertest(app).get('/teams/')
             .query({ gameID: gameID })
             .expect(200)
@@ -103,12 +103,12 @@ describe("rest api routes", () => {
                 expect(response.body.teams).toBeUndefined();
             });
         // Add game and teams
-        stateManager.globalGames.set(stub.game.id, stub.game);
+        stateManager.globalGames.set(stubGame.id, stubGame);
         await supertest(app).get('/teams/')
             .query({ gameID: gameID })
             .expect(200)
             .then((response) => {
-                expect(response.body.teams).toEqual(stub.teams);
+                expect(response.body.teams).toEqual(teams);
             });
     });
 

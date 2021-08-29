@@ -2,6 +2,10 @@ const dummyRevealAnswer = (s, game) => {
     return;
 }
 
+const dummySetReady = (s, game) => {
+    return;
+}
+
 const dummySetWinner = (s, game) => {
     return;
 }
@@ -22,6 +26,7 @@ const dummyUpdateTeams = (s, teams) => {
 
 module.exports = {
     revealAnswer: dummyRevealAnswer,
+    setReady: dummySetReady,
     setWinner: dummySetWinner,
     updatePlayers: dummyUpdatePlayers,
     updateState: dummyUpdateState,

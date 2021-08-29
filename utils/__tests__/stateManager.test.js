@@ -1,6 +1,6 @@
 import { gameControllerFactory, garbageCollection } from '../stateManager';
-const structs = require('../structs')
-const stub = require('../__stubs__/gameStub');
+import { stubGame } from '../__stubs__/gameStub';
+import { Game } from '../structs';
 
 jest.mock('../emitter');
 
@@ -10,20 +10,20 @@ describe("Base State Manager Test", () => {
         // Setup games
         const games = new Map();
         const gameID = "ABCD";
-        const game = new structs.Game(gameID);
-        games.set(gameID, game);
-        games.set(stub.game.gameID, stub.game);
+        const testGame = new Game(gameID);
+        games.set(gameID, testGame);
+        games.set(stubGame.gameID, stubGame);
 
         // Validate game
-        expect(games.get(gameID)).toEqual(game);
+        expect(games.get(gameID)).toEqual(testGame);
         // Run cleanup
         garbageCollection(games);
         expect(games.get(gameID)).toBeUndefined();
-        expect(games.get(stub.game.gameID)).toEqual(stub.game);
+        expect(games.get(stubGame.gameID)).toEqual(stubGame);
     });
 
     test('controller factory', () => {
-        const controller = gameControllerFactory(stub.game);
-        expect(controller.id).toEqual(stub.game.id);
+        const controller = gameControllerFactory(undefined, stubGame);
+        expect(controller.id).toEqual(stubGame.id);
     })
 });

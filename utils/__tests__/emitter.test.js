@@ -1,11 +1,11 @@
-import { updatePlayer, updateState, updateTeams, updatePlayers, updateChat, setReady } from '../emitter';
+import { revealAnswer, updatePlayer, updateState, updateTeams, updatePlayers, updateChat, setReady, setWinner, addTeam, deleteTeam, sendError } from '../emitter';
+import { stubGame, tom } from '../__stubs__/gameStub';
+import { GameState } from '../enums';
+import { Team, ChatEntry } from '../structs';
+import { getPlayers, getTeams } from '../filters';
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const Client = require("socket.io-client");
-const filters = require('../filters');
-const structs = require('../structs');
-const enums = require('../enums');
-const stub = require('../__stubs__/gameStub');
 
 describe("socket emitter tests", () => {
     let io
@@ -19,7 +19,7 @@ describe("socket emitter tests", () => {
             const port = httpServer.address().port;
             clientSocket = new Client(`http://localhost:${port}`);
             io.on("connection", (socket) => {
-                socket.join(stub.game.id);
+                socket.join(stubGame.id);
                 serverSocket = socket;
             });
             clientSocket.on("connect", done);
@@ -33,30 +33,30 @@ describe("socket emitter tests", () => {
 
     test('update player', (done) => {
         clientSocket.on('update player', (player) => {
-            expect(player).toEqual(stub.tom);
+            expect(player).toEqual(tom);
             done();
         });
-        updatePlayer(serverSocket, stub.tom);
+        updatePlayer(serverSocket, tom);
     });
 
     test('update players', (done) => {
         clientSocket.on('update players', (players) => {
-            expect(players).toEqual(filters.getPlayers(stub.game));
+            expect(players).toEqual(getPlayers(stubGame));
             done();
         });
-        updatePlayers(io, stub.game);
+        updatePlayers(io, stubGame);
     });
 
     test('update teams', (done) => {
         clientSocket.on('update teams', (teams) => {
-            expect(teams).toEqual(filters.getTeams(stub.game));
+            expect(teams).toEqual(getTeams(stubGame));
             done();
         });
-        updateTeams(io, stub.game);
+        updateTeams(io, stubGame);
     });
 
     test('add/delete team', (done) => {
-        const dragon = new structs.Team(123, 'Dragon', 'blue');
+        const dragon = new Team(123, 'Dragon', 'blue');
         clientSocket.on('add team', (team) => {
             expect(team).toEqual(dragon);
             done();
@@ -66,15 +66,15 @@ describe("socket emitter tests", () => {
             done();
         });
 
-        addTeam(io, stub.game.id, dragon);
-        deleteTeam(io, stub.game.id, dragon);
+        addTeam(io, stubGame.id, dragon);
+        deleteTeam(io, stubGame.id, dragon);
     });
 
     test('update chat', (done) => {
         const dragonID = 123
-        serverSocket.join(dragonID);
-        const chat = [new structs.ChatEntry('Tom', 'Hello'), new structs.ChatEntry('Chad', "What's up?")];
-        const dragon = new structs.Team(dragonID, 'Dragon', 'blue');
+        serverSocket.join(dragonID.toString());
+        const chat = [new ChatEntry('Tom', 'Hello'), new ChatEntry('Chad', "What's up?")];
+        const dragon = new Team(dragonID, 'Dragon', 'blue');
         dragon.chat = chat;
         clientSocket.on('team chat', ({ teamID, data }) => {
             expect(teamID).toBe(dragonID);
@@ -87,10 +87,10 @@ describe("socket emitter tests", () => {
 
     test('reveal answer', (done) => {
         clientSocket.on('reveal answer', (answer) => {
-            expect(answer).toBe(stub.game.answer);
+            expect(answer).toBe(stubGame.question);
             done();
         });
-        revealAnswer(io, stub.game);
+        revealAnswer(io, stubGame);
     });
 
     test('ready', (done) => {
@@ -99,16 +99,16 @@ describe("socket emitter tests", () => {
             expect(ready).toBe(readyFlag);
             done();
         });
-        setReady(io, stub.game.id, readyFlag);
+        setReady(io, stubGame.id, readyFlag);
     });
 
     test('update state', (done) => {
-        const steal = enums.GameState.STEAL;
+        const steal = GameState.STEAL;
         clientSocket.on('set state', (state) => {
             expect(state).toBe(steal);
             done();
         });
-        updateState(io, stub.game, steal);
+        updateState(io, stubGame, steal);
     });
 
     test('send error', (done) => {
@@ -121,24 +121,24 @@ describe("socket emitter tests", () => {
     });
 
     test('send tie game', (done) => {
-        stub.game.teams = stub.game.teams.map((team) => {
+        stubGame.teams = stubGame.teams.map((team) => {
             return { ...team, score: 0 }
         });
         clientSocket.on('set winner', (winner) => {
             expect(winner).toBeNull();
             done();
         });
-        setWinner(io, stub.game);
+        setWinner(io, stubGame);
         done();
     });
 
     test('send winner', (done) => {
-        stub.game.teams[0].score = 20;
+        stubGame.teams[0].score = 20;
         clientSocket.on('set winner', (winner) => {
-            expect(winner).toBe(stub.game.teams[0]);
+            expect(winner).toBe(stubGame.teams[0]);
             done();
         });
-        setWinner(io, stub.game);
+        setWinner(io, stubGame);
         done();
     });
 });

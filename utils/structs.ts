@@ -50,7 +50,7 @@ export class Game {
     public question: Question;
     public controller: GameController;
 
-    constructor(id: string, type = GameType.MOVIE, teamIndex = 0, teams = [], players = new Map(), cachedPlayers = [], state = GameState.SETUP, question = undefined) {
+    constructor(id: string, type = GameType.MOVIE, teamIndex = 0, teams = [], players = new Map(), cachedPlayers = [], state = GameState.SETUP, question = null) {
         this.id = id;
         this.type = type;
         this.teamIndex = teamIndex;
@@ -73,10 +73,10 @@ export class ChatEntry {
 }
 
 export interface Question {
-    category: string;
-    question: string;
-    answer: string;
-    points: number;
+    category?: string;
+    question?: string;
+    answer?: string;
+    points?: number;
 }
 
 export interface Card {
