@@ -2,8 +2,8 @@ import logger from './logger';
 
 import { GameState } from './enums';
 import { GameController } from './gameController';
-import { Card, Game, Question, Team } from './structs';
-import { updateState, revealAnswer, updateTeams, setWinner, setReady, sendError } from './emitter';
+import { Card, Game, Player, Question, Team } from './structs';
+import { updateState, revealAnswer, updateTeams, setWinner, setReady, sendError, updatePlayers } from './emitter';
 import { Server } from 'socket.io';
 
 export class TriviaController extends GameController {
@@ -36,6 +36,7 @@ export class TriviaController extends GameController {
 
     private sendState(s: Server, game: Game) {
         // Update sockets
+        updatePlayers(s, game);
         updateTeams(s, game);
     }
 
@@ -94,19 +95,26 @@ export class TriviaController extends GameController {
      * Set game context based on which team buzzes in. 
      * @param s SocketIO connected to client
      * @param game current game context
-     * @param teamID ID of team that buzzed in
+     * @param player player object that is current
      */
-    private buzzIn(s: Server, game: Game, teamID: number): void {
+    private buzzIn(s: Server, game: Game, player: Player): void {
         // Prevent race condition. Make sure only 1 team is set
         if (game.teams.some((team: Team) => team.turn)) {
             return;
         }
         // Set team turn
         game.teams = game.teams.map((team: Team) => {
-            if (team.id !== teamID) {
+            if (team.id !== player.teamID) {
                 return team;
             }
             game.teamIndex = game.teams.indexOf(team);
+            // Set player turn
+            team.players = team.players.map((p: Player) => {
+                if (p.id !== player.id) {
+                    return player;
+                }
+                return { ...player, turn: true };
+            });
             return { ...team, turn: true };
         });
         this.sendState(s, game)
@@ -120,6 +128,9 @@ export class TriviaController extends GameController {
     private entryState(s: Server, game: Game): void {
         // Clear turns
         game.teams = game.teams.map((team: Team) => {
+            team.players = team.players.map((player: Player) => {
+                return { ...player, turn: false };
+            })
             return { ...team, turn: false };
         });
         this.sendState(s, game)
@@ -151,12 +162,12 @@ export class TriviaController extends GameController {
                 updateState(s, game, GameState.HINT);
                 break;
             case GameState.HINT:
-                const teamID: number = args.teamID;
+                const player: Player = args.player;
                 // Skip if teamID is -1
-                if (teamID === undefined) {
+                if (player === undefined) {
                     updateState(s, game, GameState.REVEAL);
                 } else {
-                    this.buzzIn(s, game, teamID);
+                    this.buzzIn(s, game, player);
                     updateState(s, game, GameState.GUESS);
                 }
                 break;

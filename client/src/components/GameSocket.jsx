@@ -226,7 +226,6 @@ const GameSocket = ({ children, title, roles }) => {
             setReadyFlag(ready);
         })
         socket.on('reveal answer', (question) => {
-            console.log(question);
             setQuestion(question);
         })
         socket.on('set winner', (w) => {
