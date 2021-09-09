@@ -111,9 +111,9 @@ export class TriviaController extends GameController {
             // Set player turn
             team.players = team.players.map((p: Player) => {
                 if (p.id !== player.id) {
-                    return player;
+                    return p;
                 }
-                return { ...player, turn: true };
+                return { ...p, turn: true };
             });
             return { ...team, turn: true };
         });
