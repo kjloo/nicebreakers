@@ -146,6 +146,11 @@ export class TriviaController extends GameController {
         }
     }
 
+    public override resetGameState(s: Server, game: Game): void {
+        super.resetGameState(s, game);
+        this.questions = [];
+    }
+
     /**
      * Responsible for handling transition to next game state
      * @param s SocketIO server object connected to client
@@ -153,7 +158,7 @@ export class TriviaController extends GameController {
      * @param state The current game state
      * @param args Additional arguments
      */
-    public override gameStateMachine(s: Server, game: Game, state: GameState, args): void {
+    public override gameStateMachine(s: Server, game: Game, state: GameState, args: any = {}): void {
         switch (state) {
             case GameState.SETUP:
                 this.entryState(s, game);
@@ -192,13 +197,14 @@ export class TriviaController extends GameController {
      * @returns success/failure
      */
     public override loadData(s: Server, gameID: string, data: Buffer): boolean {
+        var rc: boolean = false
         try {
             this.questions = JSON.parse(data.toString()).sort(() => Math.random() - 0.5);
-            setReady(s, gameID, true)
+            rc = setReady(s, gameID, true)
         } catch (err) {
             logger.error("Invalid JSON file: " + err)
             return false;
         }
-        return true;
+        return rc;
     }
 };

@@ -2,8 +2,8 @@ const dummyRevealAnswer = (s, game) => {
     return;
 }
 
-const dummySetReady = (s, game) => {
-    return;
+const dummySetReady = (s, game, ready) => {
+    return true;
 }
 
 const dummySetWinner = (s, game) => {
