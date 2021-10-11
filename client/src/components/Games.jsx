@@ -12,6 +12,9 @@ const Games = () => {
             <Link className="game-icon" to="/trivia">
                 <img src={triviaLogo} alt="trivia" />
             </Link>
+            <Link className="game-icon" to="/topfive">
+                <img src={topFiveLogo} alt="topfive" />
+            </Link>
         </div>
     )
 }

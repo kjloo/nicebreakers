@@ -23,6 +23,8 @@ const App = () => {
                         <Route exact path="/movie/game/:gameID" component={MovieGame} />
                         <Route exact path="/trivia" component={TriviaMenu} />
                         <Route exact path="/trivia/game/:gameID" component={TriviaGame} />
+                        <Route exact path="/topfive" component={TopFiveMenu} />
+                        <Route exact path="/topfive/game/:gameID" component={TopFiveGame} />
                         <Route exact path="/about" component={About} />
                     </Switch>
                 </div>
