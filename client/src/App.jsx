@@ -7,6 +7,8 @@ import MovieMenu from './components/MovieMenu';
 import MovieGame from './components/MovieGame';
 import TriviaMenu from './components/TriviaMenu';
 import TriviaGame from './components/TriviaGame';
+import TopFiveMenu from './components/TopFiveMenu';
+import TopFiveGame from './components/TopFiveGame';
 import About from './components/About';
 import Footer from './components/Footer';
 

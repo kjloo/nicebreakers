@@ -10,7 +10,8 @@ export class MovieController extends GameController {
     public constructor(s: Server, game: Game) {
         super(s, game);
         // ready flag set by default
-        setReady(s, game.id, true);
+        this.ready = true;
+
     }
 
     private getCurrentPlayer(game: Game) {

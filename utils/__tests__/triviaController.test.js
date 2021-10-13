@@ -18,6 +18,7 @@ describe("Trivia Controller Test", () => {
         expect(controller.isGameStarted(stubGame)).toBe(false);
         controller.gameStateMachine({}, stubGame, GameState.SETUP, {});
         expect(stubGame.state).toBe(GameState.SETUP);
+        expect(controller.ready).toBe(false);
     });
 
     describe('increment game state', () => {

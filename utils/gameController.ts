@@ -1,14 +1,16 @@
 import { GameState, PlayerType } from './enums';
 import logger from './logger';
 import { Game, Player, Team } from './structs';
-import { setWinner, updatePlayers, updateState, updateTeams } from './emitter';
+import { setReady, setWinner, updatePlayers, updateState, updateTeams } from './emitter';
 import { Server } from 'socket.io';
 
 export class GameController {
     public id: string;
+    public ready: boolean;
 
     public constructor(s: Server, game: Game) {
         this.id = game.id;
+        this.ready = false;
     }
 
     // Read/Write Game State
@@ -39,6 +41,11 @@ export class GameController {
 
     public createPlayer(id: string, name: string): Player {
         return new Player(id, PlayerType.PLAYER, name, false, -1);
+    }
+
+    protected setReady(s: Server, gameID: string, ready: boolean): boolean {
+        this.ready = ready;
+        return setReady(s, gameID, ready);
     }
 
     protected changeTeamTurns(game: Game) {

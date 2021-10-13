@@ -3,7 +3,7 @@ import { globalGames } from './stateManager';
 import { processAcronym } from './acronym';
 import { generateGameCode } from './codes';
 import { getPlayers, getTeams } from './filters';
-import { Game, Player } from './structs';
+import { Game, Player, Team } from './structs';
 import * as express from 'express';
 import { Request, Response } from 'express';
 const path = require('path');
@@ -60,20 +60,32 @@ router.get('/players', function (req, res) {
 router.get('/state', function (req, res) {
     const gameID: string = req.query.gameID.toString();
     // retrieve game and return its teams
-    const game = globalGames.get(gameID);
-    const state = (game !== undefined) ? game.state : GameState.SETUP;
+    const game: Game = globalGames.get(gameID);
+    const state: GameState = (game !== undefined) ? game.state : GameState.SETUP;
     let data = {
         state: state
     };
 
     res.json(data);
-})
+});
+
+router.get('/ready', function (req, res) {
+    const gameID: string = req.query.gameID.toString();
+    // retrieve game and return its teams
+    const game: Game = globalGames.get(gameID);
+    const ready: boolean = (game !== undefined) ? game.controller.ready : false;
+    let data = {
+        ready: ready
+    };
+
+    res.json(data);
+});
 
 router.get('/teams', function (req, res) {
     const gameID: string = req.query.gameID.toString();
     // retrieve game and return its teams
-    const game = globalGames.get(gameID);
-    const teams = getTeams(game);
+    const game: Game = globalGames.get(gameID);
+    const teams: Array<Team> = getTeams(game);
     let data = {
         teams: teams
     };
@@ -97,6 +109,8 @@ router.get('/game/:gameID', function (req, res) {
         gamePath.push('/movie');
     } else if (game.type === GameType.TRIVIA) {
         gamePath.push('/trivia');
+    } else if (game.type === GameType.TOPFIVE) {
+        gamePath.push('/topfive');
     }
     gamePath.push('game');
     gamePath.push(gameID);
@@ -115,7 +129,7 @@ router.get('/game/', function (req, res) {
     res.redirect(`/game/${gameID}`);
 });
 
-router.get(["/movie/game/:gameID", "/trivia/game/:gameID"], function (req, res, next) {
+router.get(["/movie/game/:gameID", "/trivia/game/:gameID", "/topfive/game/:gameID"], function (req, res, next) {
     // Handle direct route
     const gameID: string = req.params.gameID.toString();
 

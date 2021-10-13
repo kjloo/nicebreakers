@@ -91,7 +91,25 @@ describe("rest api routes", () => {
             .then((response) => {
                 expect(response.body.state).toBe(GameState.ANSWER);
             });
+    });
 
+    test('GET /ready', async () => {
+        const gameID = stubGame.id;
+        await supertest(app).get('/ready/')
+            .query({ gameID: gameID })
+            .expect(200)
+            .then((response) => {
+                expect(response.body.ready).toBe(false);
+            });
+        // change state
+        stateManager.globalGames.set(stubGame.id, stubGame);
+        stubGame.controller = stateManager.gameControllerFactory({}, stubGame);
+        await supertest(app).get('/ready/')
+            .query({ gameID: gameID })
+            .expect(200)
+            .then((response) => {
+                expect(response.body.ready).toBe(true);
+            });
     });
 
     test('GET /teams', async () => {

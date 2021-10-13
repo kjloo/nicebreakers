@@ -10,7 +10,8 @@ export enum GameState {
 
 export enum GameType {
     MOVIE,
-    TRIVIA
+    TRIVIA,
+    TOPFIVE
 };
 
 export enum PlayerType {

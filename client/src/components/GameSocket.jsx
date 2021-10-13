@@ -7,7 +7,7 @@ import UserForm from './UserForm';
 import Teams from './Teams';
 import GameContainer from './GameContainer';
 import GameSetup from './GameSetup';
-import { PlayerType } from '../../../utils/enums';
+import { GameType, PlayerType } from '../../../utils/enums';
 import Button from './Button';
 
 let socket;
@@ -20,7 +20,7 @@ const connectSocket = (gameID) => {
     socket.connect();
 }
 
-const GameSocket = ({ children, title, roles }) => {
+const GameSocket = ({ children, title, roles, gameType }) => {
     const [readyFlag, setReadyFlag] = useState(false);
     const [player, setPlayer] = useState(undefined);
     const [players, setPlayers] = useState([]);
@@ -40,6 +40,14 @@ const GameSocket = ({ children, title, roles }) => {
             return true;
         }
         return Object.keys(obj).length === 0;
+    }
+
+    /**
+     * Defines what game types use teams
+     * @returns Capability for game to use teams
+     */
+    const hasTeams = () => {
+        return [GameType.MOVIE, GameType.TRIVIA].includes(gameType)
     }
 
     const nextState = (args = undefined) => {
@@ -105,12 +113,30 @@ const GameSocket = ({ children, title, roles }) => {
         });
     }
 
+    // get ready
+    const getReady = () => {
+        // Request state
+        axios({
+            method: 'get',
+            url: '/ready',
+            params: {
+                gameID: gameID
+            }
+        }).then((response) => {
+            setReady(response.data.ready);
+        });
+    }
+
     // delete team
     const deleteTeam = (id) => {
         socket.emit('delete team', { id: id });
     }
     // get teams
     const getTeams = () => {
+        if (!hasTeams()) {
+            setTeams(null);
+            return;
+        }
         // Request current teams
         axios({
             method: 'get',
@@ -203,6 +229,17 @@ const GameSocket = ({ children, title, roles }) => {
         }
     }
 
+    const getWinner = () => {
+        if (!winner) {
+            return
+        }
+        if (hasTeams()) {
+            return <h3 style={{ color: winner.color }}>Team {winner.name} Wins!</h3>;
+        } else {
+            return <h3>{winner.name} Wins!</h3>;
+        }
+    }
+
     // chat message submit
     const submitMessage = (teamID, message) => {
         socket.emit('team chat', { teamID: teamID, message: message });
@@ -217,6 +254,7 @@ const GameSocket = ({ children, title, roles }) => {
 
         getPlayers();
         getState();
+        getReady();
         getTeams();
 
         socket.on('exception', (message) => {
@@ -267,7 +305,7 @@ const GameSocket = ({ children, title, roles }) => {
             socket.off('update players');
             socket.off('connect')
         }
-    }, [player, players])
+    }, [player, players]);
 
     useEffect(() => {
         socket.on('add team', (t) => {
@@ -305,20 +343,23 @@ const GameSocket = ({ children, title, roles }) => {
                     isStarted() ?
                         cloneElement(children, { player: player, teams: teams, onNext: nextState, state: state, question: question }) :
                         <>
-                            {winner && <h3 style={{ color: winner.color }}>Team {winner.name} Wins!</h3>}
+                            {getWinner()}
                             <GameSetup socket={socket} readyFlag={readyFlag} players={players} teams={teams} onStart={nextState} />
                         </>
                 }
             </GameContainer>
-            <Teams player={player} teams={teams} chat={chat} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />
-        </>
 
+            <div>
+                {hasTeams() && <Teams player={player} teams={teams} chat={chat} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />}
+            </div>
+        </>
     )
 }
 
 GameSocket.defaultProps = {
     title: 'No Title',
-    roles: [PlayerType.PLAYER]
+    roles: [PlayerType.PLAYER],
+    gameType: GameType.MOVIE
 }
 
 export default GameSocket;

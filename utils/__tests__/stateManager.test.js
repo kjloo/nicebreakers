@@ -1,6 +1,7 @@
 import { gameControllerFactory, garbageCollection } from '../stateManager';
 import { stubGame } from '../__stubs__/gameStub';
 import { Game } from '../structs';
+import { MovieController } from '../movieController';
 
 jest.mock('../emitter');
 
@@ -25,5 +26,6 @@ describe("Base State Manager Test", () => {
     test('controller factory', () => {
         const controller = gameControllerFactory(undefined, stubGame);
         expect(controller.id).toEqual(stubGame.id);
+        expect(controller).toBeInstanceOf(MovieController);
     })
 });

@@ -14,16 +14,23 @@ const GameSetup = ({ socket, readyFlag, players, teams, onStart }) => {
     // is ready
     const isReady = () => {
         // ready when
-        // ready flag is set
-        // there is at least 2 players
-        // there are at least 2 teams
-        // each player that is a player is on a team
+        // ready flag is set AND
+        // there is at least 2 players AND
+        // teams are not required OR
+        // there are at least 2 teams AND
+        // each player that is a player is on a team AND
         // each team has a player
         // game not started
-        return readyFlag && ((players.length > 1) &&
-            (teams.length > 1) &&
-            (players.every((player) => (player.type !== PlayerType.PLAYER) || (player.teamID > 0))) &&
-            (teams.every((team) => (team.players.length > 0))));
+        return readyFlag &&
+            (players.length > 1) &&
+            (
+                (teams === null) ||
+                (
+                    (teams.length > 1) &&
+                    (players.every((player) => (player.type !== PlayerType.PLAYER) || (player.teamID > 0))) &&
+                    (teams.every((team) => (team.players.length > 0)))
+                )
+            );
     }
 
     // process acronym
@@ -50,7 +57,7 @@ const GameSetup = ({ socket, readyFlag, players, teams, onStart }) => {
             <p className="value">{gameID}</p>
             <p className="value"> ({decode}) </p>
             <Players players={players} />
-            <GameControls socket={socket} isLocked={teams.length >= maxTeams} isReady={isReady()} onStart={onStart} />
+            <GameControls socket={socket} isLocked={(teams === null) || (teams.length >= maxTeams)} isReady={isReady()} onStart={onStart} />
         </>
     )
 }

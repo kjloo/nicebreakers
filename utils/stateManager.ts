@@ -2,6 +2,7 @@ import { GameType } from './enums';
 import { GameController } from './gameController';
 import { MovieController } from './movieController';
 import { TriviaController } from './triviaController';
+import { TopFiveController } from './topFiveController';
 import { getPlayers } from './filters';
 import { Game } from './structs';
 import { Server } from 'socket.io';
@@ -26,6 +27,8 @@ export function gameControllerFactory(io: Server, game: Game): GameController {
         return new MovieController(io, game);
     } else if (game.type == GameType.TRIVIA) {
         return new TriviaController(io, game);
+    } else if (game.type === GameType.TOPFIVE) {
+        return new TopFiveController(io, game);
     }
     return null;
 }

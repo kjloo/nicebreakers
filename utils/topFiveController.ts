@@ -6,33 +6,12 @@ import { Card, Game, Player, Question, Team } from './structs';
 import { updateState, revealAnswer, updateTeams, setWinner, setReady, sendError, updatePlayers } from './emitter';
 import { Server } from 'socket.io';
 
-export class TriviaController extends GameController {
-
-    questions: Array<Card>
-    category: Array<Question>
+export class TopFiveController extends GameController {
 
     public constructor(s: Server, game: Game) {
         super(s, game);
-        this.questions = []
-        this.category = []
-        this.ready = false;
-    }
-
-    private getNextQuestion(): Question {
-        // Check if there is a question left in the category
-        if (this.category.length === 0) {
-            // Load the next category
-            if (this.questions.length === 0) {
-                // No more questions left
-                return undefined;
-            }
-            // store category
-            const questions = this.questions.pop();
-            this.category = questions.questions.reverse().map((question: Question): Question => {
-                return { ...question, category: questions.category }
-            });
-        }
-        return this.category.pop()
+        // ready flag set by default
+        this.ready = true;
     }
 
     private sendState(s: Server, game: Game) {
@@ -122,37 +101,6 @@ export class TriviaController extends GameController {
     }
 
     /**
-     * Set game state for each round.
-     * @param s SocketIO connected to client
-     * @param game current game context
-     */
-    private entryState(s: Server, game: Game): void {
-        // Clear turns
-        game.teams = game.teams.map((team: Team) => {
-            team.players = team.players.map((player: Player) => {
-                return { ...player, turn: false };
-            })
-            return { ...team, turn: false };
-        });
-        this.sendState(s, game)
-        // Update question
-        const question = this.getNextQuestion();
-        // If question is null, game is over
-        if (question === undefined) {
-            this.endGame(s, game);
-        } else {
-            game.question = question;
-            revealAnswer(s, game);
-            updateState(s, game, GameState.ENTRY);
-        }
-    }
-
-    public override resetGameState(s: Server, game: Game): void {
-        super.resetGameState(s, game);
-        this.questions = [];
-    }
-
-    /**
      * Responsible for handling transition to next game state
      * @param s SocketIO server object connected to client
      * @param game Game context object
@@ -162,50 +110,7 @@ export class TriviaController extends GameController {
     public override gameStateMachine(s: Server, game: Game, state: GameState, args: any = {}): void {
         switch (state) {
             case GameState.SETUP:
-                this.entryState(s, game);
-                break;
-            case GameState.ENTRY:
-                updateState(s, game, GameState.HINT);
-                break;
-            case GameState.HINT:
-                const player: Player = args.player;
-                // Skip if teamID is -1
-                if (player === undefined) {
-                    updateState(s, game, GameState.REVEAL);
-                } else {
-                    this.buzzIn(s, game, player);
-                    updateState(s, game, GameState.GUESS);
-                }
-                break;
-            case GameState.STEAL:
-            case GameState.GUESS:
-                this.handleAnswer(s, game, state, args.correct)
-                break;
-            case GameState.REVEAL:
-                this.entryState(s, game);
-                break;
-            case GameState.END:
-                this.endGame(s, game);
                 break;
         }
-    }
-
-    /**
-     * Receives JSON file from client and loads it as game context
-     * @param s SocketIO connected to client
-     * @param gameID Game ID to send data to
-     * @param data Data receieved from client. Should be a JSON file
-     * @returns success/failure
-     */
-    public override loadData(s: Server, gameID: string, data: Buffer): boolean {
-        var rc: boolean = false
-        try {
-            this.questions = JSON.parse(data.toString()).sort(() => Math.random() - 0.5);
-            rc = this.setReady(s, gameID, true)
-        } catch (err) {
-            logger.error("Invalid JSON file: " + err)
-            return false;
-        }
-        return rc;
     }
 };

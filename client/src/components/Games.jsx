@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom';
 import movieLogo from '../../../images/movie.svg';
 import triviaLogo from '../../../images/trivia.svg';
+import topFiveLogo from '../../../images/topFive.svg';
 
 const Games = () => {
     return (

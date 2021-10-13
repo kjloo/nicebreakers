@@ -82,6 +82,7 @@ describe('Movie Controller', () => {
             // check sum of scores is 0
             let scores = stubGame.teams.reduce((acc, cur) => acc + cur.score, 0);
             expect(scores).toBe(0);
+            expect(controller.ready).toBe(true);
         });
 
         test('should start the game', () => {
