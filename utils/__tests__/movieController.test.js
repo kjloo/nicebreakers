@@ -4,7 +4,7 @@ import { stubGame } from '../__stubs__/gameStub';
 
 jest.mock('../emitter');
 
-let controller = new MovieController(undefined, stubGame);
+let controller = new MovieController(stubGame);
 
 describe('Movie Controller', () => {
 
@@ -73,7 +73,7 @@ describe('Movie Controller', () => {
     describe('increment game state', () => {
         function startGame() {
             // Start game
-            controller.gameStateMachine({}, stubGame, GameState.SETUP, {});
+            controller.gameStateMachine({}, {}, stubGame, GameState.SETUP, {});
         }
         test('initial state', () => {
             // Init state
@@ -95,7 +95,7 @@ describe('Movie Controller', () => {
             let startState = GameState.ENTRY;
             let nextState = GameState.HINT;
             const answer = "Cats";
-            controller.gameStateMachine({}, stubGame, startState, { answer: answer });
+            controller.gameStateMachine({}, {}, stubGame, startState, { answer: answer });
             expect(stubGame.state).toBe(nextState);
             // Check answer
             expect(stubGame.question.answer).toBe(answer);
@@ -105,7 +105,7 @@ describe('Movie Controller', () => {
             // Steal
             let startState = GameState.HINT;
             let nextState = GameState.STEAL;
-            controller.gameStateMachine({}, stubGame, startState, {});
+            controller.gameStateMachine({}, {}, stubGame, startState, {});
             expect(stubGame.state).toBe(nextState);
         });
 
@@ -115,7 +115,7 @@ describe('Movie Controller', () => {
             let startState = GameState.STEAL;
             let nextState = GameState.GUESS;
             let scores = stubGame.teams.reduce((acc, cur) => acc + cur.score, 0);
-            controller.gameStateMachine({}, stubGame, startState, { correct: false });
+            controller.gameStateMachine({}, {}, stubGame, startState, { correct: false });
             expect(stubGame.state).toBe(nextState);
 
             // check sum of scores is not changed
@@ -129,7 +129,7 @@ describe('Movie Controller', () => {
             let startState = GameState.STEAL;
             let nextState = GameState.REVEAL;
             let scores = stubGame.teams.reduce((acc, cur) => acc + cur.score, 0);
-            controller.gameStateMachine({}, stubGame, startState, { correct: true });
+            controller.gameStateMachine({}, {}, stubGame, startState, { correct: true });
             expect(stubGame.state).toBe(nextState);
 
             // check sum of scores is 1 more
@@ -141,7 +141,7 @@ describe('Movie Controller', () => {
             let startState = GameState.GUESS;
             let nextState = GameState.REVEAL;
             let scores = stubGame.teams.reduce((acc, cur) => acc + cur.score, 0);
-            controller.gameStateMachine({}, stubGame, startState, { correct: true });
+            controller.gameStateMachine({}, {}, stubGame, startState, { correct: true });
             expect(stubGame.state).toBe(nextState);
 
             // check sum of scores is 1 more
@@ -153,7 +153,7 @@ describe('Movie Controller', () => {
             let startState = GameState.GUESS;
             let nextState = GameState.REVEAL;
             let scores = stubGame.teams.reduce((acc, cur) => acc + cur.score, 0);
-            controller.gameStateMachine({}, stubGame, startState, { correct: false });
+            controller.gameStateMachine({}, {}, stubGame, startState, { correct: false });
             expect(stubGame.state).toBe(nextState);
 
             // check sum of scores is not changed
@@ -164,7 +164,7 @@ describe('Movie Controller', () => {
             // ENTRY
             let startState = GameState.REVEAL;
             let nextState = GameState.ENTRY;
-            controller.gameStateMachine({}, stubGame, startState, {});
+            controller.gameStateMachine({}, {}, stubGame, startState, {});
             expect(stubGame.state).toBe(nextState);
         });
 
@@ -172,7 +172,7 @@ describe('Movie Controller', () => {
             // END
             let startState = GameState.END;
             let nextState = GameState.SETUP;
-            controller.gameStateMachine({}, stubGame, startState, {});
+            controller.gameStateMachine({}, {}, stubGame, startState, {});
             expect(stubGame.state).toBe(nextState);
             // check no cached players
             expect(stubGame.cachedPlayers).toEqual([]);

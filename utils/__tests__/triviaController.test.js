@@ -6,7 +6,7 @@ import rawData from "../__data__/trivia.json";
 jest.mock('../emitter');
 
 let input = Buffer.from(JSON.stringify(rawData));
-let controller = new TriviaController(undefined, stubGame);
+let controller = new TriviaController(stubGame);
 
 describe("Trivia Controller Test", () => {
 
@@ -16,7 +16,7 @@ describe("Trivia Controller Test", () => {
 
     test('check start state state', () => {
         expect(controller.isGameStarted(stubGame)).toBe(false);
-        controller.gameStateMachine({}, stubGame, GameState.SETUP, {});
+        controller.gameStateMachine({}, {}, stubGame, GameState.SETUP, {});
         expect(stubGame.state).toBe(GameState.SETUP);
         expect(controller.ready).toBe(false);
     });
@@ -41,7 +41,7 @@ describe("Trivia Controller Test", () => {
             // Can't start an empty game
             let startState = GameState.SETUP;
             let nextState = GameState.SETUP;
-            controller.gameStateMachine({}, stubGame, startState, {});
+            controller.gameStateMachine({}, {}, stubGame, startState, {});
             expect(stubGame.state).toBe(nextState);
         })
 
@@ -52,7 +52,7 @@ describe("Trivia Controller Test", () => {
             let nextState = GameState.ENTRY;
             let questionCount = controller.questions.length;
             expect(stubGame.question).toBeNull();
-            controller.gameStateMachine({}, stubGame, startState, {});
+            controller.gameStateMachine({}, {}, stubGame, startState, {});
             expect(stubGame.state).toBe(nextState);
             expect(controller.questions.length).toBe(questionCount - 1);
             expect(stubGame.question).toBeDefined();
@@ -64,7 +64,7 @@ describe("Trivia Controller Test", () => {
             let startState = GameState.ENTRY;
             let nextState = GameState.HINT;
             const answer = stubGame.question.answer;
-            controller.gameStateMachine({}, stubGame, startState);
+            controller.gameStateMachine({}, {}, stubGame, startState);
             expect(stubGame.state).toBe(nextState);
             // Check answer
             expect(stubGame.question.answer).toBe(answer);
@@ -79,7 +79,7 @@ describe("Trivia Controller Test", () => {
             let team = stubGame.teams.find(team => team.id === bob.teamID);
             expect(team.players.find(player => player.id === bob.id).turn).toBe(false);
             expect(team.turn).toBe(false);
-            controller.gameStateMachine({}, stubGame, startState, { player: bob });
+            controller.gameStateMachine({}, {}, stubGame, startState, { player: bob });
             team = stubGame.teams.find(team => team.id === bob.teamID);
             expect(stubGame.state).toBe(nextState);
             expect(team.players.find(player => player.id === bob.id).turn).toBe(true);
@@ -91,7 +91,7 @@ describe("Trivia Controller Test", () => {
             loadQuestions();
             let startState = GameState.HINT;
             let nextState = GameState.REVEAL;
-            controller.gameStateMachine({}, stubGame, startState);
+            controller.gameStateMachine({}, {}, stubGame, startState);
             expect(stubGame.state).toBe(nextState);
         });
 
@@ -100,13 +100,13 @@ describe("Trivia Controller Test", () => {
             loadQuestions();
             let startState = GameState.HINT;
             let nextState = GameState.GUESS;
-            controller.gameStateMachine({}, stubGame, startState, { player: bob });
+            controller.gameStateMachine({}, {}, stubGame, startState, { player: bob });
             let team = stubGame.teams.find(team => team.id === bob.teamID);
             let score = team.score;
             let delta = stubGame.question.points;
             startState = GameState.GUESS;
             nextState = GameState.STEAL;
-            controller.gameStateMachine({}, stubGame, startState, { correct: false });
+            controller.gameStateMachine({}, {}, stubGame, startState, { correct: false });
             team = stubGame.teams.find(team => team.id === bob.teamID);
             expect(stubGame.state).toBe(nextState);
             expect(team.score).toBe(score - delta);
@@ -118,13 +118,13 @@ describe("Trivia Controller Test", () => {
             loadQuestions();
             let startState = GameState.HINT;
             let nextState = GameState.GUESS;
-            controller.gameStateMachine({}, stubGame, startState, { player: bob });
+            controller.gameStateMachine({}, {}, stubGame, startState, { player: bob });
             let team = stubGame.teams.find(team => team.id === bob.teamID);
             let score = team.score;
             let delta = stubGame.question.points;
             startState = GameState.GUESS;
             nextState = GameState.REVEAL;
-            controller.gameStateMachine({}, stubGame, startState, { correct: true });
+            controller.gameStateMachine({}, {}, stubGame, startState, { correct: true });
             team = stubGame.teams.find(team => team.id === bob.teamID);
             expect(stubGame.state).toBe(nextState);
             expect(team.score).toBe(score + delta);
@@ -136,10 +136,10 @@ describe("Trivia Controller Test", () => {
             loadQuestions();
             let startState = GameState.HINT;
             let nextState = GameState.GUESS;
-            controller.gameStateMachine({}, stubGame, startState, { player: bob });
+            controller.gameStateMachine({}, {}, stubGame, startState, { player: bob });
             startState = GameState.GUESS;
             nextState = GameState.STEAL;
-            controller.gameStateMachine({}, stubGame, startState, { correct: false });
+            controller.gameStateMachine({}, {}, stubGame, startState, { correct: false });
 
             startState = GameState.STEAL;
             nextState = GameState.REVEAL;
@@ -147,7 +147,7 @@ describe("Trivia Controller Test", () => {
             expect(team.players.reduce((acc, player) => acc || player.turn, false)).toBe(false);
             let score = team.score;
             let delta = stubGame.question.points;
-            controller.gameStateMachine({}, stubGame, startState, { correct: true });
+            controller.gameStateMachine({}, {}, stubGame, startState, { correct: true });
             team = stubGame.teams.find(team => team.id === sam.teamID);
             expect(stubGame.state).toBe(nextState);
             expect(team.score).toBe(score + delta);
@@ -159,7 +159,7 @@ describe("Trivia Controller Test", () => {
             let startState = GameState.REVEAL;
             let nextState = GameState.ENTRY;
             let question = stubGame.question;
-            controller.gameStateMachine({}, stubGame, startState);
+            controller.gameStateMachine({}, {}, stubGame, startState);
             expect(stubGame.teams.reduce((acc, team) => acc || team.turn, false)).toBe(false);
             expect(stubGame.state).toBe(nextState);
             expect(stubGame.question).not.toBe(question);
@@ -168,7 +168,7 @@ describe("Trivia Controller Test", () => {
         test('should end the game', () => {
             let startState = GameState.END;
             let nextState = GameState.SETUP;
-            controller.gameStateMachine({}, stubGame, startState);
+            controller.gameStateMachine({}, {}, stubGame, startState);
             expect(stubGame.teams.reduce((acc, team) => acc || team.turn, false)).toBe(false);
             expect(stubGame.state).toBe(nextState);
             let scores = stubGame.teams.reduce((acc, cur) => acc + cur.score, 0);
@@ -181,7 +181,7 @@ describe("Trivia Controller Test", () => {
             controller.category = [];
             let startState = GameState.REVEAL;
             let nextState = GameState.SETUP;
-            controller.gameStateMachine({}, stubGame, startState);
+            controller.gameStateMachine({}, {}, stubGame, startState);
             expect(stubGame.teams.reduce((acc, team) => acc || team.turn, false)).toBe(false);
             expect(stubGame.state).toBe(nextState);
             let scores = stubGame.teams.reduce((acc, cur) => acc + cur.score, 0);

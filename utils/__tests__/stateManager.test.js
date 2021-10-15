@@ -24,7 +24,7 @@ describe("Base State Manager Test", () => {
     });
 
     test('controller factory', () => {
-        const controller = gameControllerFactory(undefined, stubGame);
+        const controller = gameControllerFactory(stubGame);
         expect(controller.id).toEqual(stubGame.id);
         expect(controller).toBeInstanceOf(MovieController);
     })

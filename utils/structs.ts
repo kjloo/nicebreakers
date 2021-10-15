@@ -5,13 +5,15 @@ export class Player {
     public id: string;
     public type: PlayerType;
     public name: string;
+    public score: number;
     public turn: boolean;
     public teamID: number;
 
-    constructor(id: string, type: PlayerType, name: string, turn: boolean, teamID: number) {
+    constructor(id: string, type: PlayerType, name: string, score: number = 0, turn: boolean = false, teamID: number = -1) {
         this.id = id;
         this.type = type;
         this.name = name;
+        this.score = score;
         this.turn = turn;
         this.teamID = teamID;
     }

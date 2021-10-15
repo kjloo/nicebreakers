@@ -7,6 +7,10 @@ export function getByID(list: Array<any>, id: any) {
     return list.find((item) => item.id === id);
 }
 
+export function getByIndex(map: Map<any, any>, index: number) {
+    return map.get((Array.from(map.keys())[index]));
+}
+
 export function findByFilter(list: Array<any>, filter) {
     if (!list || !(list instanceof Array)) {
         return undefined;

@@ -22,13 +22,13 @@ export function garbageCollection(games: Map<string, Game>): void {
 }
 
 // Factory
-export function gameControllerFactory(io: Server, game: Game): GameController {
+export function gameControllerFactory(game: Game): GameController {
     if (game.type == GameType.MOVIE) {
-        return new MovieController(io, game);
+        return new MovieController(game);
     } else if (game.type == GameType.TRIVIA) {
-        return new TriviaController(io, game);
+        return new TriviaController(game);
     } else if (game.type === GameType.TOPFIVE) {
-        return new TopFiveController(io, game);
+        return new TopFiveController(game);
     }
     return null;
 }

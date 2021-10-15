@@ -4,15 +4,15 @@ import { GameState } from './enums';
 import { GameController } from './gameController';
 import { Card, Game, Player, Question, Team } from './structs';
 import { updateState, revealAnswer, updateTeams, setWinner, setReady, sendError, updatePlayers } from './emitter';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 export class TriviaController extends GameController {
 
     questions: Array<Card>
     category: Array<Question>
 
-    public constructor(s: Server, game: Game) {
-        super(s, game);
+    public constructor(game: Game) {
+        super(game);
         this.questions = []
         this.category = []
         this.ready = false;
@@ -159,33 +159,33 @@ export class TriviaController extends GameController {
      * @param state The current game state
      * @param args Additional arguments
      */
-    public override gameStateMachine(s: Server, game: Game, state: GameState, args: any = {}): void {
+    public override gameStateMachine(io: Server, socket: Socket, game: Game, state: GameState, args: any = {}): void {
         switch (state) {
             case GameState.SETUP:
-                this.entryState(s, game);
+                this.entryState(io, game);
                 break;
             case GameState.ENTRY:
-                updateState(s, game, GameState.HINT);
+                updateState(io, game, GameState.HINT);
                 break;
             case GameState.HINT:
                 const player: Player = args.player;
                 // Skip if teamID is -1
                 if (player === undefined) {
-                    updateState(s, game, GameState.REVEAL);
+                    updateState(io, game, GameState.REVEAL);
                 } else {
-                    this.buzzIn(s, game, player);
-                    updateState(s, game, GameState.GUESS);
+                    this.buzzIn(io, game, player);
+                    updateState(io, game, GameState.GUESS);
                 }
                 break;
             case GameState.STEAL:
             case GameState.GUESS:
-                this.handleAnswer(s, game, state, args.correct)
+                this.handleAnswer(io, game, state, args.correct)
                 break;
             case GameState.REVEAL:
-                this.entryState(s, game);
+                this.entryState(io, game);
                 break;
             case GameState.END:
-                this.endGame(s, game);
+                this.endGame(io, game);
                 break;
         }
     }

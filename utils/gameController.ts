@@ -2,13 +2,13 @@ import { GameState, PlayerType } from './enums';
 import logger from './logger';
 import { Game, Player, Team } from './structs';
 import { setReady, setWinner, updatePlayers, updateState, updateTeams } from './emitter';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 export class GameController {
     public id: string;
     public ready: boolean;
 
-    public constructor(s: Server, game: Game) {
+    public constructor(game: Game) {
         this.id = game.id;
         this.ready = false;
     }
@@ -35,12 +35,12 @@ export class GameController {
         updatePlayers(s, game);
     }
 
-    public gameStateMachine(s: Server, game: Game, state: GameState, args): void { }
+    public gameStateMachine(io: Server, socket: Socket, game: Game, state: GameState, args): void { }
 
-    public loadData(s: Server, gameID: string, data: Buffer): boolean { return true; }
+    public loadData(io: Server, gameID: string, data: Buffer): boolean { return true; }
 
     public createPlayer(id: string, name: string): Player {
-        return new Player(id, PlayerType.PLAYER, name, false, -1);
+        return new Player(id, PlayerType.PLAYER, name);
     }
 
     protected setReady(s: Server, gameID: string, ready: boolean): boolean {
@@ -66,16 +66,16 @@ export class GameController {
 
     /**
      * Resets the game state and ends game.
-     * @param s SocketIO connected to client
+     * @param io SocketIO connected to client
      * @param game current game context
      */
-    protected endGame(s: Server, game: Game): void {
+    protected endGame(io: Server, game: Game): void {
         // Reset game
-        updateState(s, game, GameState.SETUP);
+        updateState(io, game, GameState.SETUP);
         // Set winner
-        setWinner(s, game);
+        setWinner(io, game);
         // Reset to beginning
-        this.resetGameState(s, game);
+        this.resetGameState(io, game);
     }
 
     private incrementTeamIndex(game: Game) {

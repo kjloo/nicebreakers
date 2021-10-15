@@ -2,16 +2,28 @@ import logger from './logger';
 
 import { GameState } from './enums';
 import { GameController } from './gameController';
-import { Card, Game, Player, Question, Team } from './structs';
+import { Game, Player, Team, Question } from './structs';
 import { updateState, revealAnswer, updateTeams, setWinner, setReady, sendError, updatePlayers } from './emitter';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
+import { getByIndex } from './filters';
+
+const MAXIMUM: number = 5;
 
 export class TopFiveController extends GameController {
 
-    public constructor(s: Server, game: Game) {
-        super(s, game);
+    categories: Map<string, string>;
+    categoriesQueue: Array<string>;
+    lists: Map<string, Array<string>>;
+    turnIndex: number;
+
+    public constructor(game: Game) {
+        super(game);
         // ready flag set by default
         this.ready = true;
+        this.categories = new Map<string, string>();
+        this.categoriesQueue = [];
+        this.lists = new Map<string, Array<string>>();
+        this.turnIndex = 0;
     }
 
     private sendState(s: Server, game: Game) {
@@ -72,32 +84,51 @@ export class TopFiveController extends GameController {
     }
 
     /**
-     * Set game context based on which team buzzes in. 
+     * Set submitted category from player
      * @param s SocketIO connected to client
      * @param game current game context
-     * @param player player object that is current
+     * @param content data to store
      */
-    private buzzIn(s: Server, game: Game, player: Player): void {
-        // Prevent race condition. Make sure only 1 team is set
-        if (game.teams.some((team: Team) => team.turn)) {
+    private handleCategories(io: Server, socket: Socket, game: Game, content: string): void {
+        this.categories.set(socket.id, content);
+        if (this.categories.size === game.players.size) {
+            this.categoriesQueue = Array.from(this.categories.values());
+            updateState(io, game, GameState.HINT, { player: this.setPlayerTurn(io, game) });
+        }
+    }
+
+    private setPlayerTurn(io: Server, game: Game): Player {
+        if (this.turnIndex > game.players.size) {
+            this.turnIndex = 0;
+        }
+        const player: Player = getByIndex(game.players, this.turnIndex);
+        player.turn = true;
+        if (this.categoriesQueue.length === 0) {
+            // Should never happen
+            return player;
+        }
+        const random: number = Math.random() * this.categoriesQueue.length;
+        const category: string = this.categoriesQueue.splice(random, 1)[0];
+        game.question = { category: category };
+        updatePlayers(io, game);
+        revealAnswer(io, game);
+        return player;
+    }
+
+    /**
+     * Set submitted lists from player
+     * @param s SocketIO connected to client
+     * @param game current game context
+     * @param list list answers to store
+     */
+    private handleLists(io: Server, socket: Socket, game: Game, list: Array<string>): void {
+        if (list.length !== MAXIMUM) {
             return;
         }
-        // Set team turn
-        game.teams = game.teams.map((team: Team) => {
-            if (team.id !== player.teamID) {
-                return team;
-            }
-            game.teamIndex = game.teams.indexOf(team);
-            // Set player turn
-            team.players = team.players.map((p: Player) => {
-                if (p.id !== player.id) {
-                    return p;
-                }
-                return { ...p, turn: true };
-            });
-            return { ...team, turn: true };
-        });
-        this.sendState(s, game)
+        this.lists.set(socket.id, list);
+        if (this.lists.size === (game.players.size - 1)) {
+            updateState(io, game, GameState.GUESS, { lists: Array.from(this.lists.entries()) });
+        }
     }
 
     /**
@@ -107,9 +138,29 @@ export class TopFiveController extends GameController {
      * @param state The current game state
      * @param args Additional arguments
      */
-    public override gameStateMachine(s: Server, game: Game, state: GameState, args: any = {}): void {
+    public override gameStateMachine(io: Server, socket: Socket, game: Game, state: GameState, args: any = {}): void {
         switch (state) {
             case GameState.SETUP:
+                updateState(io, game, GameState.ENTRY);
+                break;
+            case GameState.ENTRY:
+                const content: string = args.category;
+                if (content === null) {
+                    logger.error("topFiveController::Invalid data received");
+                    break;
+                }
+                this.handleCategories(io, socket, game, content);
+                break;
+            case GameState.HINT:
+                const list: Array<string> = args.list;
+                if (list === null || list.length !== MAXIMUM) {
+                    logger.error("TopFiveController::Invalid list data");
+                    break;
+                }
+                this.handleLists(io, socket, game, list);
+                break;
+            case GameState.END:
+                this.endGame(io, game);
                 break;
         }
     }

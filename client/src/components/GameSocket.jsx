@@ -27,6 +27,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
     const [teams, setTeams] = useState([]);
     const [chat, setChat] = useState([]);
     const [state, setState] = useState(GameState.SETUP);
+    const [args, setArgs] = useState({});
     const [question, setQuestion] = useState(undefined);
     const [winner, setWinner] = useState(undefined);
 
@@ -123,7 +124,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 gameID: gameID
             }
         }).then((response) => {
-            setReady(response.data.ready);
+            setReadyFlag(response.data.ready);
         });
     }
 
@@ -270,8 +271,9 @@ const GameSocket = ({ children, title, roles, gameType }) => {
             // Set winner to display
             setWinner(w);
         });
-        socket.on('set state', (s) => {
-            setState(s);
+        socket.on('set state', ({ state, args }) => {
+            setState(state);
+            setArgs(args);
         });
         return function handleCleanUp() {
             socket.disconnect();
@@ -341,7 +343,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 {isEmpty(player) ?
                     <UserForm onSubmit={submitPlayer} /> :
                     isStarted() ?
-                        cloneElement(children, { player: player, teams: teams, onNext: nextState, state: state, question: question }) :
+                        cloneElement(children, { player: player, teams: teams, onNext: nextState, state: state, question: question, args: args }) :
                         <>
                             {getWinner()}
                             <GameSetup socket={socket} readyFlag={readyFlag} players={players} teams={teams} onStart={nextState} />

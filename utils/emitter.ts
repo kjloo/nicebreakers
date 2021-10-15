@@ -40,10 +40,10 @@ export function revealAnswer(io: Server, game: Game) {
     io.in(game.id).emit('reveal answer', game.question);
 }
 
-export function updateState(io: Server, game: Game, state: GameState) {
+export function updateState(io: Server, game: Game, state: GameState, args: {} = {}) {
     game.state = state;
     console.log("Game " + game.id + " State: " + game.state);
-    io.in(game.id).emit('set state', state);
+    io.in(game.id).emit('set state', { state: state, args: args });
 }
 
 export function setReady(io: Server, gameID: string, ready: boolean): boolean {
@@ -57,13 +57,18 @@ export function sendError(s: Socket, message: string) {
 
 export function setWinner(io: Server, game: Game) {
     // Get winner
-    let winner = game.teams.reduce((pre, next) => {
-        return pre.score > next.score ? pre : next;
-    });
-    // There might have been more than one team with the same score
-    const tie = game.teams.filter((team) => team.score === winner.score);
-    if (tie.length > 1) {
-        winner = undefined;
+    let winner = null;
+    if (game.teams.length === 0) {
+        winner = null;
+    } else {
+        winner = game.teams.reduce((pre, next) => {
+            return pre.score > next.score ? pre : next;
+        });
+        // There might have been more than one team with the same score
+        const tie = game.teams.filter((team) => team.score === winner.score);
+        if (tie.length > 1) {
+            winner = null;
+        }
     }
     io.in(game.id).emit('set winner', winner);
 }

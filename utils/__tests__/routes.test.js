@@ -103,7 +103,7 @@ describe("rest api routes", () => {
             });
         // change state
         stateManager.globalGames.set(stubGame.id, stubGame);
-        stubGame.controller = stateManager.gameControllerFactory({}, stubGame);
+        stubGame.controller = stateManager.gameControllerFactory(stubGame);
         await supertest(app).get('/ready/')
             .query({ gameID: gameID })
             .expect(200)

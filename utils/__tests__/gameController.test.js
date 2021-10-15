@@ -4,7 +4,7 @@ import { GameState } from '../enums';
 
 jest.mock('../emitter');
 
-let controller = new GameController(undefined, stubGame);
+let controller = new GameController(stubGame);
 
 describe("Base State Manager Test", () => {
 

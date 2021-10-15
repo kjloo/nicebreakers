@@ -1,11 +1,12 @@
 import { GameState, GameType } from './enums';
-import { globalGames } from './stateManager';
+import { gameControllerFactory, globalGames } from './stateManager';
 import { processAcronym } from './acronym';
 import { generateGameCode } from './codes';
 import { getPlayers, getTeams } from './filters';
 import { Game, Player, Team } from './structs';
 import * as express from 'express';
 import { Request, Response } from 'express';
+import { GameController } from './gameController';
 const path = require('path');
 const router = express.Router();
 
@@ -159,6 +160,9 @@ export function registerGame(gameID: string, gameType: GameType): boolean {
         return false;
     }
     const game: Game = new Game(gameID, gameType, 0, [], new Map(), [], GameState.SETUP, "");
+    // Create controller for game
+    const controller: GameController = gameControllerFactory(game);
+    game.controller = controller;
     globalGames.set(gameID, game);
     return true;
 }

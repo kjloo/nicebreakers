@@ -54,10 +54,8 @@ export function createSocket(server) {
         console.log(socket.id + ": Connected to Game: " + gameID);
         const game: Game = globalGames.get(gameID.toString());
         if (game !== undefined) {
-            // Create controller for game
-            const controller: GameController = gameControllerFactory(io, game);
             // Register controller
-            game.controller = controller;
+            const controller: GameController = game.controller;
             socket.on('add player', ({ name, id }) => {
                 console.log(gameID + " Add Player: " + name + "[" + id + "]");
                 socket.join(gameID);
@@ -108,7 +106,7 @@ export function createSocket(server) {
                 updatePlayers(io, game);
             });
             socket.on('next state', ({ state, args }) => {
-                controller.gameStateMachine(io, game, state, args);
+                controller.gameStateMachine(io, socket, game, state, args);
             });
             socket.on('join team', (teamID: number) => {
                 let player: Player = getPlayer(game, socket.id);

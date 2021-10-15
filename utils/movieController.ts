@@ -3,12 +3,12 @@ import { GameState } from './enums';
 import { GameController } from './gameController';
 import { Game } from './structs';
 import { revealAnswer, setReady, updatePlayers, updateState, updateTeams } from './emitter';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 export class MovieController extends GameController {
 
-    public constructor(s: Server, game: Game) {
-        super(s, game);
+    public constructor(game: Game) {
+        super(game);
         // ready flag set by default
         this.ready = true;
 
@@ -93,29 +93,29 @@ export class MovieController extends GameController {
         }
     }
 
-    public override gameStateMachine(s: Server, game: Game, state: GameState, args): void {
+    public override gameStateMachine(io: Server, socket: Socket, game: Game, state: GameState, args): void {
         switch (state) {
             case GameState.SETUP:
                 // Set first turn
-                this.incrementGameState(s, game);
-                updateState(s, game, GameState.ENTRY);
+                this.incrementGameState(io, game);
+                updateState(io, game, GameState.ENTRY);
                 break;
             case GameState.ENTRY:
                 game.question = { answer: args.answer };
-                updateState(s, game, GameState.HINT);
+                updateState(io, game, GameState.HINT);
                 break;
             case GameState.HINT:
-                updateState(s, game, GameState.STEAL);
+                updateState(io, game, GameState.STEAL);
                 break;
             case GameState.STEAL:
             case GameState.GUESS:
-                this.updateScore(s, game, state, args.correct);
+                this.updateScore(io, game, state, args.correct);
                 break;
             case GameState.REVEAL:
-                updateState(s, game, GameState.ENTRY);
+                updateState(io, game, GameState.ENTRY);
                 break;
             case GameState.END:
-                this.endGame(s, game);
+                this.endGame(io, game);
                 break;
         }
     }
