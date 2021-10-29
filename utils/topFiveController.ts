@@ -127,7 +127,12 @@ export class TopFiveController extends GameController {
         }
         this.lists.set(socket.id, list);
         if (this.lists.size === (game.players.size - 1)) {
-            updateState(io, game, GameState.GUESS, { lists: Array.from(this.lists.entries()) });
+            // Because of javascript handles Map, this list of lists is a tuple where the first index is the key
+            updateState(io, game, GameState.GUESS, {
+                lists: Array.from(this.lists.entries(), (item: [string, string[]]) => {
+                    return { checked: false, data: item[1] }
+                })
+            });
         }
     }
 

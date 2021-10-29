@@ -290,6 +290,10 @@ ul.navbar li {
   max-width: 55ch;
 }
 
+.radio-group {
+  display: flex;
+}
+
 .role-button {
   display: flex;
 }
@@ -319,6 +323,22 @@ ul.navbar li {
 
 .teams-footer .team-container {
   margin: 0.5em;
+}
+
+.topfive-selection {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.topfive-option {
+  border-width: 1px;
+  border-radius: 0.5rem;
+  border-style: solid;
+  margin: 0.5em;
+  padding: 0.5em 1.5em 0.5em 1.5em;
+  background-color: #80d067;
 }
 
 .upload-button {

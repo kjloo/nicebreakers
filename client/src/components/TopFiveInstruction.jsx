@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Button from './Button';
 import { GameState } from '../../../utils/enums';
 import FocusInput from './FocusInput';
+import RadioGroup from './RadioGroup';
+import TopFiveList from './TopFiveList';
 
 const MAXIMUM = 5;
 
@@ -10,6 +12,7 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     const [lists, setLists] = useState([]);
     const [currentPlayer, setCurrentPlayer] = useState('');
     const [category, setCategory] = useState('');
+    const [selection, setSelection] = useState(null);
     const [ready, setReady] = useState(false);
 
     // submit team
@@ -19,12 +22,23 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
         setCategory('');
         setReady(true);
     }
-
     const submitList = (evt) => {
         evt.preventDefault();
         onNext({ list: list });
         setList(Array(MAXIMUM).fill(''));
         setReady(true);
+    }
+    const changeSelection = (evt) => {
+        //evt.preventDefault();
+        const selected = parseInt(evt.target.value);
+        setSelection(selected);
+        const newLists = lists.map((list, index) => {
+            return { ...list, checked: (index === selected) };
+        });
+        setLists(newLists);
+    }
+    const submitSelection = (evt) => {
+        onNext({ selection: selection });
     }
     const endGame = () => {
         if (confirm("Are you sure you want to end the game?")) {
@@ -40,6 +54,14 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
             return item;
         });
     }
+
+    const listIcon = (asContent = true) => {
+        return lists.map(list => {
+            const content = <TopFiveList list={list.data} />;
+            return asContent ? content : { checked: list.checked, content: content };
+        });
+    }
+
 
     // for understanding
     const render = () => {
@@ -73,17 +95,18 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
                             </form>
                         </>;
             case GameState.GUESS:
-                return <>
+                return <div>
                     {player.turn &&
-                        <h3>Choose a list</h3>}
-                    <ul>
-                        {lists.map(list => {
-                            return <li><ol>{list[1].map(item => {
-                                return <li>{item}</li>
-                            })}</ol></li>;
-                        })}
-                    </ul>
-                </>
+                        <h3>What is your Top Five {question.category}</h3>}
+                    <form className="topfive-selection">
+                        {player.turn ?
+                            <RadioGroup onChange={changeSelection} name="select" items={listIcon(false)} /> :
+                            listIcon()
+                        }
+                    </form>
+                    {player.turn &&
+                        <Button text='Submit' color="midnightblue" onClick={submitSelection} disabled={!lists.some(list => list.checked)} />}
+                </div>
 
             case GameState.SETUP:
                 return <h3>Still In Setup</h3>;
@@ -97,8 +120,7 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
             setCurrentPlayer(args.player.name);
             setReady(false)
         } else if (args.lists) {
-            // Because of javascript handles Map, this list of lists is a tuple where the first index is the key
-            setLists(args.lists)
+            setLists(args.lists);
         }
     }, [args])
 
