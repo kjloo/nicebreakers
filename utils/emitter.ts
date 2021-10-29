@@ -12,12 +12,12 @@ export function updatePlayer(s: Socket, player: Player) {
 }
 
 export function updatePlayers(io: Server, game: Game) {
-    const players = filters.getPlayers(game);
+    const players: Array<Player> = filters.getPlayers(game);
     io.in(game.id).emit('update players', players);
 }
 
 export function updateTeams(io: Server, game: Game) {
-    const teams = filters.getTeams(game);
+    const teams: Array<Team> = filters.getTeams(game);
     io.in(game.id).emit('update teams', teams);
 }
 
@@ -59,7 +59,13 @@ export function setWinner(io: Server, game: Game) {
     // Get winner
     let winner = null;
     if (game.teams.length === 0) {
-        winner = null;
+        const players: Array<Player> = Array.from(game.players.values());
+        winner = players.reduce((prev: Player, cur: Player) => cur.score > prev.score ? cur : prev);
+        // There might have been more than one team with the same score
+        const tie = players.filter((player) => player.score === winner.score);
+        if (tie.length > 1) {
+            winner = null;
+        }
     } else {
         winner = game.teams.reduce((pre, next) => {
             return pre.score > next.score ? pre : next;

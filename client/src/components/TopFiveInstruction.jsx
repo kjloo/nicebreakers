@@ -13,31 +13,31 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     const [currentPlayer, setCurrentPlayer] = useState('');
     const [category, setCategory] = useState('');
     const [selection, setSelection] = useState(null);
-    const [ready, setReady] = useState(false);
 
     // submit team
     const submitCategory = (evt) => {
         evt.preventDefault();
         onNext({ category: category });
         setCategory('');
-        setReady(true);
     }
     const submitList = (evt) => {
         evt.preventDefault();
         onNext({ list: list });
         setList(Array(MAXIMUM).fill(''));
-        setReady(true);
     }
     const changeSelection = (evt) => {
         //evt.preventDefault();
         const selected = parseInt(evt.target.value);
         setSelection(selected);
-        const newLists = lists.map((list, index) => {
-            return { ...list, checked: (index === selected) };
+        console.log(selected);
+        console.log(lists);
+        const newLists = lists.map((list) => {
+            return { ...list, checked: (list.index === selected) };
         });
         setLists(newLists);
     }
     const submitSelection = (evt) => {
+        evt.preventDefault();
         onNext({ selection: selection });
     }
     const endGame = () => {
@@ -55,10 +55,14 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
         });
     }
 
+    const isPlayerReady = () => {
+        return player.idle;
+    }
+
     const listIcon = (asContent = true) => {
         return lists.map(list => {
             const content = <TopFiveList list={list.data} />;
-            return asContent ? content : { checked: list.checked, content: content };
+            return asContent ? content : { checked: list.checked, index: list.index, content: content };
         });
     }
 
@@ -67,19 +71,19 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     const render = () => {
         switch (state) {
             case GameState.ENTRY:
-                return ready ?
+                return isPlayerReady() ?
                     <h3>Please wait for other players</h3> :
                     <>
                         <h3>Submit A Top Five Category</h3>
                         <form className='option-form' onSubmit={submitCategory}>
                             <FocusInput type='text' onChange={(e) => setCategory(e.target.value)} placeholder="" value={category} required="required" />
-                            <input type='submit' value='Submit' disabled={ready} />
+                            <input type='submit' value='Submit' disabled={isPlayerReady()} />
                         </form>
                     </>;
             case GameState.HINT:
                 return player.turn ?
                     <h3>Please wait</h3> :
-                    ready ?
+                    isPlayerReady() ?
                         <h3>Please wait for other players</h3> :
                         <>
                             <h3>What is {currentPlayer}'s Top Five {question.category}?</h3>
@@ -97,7 +101,7 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
             case GameState.GUESS:
                 return <div>
                     {player.turn &&
-                        <h3>What is your Top Five {question.category}</h3>}
+                        <h3>What is your Top Five {question.category}?</h3>}
                     <form className="topfive-selection">
                         {player.turn ?
                             <RadioGroup onChange={changeSelection} name="select" items={listIcon(false)} /> :
@@ -118,11 +122,10 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     useEffect(() => {
         if (args.player) {
             setCurrentPlayer(args.player.name);
-            setReady(false)
         } else if (args.lists) {
             setLists(args.lists);
         }
-    }, [args])
+    }, [args]);
 
     return (
         <div className="instruction">

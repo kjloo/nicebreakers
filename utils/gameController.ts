@@ -22,6 +22,7 @@ export class GameController {
         logger.info('Resetting game state');
         // Delete cached players
         game.cachedPlayers = [];
+        // Reset scores
         game.teams = game.teams.map((team: Team) => {
             return {
                 ...team, score: 0, turn: false, players: team.players.map((player: Player) => {
@@ -30,6 +31,7 @@ export class GameController {
             };
         });
         game.teamIndex = 0;
+        game.players.forEach((player: Player) => player.score = 0);
 
         updateTeams(s, game);
         updatePlayers(s, game);

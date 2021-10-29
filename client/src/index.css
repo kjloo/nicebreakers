@@ -274,6 +274,14 @@ ul.navbar li {
   border-style: none;
 }
 
+.players-footer {
+  display: flex;
+  bottom: var(--footer-height);
+  align-items: flex-end;
+  justify-content: space-evenly;
+  margin: 0.5em;
+}
+
 .players-list {
   list-style: none;
   display: flex;

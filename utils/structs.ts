@@ -8,14 +8,16 @@ export class Player {
     public score: number;
     public turn: boolean;
     public teamID: number;
+    public idle: boolean
 
-    constructor(id: string, type: PlayerType, name: string, score: number = 0, turn: boolean = false, teamID: number = -1) {
+    constructor(id: string, type: PlayerType, name: string, score: number = 0, turn: boolean = false, teamID: number = -1, idle: boolean = false) {
         this.id = id;
         this.type = type;
         this.name = name;
         this.score = score;
         this.turn = turn;
         this.teamID = teamID;
+        this.idle = idle;
     }
 }
 

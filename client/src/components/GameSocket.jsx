@@ -187,6 +187,22 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         uploadData(fileUpload);
     }
 
+    const displayTeams = () => {
+        return hasTeams() && <Teams player={player} teams={teams} chat={chat} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />;
+    }
+
+    const displayPlayerScore = () => {
+        if (hasTeams()) {
+            return;
+        }
+        const playerList = players.map(player => {
+            return <h4>{player.name} : {player.score}</h4>;
+        });
+        return <div className='players-footer'>
+            {playerList}
+        </div>;
+    }
+
     const uploadDataButton = () => {
         if (!hasGameMaster()) {
             return;
@@ -322,7 +338,11 @@ const GameSocket = ({ children, title, roles, gameType }) => {
             setChat(c);
         });
         socket.on('update teams', (t) => {
-            setTeams(t);
+            if (!hasTeams()) {
+                setTeams(null);
+            } else {
+                setTeams(t);
+            }
         })
         return () => {
             socket.off('add team');
@@ -343,7 +363,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 {isEmpty(player) ?
                     <UserForm onSubmit={submitPlayer} /> :
                     isStarted() ?
-                        cloneElement(children, { player: player, teams: teams, onNext: nextState, state: state, question: question, args: args }) :
+                        cloneElement(children, { player: player, players: players, teams: teams, onNext: nextState, state: state, question: question, args: args }) :
                         <>
                             {getWinner()}
                             <GameSetup socket={socket} readyFlag={readyFlag} players={players} teams={teams} onStart={nextState} />
@@ -351,8 +371,10 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 }
             </GameContainer>
 
+
             <div>
-                {hasTeams() && <Teams player={player} teams={teams} chat={chat} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />}
+                {displayTeams()}
+                {displayPlayerScore()}
             </div>
         </>
     )
