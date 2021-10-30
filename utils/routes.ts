@@ -3,7 +3,7 @@ import { gameControllerFactory, globalGames } from './stateManager';
 import { processAcronym } from './acronym';
 import { generateGameCode } from './codes';
 import { getPlayers, getTeams } from './filters';
-import { Game, Player, Team } from './structs';
+import { Game, Player, Question, Team } from './structs';
 import * as express from 'express';
 import { Request, Response } from 'express';
 import { GameController } from './gameController';
@@ -77,6 +77,18 @@ router.get('/ready', function (req, res) {
     const ready: boolean = (game !== undefined) ? game.controller.ready : false;
     let data = {
         ready: ready
+    };
+
+    res.json(data);
+});
+
+router.get('/question', function (req, res) {
+    const gameID: string = req.query.gameID.toString();
+    // retrieve game and return its teams
+    const game: Game = globalGames.get(gameID);
+    const question: Question = (game !== undefined) ? game.question : undefined;
+    let data = {
+        question: question
     };
 
     res.json(data);

@@ -128,6 +128,20 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         });
     }
 
+    // get question
+    const getQuestion = () => {
+        // Request state
+        axios({
+            method: 'get',
+            url: '/question',
+            params: {
+                gameID: gameID
+            }
+        }).then((response) => {
+            setReadyQuestion(response.data.question);
+        });
+    }
+
     // delete team
     const deleteTeam = (id) => {
         socket.emit('delete team', { id: id });

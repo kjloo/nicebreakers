@@ -29,8 +29,6 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
         //evt.preventDefault();
         const selected = parseInt(evt.target.value);
         setSelection(selected);
-        console.log(selected);
-        console.log(lists);
         const newLists = lists.map((list) => {
             return { ...list, checked: (list.index === selected) };
         });
