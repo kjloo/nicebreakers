@@ -138,7 +138,21 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 gameID: gameID
             }
         }).then((response) => {
-            setReadyQuestion(response.data.question);
+            setQuestion(response.data.question);
+        });
+    }
+
+    // get args
+    const getArgs = () => {
+        // Request state
+        axios({
+            method: 'get',
+            url: '/args',
+            params: {
+                gameID: gameID
+            }
+        }).then((response) => {
+            setArgs(response.data.args);
         });
     }
 
@@ -286,6 +300,8 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         getPlayers();
         getState();
         getReady();
+        getQuestion();
+        getArgs();
         getTeams();
 
         socket.on('exception', (message) => {

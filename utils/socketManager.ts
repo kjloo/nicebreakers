@@ -12,6 +12,7 @@ function updatePlayerClient(io: Server, socket: Socket, game: Game, player: Play
         console.error("Undefined player");
         return;
     }
+    const oldSocketID = player.id;
     player.id = socket.id;
 
     if (player.teamID !== -1) {
@@ -39,6 +40,9 @@ function updatePlayerClient(io: Server, socket: Socket, game: Game, player: Play
         updateChat(io, team);
     } else {
         game.players.set(socket.id, player);
+        if (oldSocketID !== socket.id) {
+            game.players.delete(oldSocketID);
+        }
     }
 
     // Update client
@@ -80,7 +84,7 @@ export function createSocket(server) {
                     }
                 }
                 // Create player if not found
-                if (player === undefined) {
+                if (player === undefined && !controller.isGameStarted(game)) {
                     // Check if player name exists
                     let players: Array<Player> = getPlayers(game);
                     if (findByFilter(players, (player: Player) => (name === player.name))) {
@@ -91,7 +95,11 @@ export function createSocket(server) {
                         player = controller.createPlayer(socket.id, name);
                     }
                 }
-                updatePlayerClient(io, socket, game, player);
+                if (player !== undefined) {
+                    updatePlayerClient(io, socket, game, player);
+                } else {
+                    sendError(socket, "Cannot currently join game!");
+                }
             });
             socket.on('change role', ({ type }) => {
                 // Update player in game

@@ -53,8 +53,19 @@ export class Game {
     public state: GameState;
     public question: Question;
     public controller: GameController;
+    public args: any;
 
-    constructor(id: string, type = GameType.MOVIE, teamIndex = 0, teams = [], players = new Map(), cachedPlayers = [], state = GameState.SETUP, question = null) {
+    constructor(
+        id: string,
+        type = GameType.MOVIE,
+        teamIndex: number = 0,
+        teams: Array<Team> = [],
+        players: Map<string, Player> = new Map(),
+        cachedPlayers: Array<Player> = [],
+        state: GameState = GameState.SETUP,
+        question: Question = null,
+        args: any = {}
+    ) {
         this.id = id;
         this.type = type;
         this.teamIndex = teamIndex;
@@ -63,6 +74,7 @@ export class Game {
         this.cachedPlayers = cachedPlayers;
         this.state = state;
         this.question = question;
+        this.args = args;
     }
 }
 

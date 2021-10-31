@@ -5,7 +5,7 @@ import { GameController } from './gameController';
 import { Game, Player } from './structs';
 import { updateState, revealAnswer, updatePlayer, updatePlayers, sendError } from './emitter';
 import { Server, Socket } from 'socket.io';
-import { getByIndex } from './filters';
+import { getByFilter, getByIndex } from './filters';
 
 const MAXIMUM: number = 5;
 
@@ -16,6 +16,7 @@ export class TopFiveController extends GameController {
     categoriesQueue: Array<string>;
     lists: Map<string, Array<string>>;
     turnIndex: number;
+    playersQueue: Array<string>;
 
     public constructor(game: Game) {
         super(game);
@@ -26,11 +27,22 @@ export class TopFiveController extends GameController {
         this.categoriesQueue = [];
         this.lists = new Map<string, Array<string>>();
         this.turnIndex = game.players.size;
+        this.playersQueue = [];
     }
 
     private sendState(io: Server, game: Game) {
         // Update sockets
         updatePlayers(io, game);
+    }
+
+    /**
+     * Return the player associated with the socket
+     * @param socket SocketIO connected to the client
+     * @param game The current game context
+     * @returns The player associated with the socket
+     */
+    private getGamePlayer(socket: Socket, game: Game) {
+        return game.players.get(socket.id)
     }
 
     /**
@@ -63,17 +75,14 @@ export class TopFiveController extends GameController {
      * @param selection the player selected
      * @returns array of teams
      */
-    private updateScore(game: Game, selection: number): void {
+    private updateScore(game: Game, selection: string): void {
         // update score
-        if (selection >= game.players.size) {
-            return;
-        }
-        const player: Player = getByIndex(game.players, selection);
-        if (player === undefined) {
-            logger.error("TopFiveController::updateScore player is undefined");
-        }
-        player.score++;
-        return;
+        console.log("Update score for " + selection);
+        game.players.forEach((player: Player) => {
+            if (player.name === selection) {
+                player.score++;
+            }
+        });
     }
 
     /**
@@ -83,7 +92,7 @@ export class TopFiveController extends GameController {
      * @param game current game context
      * @param selection selection given
      */
-    private handleAnswer(io: Server, socket: Socket, game: Game, selection: number): void {
+    private handleAnswer(io: Server, socket: Socket, game: Game, selection: string): void {
         // update score
         this.updateScore(game, selection);
         // switch turns
@@ -91,7 +100,7 @@ export class TopFiveController extends GameController {
     }
 
     private markPlayerReady(io: Server, socket: Socket, game: Game, ready: boolean): void {
-        const player = game.players.get(socket.id)
+        const player = this.getGamePlayer(socket, game);
         player.idle = ready;
         updatePlayer(socket, player);
     }
@@ -108,10 +117,12 @@ export class TopFiveController extends GameController {
             sendError(socket, content + " has already been used.");
             return;
         }
+        const player = this.getGamePlayer(socket, game);
         this.categoriesHistory.add(content);
-        this.categories.set(socket.id, content);
+        this.categories.set(player.name, content);
         this.markPlayerReady(io, socket, game, true);
         if (this.categories.size === game.players.size) {
+            this.playersQueue = Array.from(game.players.values()).map((player: Player) => player.name);
             this.categoriesQueue = Array.from(this.categories.values());
             this.nextTurn(io, socket, game);
         }
@@ -123,27 +134,20 @@ export class TopFiveController extends GameController {
      * @param game current game context
      */
     private setPlayerTurn(io: Server, game: Game): Player {
-        // Set previous player's turn to false
-        const prevPlayer: Player = getByIndex(game.players, this.turnIndex);
-        prevPlayer.turn = false;
-
-        // Increment the player's turn index
-        this.turnIndex++;
-        if (this.turnIndex >= game.players.size) {
-            this.turnIndex = 0;
-        }
-
-        // Start next player's turn
-        const player: Player = getByIndex(game.players, this.turnIndex);
-        player.turn = true;
-        if (this.categoriesQueue.length === 0) {
+        if (this.categoriesQueue.length === 0 || this.playersQueue.length === 0) {
             // Should never happen
-            return player;
+            return null;
         }
+
+        const randomPlayer: number = Math.random() * this.playersQueue.length;
+        const playerName: string = this.playersQueue.splice(randomPlayer, 1)[0];
+        // Start next player's turn
+        game.players.forEach((player: Player) => player.turn = player.name === playerName);
+        const player: Player = getByFilter(game.players, (player: Player) => player.turn);
 
         // Select a random category
-        const random: number = Math.random() * this.categoriesQueue.length;
-        const category: string = this.categoriesQueue.splice(random, 1)[0];
+        const randomCategory: number = Math.random() * this.categoriesQueue.length;
+        const category: string = this.categoriesQueue.splice(randomCategory, 1)[0];
         game.question = { category: category };
         this.sendState(io, game);
         revealAnswer(io, game);
@@ -158,25 +162,22 @@ export class TopFiveController extends GameController {
      */
     private handleLists(io: Server, socket: Socket, game: Game, list: Array<string>): void {
         interface indexedList {
-            index: number;
+            key: string;
             data: string[];
             checked: boolean;
         }
         if (list.length !== MAXIMUM) {
             return;
         }
-        this.lists.set(socket.id, list);
+        const player = this.getGamePlayer(socket, game);
+        this.lists.set(player.name, list);
         this.markPlayerReady(io, socket, game, true);
         if (this.lists.size === (game.players.size - 1)) {
             const indexedLists: Array<indexedList> = [];
             this.lists.forEach((list: string[], playerKey: string) => {
-                const index = Array.from(game.players.keys()).indexOf(playerKey);
-                const indexedList: indexedList = { index: index, data: list, checked: false };
+                const indexedList: indexedList = { key: playerKey, data: list, checked: false };
                 indexedLists.push(indexedList);
             });
-            // const lists = Array.from(this.lists.entries(), (item: [string, string[]]) => {
-            //     return { checked: false, data: item[1] }
-            // });
             // Because of javascript handles Map, this list of lists is a tuple where the first index is the key
             updateState(io, game, GameState.GUESS, {
                 lists: indexedLists
@@ -213,7 +214,7 @@ export class TopFiveController extends GameController {
                 this.handleLists(io, socket, game, list);
                 break;
             case GameState.GUESS:
-                const selection: number = parseInt(args.selection);
+                const selection: string = args.selection;
                 if (selection === null) {
                     logger.error("TopFiveController::Invalid selection");
                     break;

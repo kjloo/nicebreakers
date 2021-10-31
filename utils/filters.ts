@@ -11,6 +11,10 @@ export function getByIndex(map: Map<any, any>, index: number) {
     return map.get((Array.from(map.keys())[index]));
 }
 
+export function getByFilter(map: Map<any, any>, filter) {
+    return map.get(Array.from(map.entries()).find(value => filter(value[1]))[0]);
+}
+
 export function findByFilter(list: Array<any>, filter) {
     if (!list || !(list instanceof Array)) {
         return undefined;

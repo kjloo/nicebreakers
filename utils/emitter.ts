@@ -42,6 +42,7 @@ export function revealAnswer(io: Server, game: Game) {
 
 export function updateState(io: Server, game: Game, state: GameState, args: {} = {}) {
     game.state = state;
+    game.args = args;
     console.log("Game " + game.id + " State: " + game.state);
     io.in(game.id).emit('set state', { state: state, args: args });
 }

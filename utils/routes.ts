@@ -94,6 +94,18 @@ router.get('/question', function (req, res) {
     res.json(data);
 });
 
+router.get('/args', function (req, res) {
+    const gameID: string = req.query.gameID.toString();
+    // retrieve game and return its teams
+    const game: Game = globalGames.get(gameID);
+    const args: any = (game !== undefined) ? game.args : {};
+    let data = {
+        args: args
+    };
+
+    res.json(data);
+});
+
 router.get('/teams', function (req, res) {
     const gameID: string = req.query.gameID.toString();
     // retrieve game and return its teams
@@ -171,7 +183,7 @@ export function registerGame(gameID: string, gameType: GameType): boolean {
         console.log("Game " + gameID + " exists");
         return false;
     }
-    const game: Game = new Game(gameID, gameType, 0, [], new Map(), [], GameState.SETUP, "");
+    const game: Game = new Game(gameID, gameType);
     // Create controller for game
     const controller: GameController = gameControllerFactory(game);
     game.controller = controller;

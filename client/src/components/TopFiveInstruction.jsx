@@ -14,6 +14,14 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     const [category, setCategory] = useState('');
     const [selection, setSelection] = useState(null);
 
+    const handleArgs = (extraArgs) => {
+        if (extraArgs.player) {
+            setCurrentPlayer(extraArgs.player.name);
+        } else if (extraArgs.lists) {
+            setLists(extraArgs.lists);
+        }
+    }
+
     // submit team
     const submitCategory = (evt) => {
         evt.preventDefault();
@@ -27,10 +35,10 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     }
     const changeSelection = (evt) => {
         //evt.preventDefault();
-        const selected = parseInt(evt.target.value);
+        const selected = evt.target.value;
         setSelection(selected);
         const newLists = lists.map((list) => {
-            return { ...list, checked: (list.index === selected) };
+            return { ...list, checked: (list.key === selected) };
         });
         setLists(newLists);
     }
@@ -60,7 +68,7 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     const listIcon = (asContent = true) => {
         return lists.map(list => {
             const content = <TopFiveList list={list.data} />;
-            return asContent ? content : { checked: list.checked, index: list.index, content: content };
+            return asContent ? content : { checked: list.checked, key: list.key, content: content };
         });
     }
 
@@ -80,7 +88,10 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
                     </>;
             case GameState.HINT:
                 return player.turn ?
-                    <h3>Please wait</h3> :
+                    <>
+                        <h3>What is your Top Five {question.category}?</h3>
+                        <h4>Waiting for responses from other players</h4>
+                    </> :
                     isPlayerReady() ?
                         <h3>Please wait for other players</h3> :
                         <>
@@ -118,11 +129,7 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     }
 
     useEffect(() => {
-        if (args.player) {
-            setCurrentPlayer(args.player.name);
-        } else if (args.lists) {
-            setLists(args.lists);
-        }
+        handleArgs(args);
     }, [args]);
 
     return (
