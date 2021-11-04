@@ -1,22 +1,24 @@
 import logger from './logger';
 
-import { GameState } from './enums';
+import { GameRound, GameState } from './enums';
 import { GameController } from './gameController';
 import { Game, Player } from './structs';
-import { updateState, revealAnswer, updatePlayer, updatePlayers, sendError } from './emitter';
+import { updateState, revealAnswer, updatePlayers, sendError } from './emitter';
 import { Server, Socket } from 'socket.io';
-import { getByFilter, getByIndex } from './filters';
+import { getByFilter } from './filters';
 
 const MAXIMUM: number = 5;
+const GAME_ROUNDS: Array<GameRound> = [GameRound.RANDOM, GameRound.SELF, GameRound.PLAYER];
 
 export class TopFiveController extends GameController {
 
     categoriesHistory: Set<string>;
     categories: Map<string, string>;
     categoriesQueue: Array<string>;
+    categoriesRemap: Map<string, string>;
     lists: Map<string, Array<string>>;
-    turnIndex: number;
     playersQueue: Array<string>;
+    gameRound: GameRound;
 
     public constructor(game: Game) {
         super(game);
@@ -25,9 +27,10 @@ export class TopFiveController extends GameController {
         this.categoriesHistory = new Set<string>();
         this.categories = new Map<string, string>();
         this.categoriesQueue = [];
+        this.categoriesRemap = new Map<string, string>();
         this.lists = new Map<string, Array<string>>();
-        this.turnIndex = game.players.size;
         this.playersQueue = [];
+        this.gameRound = GameRound.SELF;
     }
 
     private sendState(io: Server, game: Game) {
@@ -43,6 +46,33 @@ export class TopFiveController extends GameController {
      */
     private getGamePlayer(socket: Socket, game: Game) {
         return game.players.get(socket.id)
+    }
+
+    /**
+     * Updates the type of round being played in the game. Cannot exceed max of enum.
+     */
+    private updateRound(game: Game) {
+        this.gameRound++;
+        if (this.gameRound >= GAME_ROUNDS.length) {
+            this.gameRound = GAME_ROUNDS[0];
+        }
+        if (this.gameRound === GameRound.PLAYER) {
+            // create reassign map
+            const playersList = this.initializePlayersQueue(game);
+            // need in case need to do a last minute swap
+            const backupList = [...playersList];
+            game.players.forEach((player: Player) => {
+                let mappedPlayer: string = this.getRandomPlayer(playersList, player.name);
+                // it is possible that a player was given their own name. If that is the case swap it.
+                if (mappedPlayer === player.name) {
+                    let swapPlayer: string = this.getRandomPlayer(backupList.filter((name: string) => name !== player.name));
+                    mappedPlayer = this.categoriesRemap.get(swapPlayer);
+                    this.categoriesRemap.set(swapPlayer, player.name);
+                }
+                this.categoriesRemap.set(player.name, mappedPlayer);
+            });
+            console.log(this.categoriesRemap);
+        }
     }
 
     /**
@@ -62,7 +92,9 @@ export class TopFiveController extends GameController {
         if (this.categoriesQueue.length === 0) {
             // Current round is over. Start a new round.
             this.categories.clear();
-            updateState(io, game, GameState.ENTRY);
+            this.categoriesRemap.clear();
+            this.updateRound(game);
+            updateState(io, game, GameState.ENTRY, { round: this.gameRound });
         } else {
             updateState(io, game, GameState.HINT, { player: this.setPlayerTurn(io, game) });
         }
@@ -102,7 +134,7 @@ export class TopFiveController extends GameController {
     private markPlayerReady(io: Server, socket: Socket, game: Game, ready: boolean): void {
         const player = this.getGamePlayer(socket, game);
         player.idle = ready;
-        updatePlayer(socket, player);
+        updatePlayers(io, game);
     }
 
     /**
@@ -119,13 +151,36 @@ export class TopFiveController extends GameController {
         }
         const player = this.getGamePlayer(socket, game);
         this.categoriesHistory.add(content);
-        this.categories.set(player.name, content);
+
+        if (this.gameRound === GameRound.PLAYER) {
+            // assign to another player
+            this.categories.set(this.categoriesRemap.get(player.name), content);
+        } else {
+            this.categories.set(player.name, content);
+        }
         this.markPlayerReady(io, socket, game, true);
         if (this.categories.size === game.players.size) {
-            this.playersQueue = Array.from(game.players.values()).map((player: Player) => player.name);
+            this.playersQueue = this.initializePlayersQueue(game);
             this.categoriesQueue = Array.from(this.categories.values());
             this.nextTurn(io, socket, game);
         }
+    }
+
+    private initializePlayersQueue(game: Game): Array<string> {
+        return Array.from(game.players.values()).map((player: Player) => player.name);
+    }
+
+    private getRandomPlayer(playerList: Array<string>, playerName?: string): string {
+        let randomPlayer: number = 0;
+        let done: boolean = false;
+        while (!done) {
+            randomPlayer = Math.floor(Math.random() * playerList.length);
+            if (playerName === undefined || playerList.length === 1) {
+                break;
+            }
+            done = playerList[randomPlayer] !== playerName;
+        }
+        return playerList.splice(randomPlayer, 1)[0];
     }
 
     /**
@@ -139,15 +194,30 @@ export class TopFiveController extends GameController {
             return null;
         }
 
-        const randomPlayer: number = Math.random() * this.playersQueue.length;
-        const playerName: string = this.playersQueue.splice(randomPlayer, 1)[0];
+        const playerName: string = this.getRandomPlayer(this.playersQueue);
         // Start next player's turn
-        game.players.forEach((player: Player) => player.turn = player.name === playerName);
+        game.players.forEach((player: Player) => {
+            const isTurn = player.name === playerName
+            player.turn = isTurn;
+            player.idle = isTurn;
+        });
         const player: Player = getByFilter(game.players, (player: Player) => player.turn);
 
-        // Select a random category
-        const randomCategory: number = Math.random() * this.categoriesQueue.length;
-        const category: string = this.categoriesQueue.splice(randomCategory, 1)[0];
+        // Select a category based on round
+        let category: string = "";
+        if (this.gameRound === GameRound.RANDOM) {
+            console.log("Random Round");
+            const randomCategory: number = Math.random() * this.categoriesQueue.length;
+            category = this.categoriesQueue.splice(randomCategory, 1)[0];
+        } else if (this.gameRound === GameRound.SELF) {
+            console.log("Self Round");
+            category = this.categories.get(playerName);
+            this.categoriesQueue = this.categoriesQueue.filter((cat: string) => cat !== category);
+        } else {
+            console.log("Player Round");
+            category = this.categories.get(playerName);
+            this.categoriesQueue = this.categoriesQueue.filter((cat: string) => cat !== category);
+        }
         game.question = { category: category };
         this.sendState(io, game);
         revealAnswer(io, game);

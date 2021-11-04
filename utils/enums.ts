@@ -14,6 +14,12 @@ export enum GameType {
     TOPFIVE
 };
 
+export enum GameRound {
+    RANDOM,
+    SELF,
+    PLAYER
+}
+
 export enum PlayerType {
     ADMIN,
     MASTER,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from './Button';
-import { GameState } from '../../../utils/enums';
+import { GameRound, GameState } from '../../../utils/enums';
 import FocusInput from './FocusInput';
 import RadioGroup from './RadioGroup';
 import TopFiveList from './TopFiveList';
@@ -13,12 +13,17 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     const [currentPlayer, setCurrentPlayer] = useState('');
     const [category, setCategory] = useState('');
     const [selection, setSelection] = useState(null);
+    const [round, setRound] = useState(GameRound.RANDOM);
 
     const handleArgs = (extraArgs) => {
-        if (extraArgs.player) {
+        if (extraArgs.player !== undefined) {
             setCurrentPlayer(extraArgs.player.name);
-        } else if (extraArgs.lists) {
+        }
+        if (extraArgs.lists !== undefined) {
             setLists(extraArgs.lists);
+        }
+        if (extraArgs.round !== undefined) {
+            setRound(extraArgs.round);
         }
     }
 
@@ -81,6 +86,9 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
                     <h3>Please wait for other players</h3> :
                     <>
                         <h3>Submit A Top Five Category</h3>
+                        {(round === GameRound.RANDOM) ? <h4>This will be given to a random player</h4> :
+                            (round === GameRound.SELF) ? <h4>This will be given to you</h4> :
+                                <h4>This will be given to ____</h4>}
                         <form className='option-form' onSubmit={submitCategory}>
                             <FocusInput type='text' onChange={(e) => setCategory(e.target.value)} placeholder="" value={category} required="required" />
                             <input type='submit' value='Submit' disabled={isPlayerReady()} />

@@ -294,6 +294,11 @@ ul.navbar li {
   margin: 0;
 }
 
+.player-ready {
+  font-weight: bold;
+  color: blue;
+}
+
 .question {
   max-width: 55ch;
 }

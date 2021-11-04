@@ -223,8 +223,8 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         if (hasTeams()) {
             return;
         }
-        const playerList = players.map(player => {
-            return <h4>{player.name} : {player.score}</h4>;
+        const playerList = players.map(p => {
+            return <div className={p.idle && "player-ready"}>{p.name} : {p.score}</div>;
         });
         return <div className='players-footer'>
             {playerList}
