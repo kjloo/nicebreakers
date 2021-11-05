@@ -94,7 +94,11 @@ export class TopFiveController extends GameController {
             this.categories.clear();
             this.categoriesRemap.clear();
             this.updateRound(game);
-            updateState(io, game, GameState.ENTRY, { round: this.gameRound });
+            const remapObject = {}
+            this.categoriesRemap.forEach((value: string, key: string) => {
+                remapObject[key] = value;
+            });
+            updateState(io, game, GameState.ENTRY, { round: this.gameRound, remap: remapObject });
         } else {
             updateState(io, game, GameState.HINT, { player: this.setPlayerTurn(io, game) });
         }

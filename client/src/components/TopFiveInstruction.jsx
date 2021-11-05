@@ -25,6 +25,11 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
         if (extraArgs.round !== undefined) {
             setRound(extraArgs.round);
         }
+        if (extraArgs.remap !== undefined) {
+            if (player.name in extraArgs.remap) {
+                setCurrentPlayer(extraArgs.remap[player.name]);
+            }
+        }
     }
 
     // submit team
@@ -88,7 +93,7 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
                         <h3>Submit A Top Five Category</h3>
                         {(round === GameRound.RANDOM) ? <h4>This will be given to a random player</h4> :
                             (round === GameRound.SELF) ? <h4>This will be given to you</h4> :
-                                <h4>This will be given to ____</h4>}
+                                <h4>This will be given to {currentPlayer}</h4>}
                         <form className='option-form' onSubmit={submitCategory}>
                             <FocusInput type='text' onChange={(e) => setCategory(e.target.value)} placeholder="" value={category} required="required" />
                             <input type='submit' value='Submit' disabled={isPlayerReady()} />
