@@ -105,7 +105,7 @@ describe("socket emitter tests", () => {
     test('update state', (done) => {
         const steal = GameState.STEAL;
         clientSocket.on('set state', (state) => {
-            expect(state).toBe(steal);
+            expect(state.state).toBe(steal);
             done();
         });
         updateState(io, stubGame, steal);

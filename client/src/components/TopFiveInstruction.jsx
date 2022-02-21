@@ -12,7 +12,7 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     const [lists, setLists] = useState([]);
     const [currentPlayer, setCurrentPlayer] = useState('');
     const [category, setCategory] = useState('');
-    const [selection, setSelection] = useState(null);
+    const [selection, setSelection] = useState({ name: '', data: [] });
     const [round, setRound] = useState(GameRound.RANDOM);
 
     const handleArgs = (extraArgs) => {
@@ -30,6 +30,9 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
                 setCurrentPlayer(extraArgs.remap[player.name]);
             }
         }
+        if (extraArgs.selection !== undefined) {
+            setSelection(extraArgs.selection);
+        }
     }
 
     // submit team
@@ -45,12 +48,14 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     }
     const changeSelection = (evt) => {
         //evt.preventDefault();
-        const selected = evt.target.value;
-        setSelection(selected);
+        const choice = evt.target.value;
         const newLists = lists.map((list) => {
-            return { ...list, checked: (list.key === selected) };
+            return { ...list, checked: (list.key === choice) };
         });
         setLists(newLists);
+        const list = newLists.find((list) => list.checked === true);
+        const selected = { name: list.key, data: list.data };
+        setSelection(selected);
     }
     const submitSelection = (evt) => {
         evt.preventDefault();
@@ -78,10 +83,9 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
     const listIcon = (asContent = true) => {
         return lists.map(list => {
             const content = <TopFiveList list={list.data} />;
-            return asContent ? content : { checked: list.checked, key: list.key, content: content };
+            return asContent ? content : { checked: list.checked, key: list.key, data: list.data, content: content };
         });
     }
-
 
     // for understanding
     const render = () => {
@@ -133,7 +137,15 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
                     {player.turn &&
                         <Button text='Submit' color="midnightblue" onClick={submitSelection} disabled={!lists.some(list => list.checked)} />}
                 </div>
-
+            case GameState.REVEAL:
+                return <div>
+                    <h3>What is {currentPlayer}'s Top Five {question.category}?</h3>
+                    <h3>{currentPlayer} selected {selection.name}</h3>
+                    <div>
+                        <TopFiveList list={selection.data} />
+                    </div>
+                    <Button text="Next" color="blue" onClick={onNext} />
+                </div>
             case GameState.SETUP:
                 return <h3>Still In Setup</h3>;
             default:

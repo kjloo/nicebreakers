@@ -2,7 +2,7 @@ import logger from './logger';
 
 import { GameRound, GameState } from './enums';
 import { GameController } from './gameController';
-import { Game, Player } from './structs';
+import { Game, Player, Selection } from './structs';
 import { updateState, revealAnswer, updatePlayers, sendError } from './emitter';
 import { Server, Socket } from 'socket.io';
 import { getByFilter } from './filters';
@@ -106,19 +106,21 @@ export class TopFiveController extends GameController {
     }
 
     /**
-     * Create a new list of teams with updated score. This is done in place as Maps are mutable.
+     * Update scores of players with updated score. This is done in place as Maps are mutable.
+     * @param io Server connection
      * @param game current game context
      * @param selection the player selected
      * @returns array of teams
      */
-    private updateScore(game: Game, selection: string): void {
+    private updateScore(io: Server, game: Game, selection: Selection): void {
         // update score
-        console.log("Update score for " + selection);
+        console.log("Update score for " + selection.name);
         game.players.forEach((player: Player) => {
-            if (player.name === selection) {
+            if (player.name === selection.name) {
                 player.score++;
             }
         });
+        this.sendState(io, game);
     }
 
     /**
@@ -128,11 +130,11 @@ export class TopFiveController extends GameController {
      * @param game current game context
      * @param selection selection given
      */
-    private handleAnswer(io: Server, socket: Socket, game: Game, selection: string): void {
+    private handleAnswer(io: Server, socket: Socket, game: Game, selection: Selection): void {
         // update score
-        this.updateScore(game, selection);
-        // switch turns
-        this.nextTurn(io, socket, game);
+        this.updateScore(io, game, selection);
+        // reveal selection
+        updateState(io, game, GameState.REVEAL, { selection: selection });
     }
 
     private markPlayerReady(io: Server, socket: Socket, game: Game, ready: boolean): void {
@@ -288,12 +290,15 @@ export class TopFiveController extends GameController {
                 this.handleLists(io, socket, game, list);
                 break;
             case GameState.GUESS:
-                const selection: string = args.selection;
+                const selection: Selection = args.selection;
                 if (selection === null) {
                     logger.error("TopFiveController::Invalid selection");
                     break;
                 }
                 this.handleAnswer(io, socket, game, selection);
+                break;
+            case GameState.REVEAL:
+                this.nextTurn(io, socket, game);
                 break;
             case GameState.END:
                 this.endGame(io, game);

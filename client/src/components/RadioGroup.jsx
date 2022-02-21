@@ -4,7 +4,7 @@ function RadioGroup({ onChange, items, name }) {
 
     const render = () => {
         return items.map((item, index) => {
-            return <><input type='radio' name={name} id={index} value={item.key} checked={item.checked} /><label for={index}>{item.content}</label></>
+            return <><input type='radio' name={name} id={index} value={item.key} data={item.data} checked={item.checked} /><label for={index}>{item.content}</label></>
         });
     }
 

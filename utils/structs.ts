@@ -99,3 +99,8 @@ export interface Card {
     category: string;
     questions: Array<Question>
 }
+
+export interface Selection {
+    name: string;
+    data: Array<string>;
+}
