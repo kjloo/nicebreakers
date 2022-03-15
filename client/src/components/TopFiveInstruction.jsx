@@ -144,7 +144,8 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
                     <div>
                         <TopFiveList list={selection.data} />
                     </div>
-                    <Button text="Next" color="blue" onClick={onNext} />
+                    {player.turn &&
+                        <Button text="Next" color="blue" onClick={onNext} />}
                 </div>
             case GameState.SETUP:
                 return <h3>Still In Setup</h3>;

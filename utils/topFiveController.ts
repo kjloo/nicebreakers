@@ -151,12 +151,12 @@ export class TopFiveController extends GameController {
      * @param content data to store
      */
     private handleCategories(io: Server, socket: Socket, game: Game, content: string): void {
-        if (this.categoriesHistory.has(content)) {
+        if (this.categoriesHistory.has(content.toUpperCase())) {
             sendError(socket, content + " has already been used.");
             return;
         }
         const player = this.getGamePlayer(socket, game);
-        this.categoriesHistory.add(content);
+        this.categoriesHistory.add(content.toUpperCase());
 
         if (this.gameRound === GameRound.PLAYER) {
             // assign to another player
@@ -256,7 +256,7 @@ export class TopFiveController extends GameController {
             });
             // Because of javascript handles Map, this list of lists is a tuple where the first index is the key
             updateState(io, game, GameState.GUESS, {
-                lists: indexedLists
+                lists: indexedLists.sort(() => Math.random() - 0.5)
             });
         }
     }
