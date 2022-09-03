@@ -33,19 +33,19 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
         if (extraArgs.selection !== undefined) {
             setSelection(extraArgs.selection);
         }
-    }
+    };
 
     // submit team
     const submitCategory = (evt) => {
         evt.preventDefault();
         onNext({ category: category });
         setCategory('');
-    }
+    };
     const submitList = (evt) => {
         evt.preventDefault();
         onNext({ list: list });
         setList(Array(MAXIMUM).fill(''));
-    }
+    };
     const changeSelection = (evt) => {
         //evt.preventDefault();
         const choice = evt.target.value;
@@ -56,16 +56,16 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
         const list = newLists.find((list) => list.checked === true);
         const selected = { name: list.key, data: list.data };
         setSelection(selected);
-    }
+    };
     const submitSelection = (evt) => {
         evt.preventDefault();
         onNext({ selection: selection });
-    }
+    };
     const endGame = () => {
         if (confirm("Are you sure you want to end the game?")) {
             onNext({ isEnd: true });
         }
-    }
+    };
 
     const updateList = (index, data) => {
         return list.map((item, i) => {
@@ -74,18 +74,18 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
             }
             return item;
         });
-    }
+    };
 
     const isPlayerReady = () => {
         return player.idle;
-    }
+    };
 
     const listIcon = (asContent = true) => {
         return lists.map(list => {
             const content = <TopFiveList list={list.data} />;
             return asContent ? content : { checked: list.checked, key: list.key, data: list.data, content: content };
         });
-    }
+    };
 
     // for understanding
     const render = () => {
@@ -128,7 +128,7 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
                 return <div>
                     {player.turn &&
                         <h3>What is your Top Five {question.category}?</h3>}
-                    <form className="topfive-selection">
+                    <form className="radio-selection">
                         {player.turn ?
                             <RadioGroup onChange={changeSelection} name="select" items={listIcon(false)} /> :
                             listIcon()
@@ -136,7 +136,7 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
                     </form>
                     {player.turn &&
                         <Button text='Submit' color="midnightblue" onClick={submitSelection} disabled={!lists.some(list => list.checked)} />}
-                </div>
+                </div>;
             case GameState.REVEAL:
                 return <div>
                     <h3>What is {currentPlayer}'s Top Five {question.category}?</h3>
@@ -146,13 +146,13 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
                     </div>
                     {player.turn &&
                         <Button text="Next" color="blue" onClick={onNext} />}
-                </div>
+                </div>;
             case GameState.SETUP:
                 return <h3>Still In Setup</h3>;
             default:
                 return <h3>No Instructions</h3>;
         }
-    }
+    };
 
     useEffect(() => {
         handleArgs(args);
@@ -163,7 +163,7 @@ const TopFiveInstruction = ({ player, onNext, question, state, args }) => {
             {render()}
             <Button text="End Game" color="firebrick" onClick={endGame} />
         </div>
-    )
-}
+    );
+};
 
-export default TopFiveInstruction
+export default TopFiveInstruction;

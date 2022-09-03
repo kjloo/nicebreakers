@@ -1,4 +1,4 @@
-import React, { cloneElement, useEffect, useState, useRef } from 'react'
+import React, { cloneElement, useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
@@ -12,13 +12,13 @@ import Button from './Button';
 
 let socket;
 const connectSocket = (gameID) => {
-    socket = io("http://chingloo.zapto.org:1111", {
+    socket = io("http://tinkermonkey808.ddns.net", {
         query: {
             gameID: gameID
         }
     });
     socket.connect();
-}
+};
 
 const GameSocket = ({ children, title, roles, gameType }) => {
     const [readyFlag, setReadyFlag] = useState(false);
@@ -28,7 +28,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
     const [chat, setChat] = useState([]);
     const [state, setState] = useState(GameState.SETUP);
     const [args, setArgs] = useState({});
-    const [question, setQuestion] = useState(undefined);
+    const [question, setQuestion] = useState({});
     const [winner, setWinner] = useState(undefined);
 
     const { gameID } = useParams();
@@ -48,8 +48,8 @@ const GameSocket = ({ children, title, roles, gameType }) => {
      * @returns Capability for game to use teams
      */
     const hasTeams = () => {
-        return [GameType.MOVIE, GameType.TRIVIA].includes(gameType)
-    }
+        return [GameType.MOVIE, GameType.TRIVIA].includes(gameType);
+    };
 
     const nextState = (args = undefined) => {
         if (args && args.type !== undefined) {
@@ -61,7 +61,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         } else {
             socket.emit('next state', { state: state, args: args });
         }
-    }
+    };
 
     // get player
     const getDefaultPlayer = () => {
@@ -78,11 +78,11 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 submitPlayer(player);
             }
         });
-    }
+    };
     // submit player
     const submitPlayer = (name, id = -1) => {
         socket.emit('add player', { name: name, id: id });
-    }
+    };
     // get players
     const getPlayers = () => {
         // Request current players
@@ -98,7 +98,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 getDefaultPlayer();
             }
         });
-    }
+    };
 
     // get state
     const getState = () => {
@@ -112,7 +112,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         }).then((response) => {
             setState(response.data.state);
         });
-    }
+    };
 
     // get ready
     const getReady = () => {
@@ -126,7 +126,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         }).then((response) => {
             setReadyFlag(response.data.ready);
         });
-    }
+    };
 
     // get question
     const getQuestion = () => {
@@ -140,7 +140,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         }).then((response) => {
             setQuestion(response.data.question);
         });
-    }
+    };
 
     // get args
     const getArgs = () => {
@@ -154,12 +154,12 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         }).then((response) => {
             setArgs(response.data.args);
         });
-    }
+    };
 
     // delete team
     const deleteTeam = (id) => {
         socket.emit('delete team', { id: id });
-    }
+    };
     // get teams
     const getTeams = () => {
         if (!hasTeams()) {
@@ -176,15 +176,15 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         }).then((response) => {
             setTeams(response.data.teams);
         });
-    }
+    };
 
     const isStarted = () => {
         return state !== GameState.SETUP;
-    }
+    };
 
     const hasGameMaster = () => {
         return roles.includes(PlayerType.MASTER);
-    }
+    };
 
     const playerRoleButton = () => {
         if (!hasGameMaster()) {
@@ -201,8 +201,8 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 text={text}
                 disabled={player.teamID !== -1}
                 onClick={() => socket.emit('change role', { type: newRole })} />
-        </div>
-    }
+        </div>;
+    };
 
     const handleChange = (evt) => {
         evt.defaultPrevented;
@@ -213,11 +213,11 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         const fileUpload = evt.target.files[0];
         evt.target.value = null;
         uploadData(fileUpload);
-    }
+    };
 
     const displayTeams = () => {
         return hasTeams() && <Teams player={player} teams={teams} chat={chat} onJoin={joinTeam} onSubmit={submitMessage} onDelete={deleteTeam} />;
-    }
+    };
 
     const displayPlayerScore = () => {
         if (hasTeams()) {
@@ -229,7 +229,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         return <div className='players-footer'>
             {playerList}
         </div>;
-    }
+    };
 
     const uploadDataButton = () => {
         if (!hasGameMaster()) {
@@ -245,8 +245,8 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 color="darkslategrey"
                 text="Upload Data"
                 onClick={() => inputFile.current.click()} />
-        </div>
-    }
+        </div>;
+    };
 
     // join team
     const joinTeam = (team) => {
@@ -272,27 +272,27 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         } else {
             return true;
         }
-    }
+    };
 
     const getWinner = () => {
         if (!winner) {
-            return
+            return;
         }
         if (hasTeams()) {
             return <h3 style={{ color: winner.color }}>Team {winner.name} Wins!</h3>;
         } else {
             return <h3>{winner.name} Wins!</h3>;
         }
-    }
+    };
 
     // chat message submit
     const submitMessage = (teamID, message) => {
         socket.emit('team chat', { teamID: teamID, message: message });
-    }
+    };
 
     const uploadData = (data) => {
-        socket.emit('upload data', data)
-    }
+        socket.emit('upload data', data);
+    };
 
     useEffect(() => {
         connectSocket(gameID);
@@ -309,10 +309,10 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         });
         socket.on('ready', (ready) => {
             setReadyFlag(ready);
-        })
+        });
         socket.on('reveal answer', (question) => {
             setQuestion(question);
-        })
+        });
         socket.on('set winner', (w) => {
             // Set winner to display
             setWinner(w);
@@ -323,7 +323,7 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         });
         return function handleCleanUp() {
             socket.disconnect();
-        }
+        };
     }, []);
 
     useEffect(() => {
@@ -351,8 +351,8 @@ const GameSocket = ({ children, title, roles, gameType }) => {
         return () => {
             socket.off('update player');
             socket.off('update players');
-            socket.off('connect')
-        }
+            socket.off('connect');
+        };
     }, [player, players]);
 
     useEffect(() => {
@@ -373,13 +373,13 @@ const GameSocket = ({ children, title, roles, gameType }) => {
             } else {
                 setTeams(t);
             }
-        })
+        });
         return () => {
             socket.off('add team');
             socket.off('delete team');
             socket.off('team chat');
             socket.off('update teams');
-        }
+        };
     }, [teams]);
 
     return (
@@ -407,13 +407,13 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 {displayPlayerScore()}
             </div>
         </>
-    )
-}
+    );
+};
 
 GameSocket.defaultProps = {
     title: 'No Title',
     roles: [PlayerType.PLAYER],
     gameType: GameType.MOVIE
-}
+};
 
 export default GameSocket;

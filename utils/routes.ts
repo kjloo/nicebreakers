@@ -29,24 +29,24 @@ router.get('/acronym', function (req: Request, res: Response) {
         // Process
         let data = {
             decode: processAcronym(gameID)
-        }
+        };
         res.json(data);
     }
-})
+});
 
 router.get('/player', function (req: Request, res: Response) {
     // Check if player name is cached
     let gameID: string = req.query.gameID.toString();
 
     if (playerCache[gameID] === undefined) {
-        res.json({})
+        res.json({});
     }
     // put player name in cookie
     const data = {
         player: playerCache[gameID]
-    }
-    res.json(data)
-})
+    };
+    res.json(data);
+});
 
 router.get('/players', function (req, res) {
     const gameID: string = req.query.gameID.toString();
@@ -56,7 +56,7 @@ router.get('/players', function (req, res) {
         players: players
     };
     res.json(data);
-})
+});
 
 router.get('/state', function (req, res) {
     const gameID: string = req.query.gameID.toString();
@@ -116,7 +116,7 @@ router.get('/teams', function (req, res) {
     };
 
     res.json(data);
-})
+});
 
 router.get('/game/:gameID', function (req, res) {
     // Handle direct route
@@ -136,6 +136,8 @@ router.get('/game/:gameID', function (req, res) {
         gamePath.push('/trivia');
     } else if (game.type === GameType.TOPFIVE) {
         gamePath.push('/topfive');
+    } else if (game.type === GameType.EQUALMATCH) {
+        gamePath.push('/equalmatch');
     }
     gamePath.push('game');
     gamePath.push(gameID);
@@ -150,11 +152,12 @@ router.get('/game/', function (req, res) {
     if (registerGame(gameID, gameType)) {
         // register player name in cache
         playerCache[gameID] = player;
+        console.log(playerCache);
     }
     res.redirect(`/game/${gameID}`);
 });
 
-router.get(["/movie/game/:gameID", "/trivia/game/:gameID", "/topfive/game/:gameID"], function (req, res, next) {
+router.get(["/movie/game/:gameID", "/trivia/game/:gameID", "/topfive/game/:gameID", "/equalmatch/game/:gameID"], function (req, res, next) {
     // Handle direct route
     const gameID: string = req.params.gameID.toString();
 
@@ -176,7 +179,7 @@ router.get(/^\/(.*)/, function (req, res) {
 // serve html
 const serveHtml = (res) => {
     res.sendFile(path.join(globalThis.__basedir, 'build', 'index.html'));
-}
+};
 
 export function registerGame(gameID: string, gameType: GameType): boolean {
     if (globalGames.get(gameID)) {
@@ -186,6 +189,7 @@ export function registerGame(gameID: string, gameType: GameType): boolean {
     const game: Game = new Game(gameID, gameType);
     // Create controller for game
     const controller: GameController = gameControllerFactory(game);
+    console.log("Created game " + controller.id);
     game.controller = controller;
     globalGames.set(gameID, game);
     return true;

@@ -10,6 +10,8 @@ const TriviaMenu = lazy(() => import('./components/TriviaMenu'));
 const TriviaGame = lazy(() => import('./components/TriviaGame'));
 const TopFiveMenu = lazy(() => import('./components/TopFiveMenu'));
 const TopFiveGame = lazy(() => import('./components/TopFiveGame'));
+const EqualMatchMenu = lazy(() => import('./components/EqualMatchMenu'));
+const EqualMatchGame = lazy(() => import('./components/EqualMatchGame'));
 const About = lazy(() => import('./components/About'));
 const Footer = lazy(() => import('./components/Footer'));
 
@@ -29,6 +31,8 @@ const App = () => {
                             <Route exact path="/trivia/game/:gameID" component={TriviaGame} />
                             <Route exact path="/topfive" component={TopFiveMenu} />
                             <Route exact path="/topfive/game/:gameID" component={TopFiveGame} />
+                            <Route exact path="/equalmatch" component={EqualMatchMenu} />
+                            <Route exact path="/equalmatch/game/:gameID" component={EqualMatchGame} />
                             <Route exact path="/about" component={About} />
                         </Switch>
                     </div>
@@ -36,7 +40,7 @@ const App = () => {
                 </Suspense>
             </Router>
         </div>
-    )
-}
+    );
+};
 
-export default App
+export default App;

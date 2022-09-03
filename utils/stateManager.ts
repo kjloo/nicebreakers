@@ -5,7 +5,7 @@ import { TriviaController } from './triviaController';
 import { TopFiveController } from './topFiveController';
 import { getPlayers } from './filters';
 import { Game } from './structs';
-import { Server } from 'socket.io';
+import { EqualMatchController } from './equalMatchController';
 
 // const assets
 export let globalGames: Map<string, Game> = new Map();
@@ -29,6 +29,8 @@ export function gameControllerFactory(game: Game): GameController {
         return new TriviaController(game);
     } else if (game.type === GameType.TOPFIVE) {
         return new TopFiveController(game);
+    } else if (game.type === GameType.EQUALMATCH) {
+        return new EqualMatchController(game);
     }
     return null;
 }

@@ -11,7 +11,8 @@ export enum GameState {
 export enum GameType {
     MOVIE,
     TRIVIA,
-    TOPFIVE
+    TOPFIVE,
+    EQUALMATCH
 };
 
 export enum GameRound {

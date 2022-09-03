@@ -2,6 +2,7 @@ import { GameState, PlayerType } from './enums';
 import logger from './logger';
 import { Game, Player, Team } from './structs';
 import { setReady, setWinner, updatePlayers, updateState, updateTeams } from './emitter';
+import { getByFilter } from './filters';
 import { Server, Socket } from 'socket.io';
 
 export class GameController {
@@ -26,7 +27,7 @@ export class GameController {
         game.teams = game.teams.map((team: Team) => {
             return {
                 ...team, score: 0, turn: false, players: team.players.map((player: Player) => {
-                    return { ...player, turn: false }
+                    return { ...player, turn: false };
                 }), playerIndex: 0
             };
         });
@@ -62,8 +63,16 @@ export class GameController {
         team.turn = true;
     }
 
-    protected getCurrentTeam(game: Game) {
+    protected getCurrentTeam(game: Game): Team {
         return game.teams[game.teamIndex];
+    }
+
+    protected getCurrentPlayer(game: Game): Player {
+        return getByFilter(game.players, (player: Player) => player.turn);
+    }
+
+    protected allPlayersReady(game: Game): boolean {
+        return Array.from(game.players.values()).every((player) => player.idle);
     }
 
     /**

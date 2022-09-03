@@ -2,7 +2,7 @@ import logger from './logger';
 import { GameState } from './enums';
 import { GameController } from './gameController';
 import { Game } from './structs';
-import { revealAnswer, setReady, updatePlayers, updateState, updateTeams } from './emitter';
+import { revealAnswer, updatePlayers, updateState, updateTeams } from './emitter';
 import { Server, Socket } from 'socket.io';
 
 export class MovieController extends GameController {
@@ -14,7 +14,7 @@ export class MovieController extends GameController {
 
     }
 
-    private getCurrentPlayer(game: Game) {
+    override getCurrentPlayer(game: Game) {
         const team = this.getCurrentTeam(game);
         if (team === undefined) {
             logger.error("Invalid team index " + game.teamIndex);
@@ -78,7 +78,7 @@ export class MovieController extends GameController {
             // update score
             game.teams = game.teams.map((team) => {
                 if (team.turn === point) {
-                    return { ...team, score: team.score + 1 }
+                    return { ...team, score: team.score + 1 };
                 } else {
                     return team;
                 }

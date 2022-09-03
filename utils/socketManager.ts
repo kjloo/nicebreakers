@@ -1,4 +1,4 @@
-import { gameControllerFactory, globalGames } from './stateManager';
+import { globalGames } from './stateManager';
 import { GameController } from './gameController';
 import logger from './logger';
 import { Player, Team, Game, ChatEntry } from './structs';
@@ -70,7 +70,7 @@ export function createSocket(server) {
                         // Can't find by id so search by name in cached players
                         for (let i: number = 0; i < game.cachedPlayers.length; i++) {
                             if (game.cachedPlayers[i] === undefined) {
-                                console.log("Error getting cached player")
+                                console.log("Error getting cached player");
                                 console.log(game);
                                 continue;
                             }
@@ -119,7 +119,7 @@ export function createSocket(server) {
             socket.on('join team', (teamID: number) => {
                 let player: Player = getPlayer(game, socket.id);
                 if (player === undefined) {
-                    console.log("Unregistered Player")
+                    console.log("Unregistered Player");
                     sendError(socket, 'Player is not registered');
                 } else {
                     // check if unassigned
@@ -136,7 +136,7 @@ export function createSocket(server) {
                     player.teamID = teamID;
                     let team: Team = getByID(game.teams, teamID);
                     if (team === undefined) {
-                        console.log("Team not found")
+                        console.log("Team not found");
                         sendError(socket, 'Team not found');
                     } else {
                         team.players.push(player);
@@ -194,7 +194,7 @@ export function createSocket(server) {
                     // Remove from teams
                     game.teams = game.teams.map((team) => {
                         return { ...team, players: team.players.filter((player) => player.id !== socket.id) };
-                    })
+                    });
                     updatePlayers(io, game);
                 } else {
                     if (player !== undefined) {

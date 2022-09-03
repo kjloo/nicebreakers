@@ -5,7 +5,6 @@ import { GameController } from './gameController';
 import { Game, Player, Selection } from './structs';
 import { updateState, revealAnswer, updatePlayers, sendError } from './emitter';
 import { Server, Socket } from 'socket.io';
-import { getByFilter } from './filters';
 
 const MAXIMUM: number = 5;
 const GAME_ROUNDS: Array<GameRound> = [GameRound.RANDOM, GameRound.SELF, GameRound.PLAYER];
@@ -45,7 +44,7 @@ export class TopFiveController extends GameController {
      * @returns The player associated with the socket
      */
     private getGamePlayer(socket: Socket, game: Game) {
-        return game.players.get(socket.id)
+        return game.players.get(socket.id);
     }
 
     /**
@@ -94,7 +93,7 @@ export class TopFiveController extends GameController {
             this.categories.clear();
             this.categoriesRemap.clear();
             this.updateRound(game);
-            const remapObject = {}
+            const remapObject = {};
             this.categoriesRemap.forEach((value: string, key: string) => {
                 remapObject[key] = value;
             });
@@ -203,11 +202,11 @@ export class TopFiveController extends GameController {
         const playerName: string = this.getRandomPlayer(this.playersQueue);
         // Start next player's turn
         game.players.forEach((player: Player) => {
-            const isTurn = player.name === playerName
+            const isTurn = player.name === playerName;
             player.turn = isTurn;
             player.idle = isTurn;
         });
-        const player: Player = getByFilter(game.players, (player: Player) => player.turn);
+        const player: Player = this.getCurrentPlayer(game);
 
         // Select a category based on round
         let category: string = "";
@@ -263,7 +262,7 @@ export class TopFiveController extends GameController {
 
     /**
      * Responsible for handling transition to next game state
-     * @param s SocketIO server object connected to client
+     * @param socket SocketIO server object connected to client
      * @param game Game context object
      * @param state The current game state
      * @param args Additional arguments
@@ -276,7 +275,7 @@ export class TopFiveController extends GameController {
             case GameState.ENTRY:
                 const content: string = args.category;
                 if (content === null) {
-                    logger.error("topFiveController::Invalid data received");
+                    logger.error("TopFiveController::Invalid data received");
                     break;
                 }
                 this.handleCategories(io, socket, game, content);
