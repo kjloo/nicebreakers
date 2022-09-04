@@ -21,6 +21,7 @@ button {
   border: none;
   font-weight: bold;
   color: white;
+  width: fit-content;
 }
 
 button:active {
@@ -215,7 +216,6 @@ ul.navbar li {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  max-width: 80%;
 }
 
 .game-icon {
@@ -235,6 +235,7 @@ ul.navbar li {
   margin-left: auto;
   margin-right: auto;
   text-align: center;
+  max-width: 80%;
 }
 
 .game-container * {
@@ -249,6 +250,7 @@ ul.navbar li {
 .game-controls {
   display: flex;
   justify-content: center;
+  align-items: center;
   flex: 1;
 }
 
@@ -441,5 +443,6 @@ ul.navbar li {
 
 .value {
   display: flex;
+  flex: 3;
   font-weight: bold;
 }
