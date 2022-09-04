@@ -9,7 +9,7 @@
 html,
 body {
   margin: 0;
-  min-height: 100vh;
+  height: 100%;
 }
 
 button {
@@ -32,7 +32,7 @@ button:focus {
 }
 
 footer {
-  display: block;
+  display: flex;
   bottom: 0;
   background-color: var(--main-bg-color);
   margin-top: 0.5em;
@@ -78,7 +78,7 @@ ul.navbar li {
 /* id */
 #app {
   display: flex;
-  flex-direction: column;
+  min-height: 100%;
 }
 
 /* classes */
@@ -102,6 +102,7 @@ ul.navbar li {
 .app-container {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .banner-container {
@@ -195,7 +196,7 @@ ul.navbar li {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 80vh;
+  flex: 1;
 }
 
 .delete-button {
@@ -214,6 +215,7 @@ ul.navbar li {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  max-width: 80%;
 }
 
 .game-icon {
@@ -221,10 +223,13 @@ ul.navbar li {
 }
 
 .game-container {
+  display: flex;
+  flex-direction: column;
   background-color: aliceblue;
   border-width: 1px;
   border-radius: 3rem;
   border-style: solid;
+  height: fit-content;
   padding: 2rem;
   margin-top: 1rem;
   margin-left: auto;
@@ -241,8 +246,39 @@ ul.navbar li {
   margin: var(--default-spacing);
 }
 
+.game-controls {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+}
+
 .game-controls button {
   margin: var(--default-spacing);
+}
+
+.game-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.game-menu-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-space {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.game-title {
+  display: flex;
+  justify-content: center;
+  flex: 1;
 }
 
 .form-input {
@@ -255,7 +291,8 @@ ul.navbar li {
 }
 
 .label {
-  display: inline;
+  display: flex;
+  flex: 1;
 }
 
 .option-form {
@@ -283,10 +320,14 @@ ul.navbar li {
 
 .players-footer {
   display: flex;
-  bottom: var(--footer-height);
-  align-items: flex-end;
-  justify-content: space-evenly;
+  flex-wrap: wrap;
   margin: 0.5em;
+}
+
+.players-footer>div {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1;
 }
 
 .players-list {
@@ -353,6 +394,11 @@ ul.navbar li {
   display: flex;
 }
 
+.room-code {
+  display: flex;
+  justify-content: center;
+}
+
 .team-container {
   background-color: rgb(255, 255, 244);
   max-width: 14rem;
@@ -394,6 +440,6 @@ ul.navbar li {
 }
 
 .value {
-  display: inline;
+  display: flex;
   font-weight: bold;
 }

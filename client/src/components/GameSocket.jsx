@@ -389,20 +389,22 @@ const GameSocket = ({ children, title, roles, gameType }) => {
                 {uploadDataButton()}
             </div>
 
-            <GameContainer title={title} >
-                {isEmpty(player) ?
-                    <UserForm onSubmit={submitPlayer} /> :
-                    isStarted() ?
-                        cloneElement(children, { player: player, players: players, teams: teams, onNext: nextState, state: state, question: question, args: args }) :
-                        <>
-                            {getWinner()}
-                            <GameSetup socket={socket} readyFlag={readyFlag} players={players} teams={teams} onStart={nextState} />
-                        </>
-                }
-            </GameContainer>
+            <div className="game-space">
+                <GameContainer title={title} >
+                    {isEmpty(player) ?
+                        <UserForm onSubmit={submitPlayer} /> :
+                        isStarted() ?
+                            cloneElement(children, { player: player, players: players, teams: teams, onNext: nextState, state: state, question: question, args: args }) :
+                            <>
+                                {getWinner()}
+                                <GameSetup socket={socket} readyFlag={readyFlag} players={players} teams={teams} onStart={nextState} />
+                            </>
+                    }
+                </GameContainer>
+            </div>
 
 
-            <div>
+            <div className='game-footer'>
                 {displayTeams()}
                 {displayPlayerScore()}
             </div>

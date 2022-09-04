@@ -38,10 +38,10 @@ const GameMenu = ({ title, gameType }) => {
     return (
         <GameContainer title={title}>
             {!create && !join &&
-                <>
+                <div className='game-menu-controls'>
                     <Button text="Create Game" color="lightskyblue" onClick={() => setCreate(true)} />
                     <Button text="Join Game" color="green" onClick={() => setJoin(true)} />
-                </>
+                </div>
             }
             {join &&
                 <div onKeyPress={handleSubmitCode}>

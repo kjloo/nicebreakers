@@ -53,9 +53,10 @@ const GameSetup = ({ socket, readyFlag, players, teams, onStart }) => {
 
     return (
         <>
-            <p className="label">Room Code: </p>
-            <p className="value">{gameID}</p>
-            <p className="value"> ({decode}) </p>
+            <div className='room-code'>
+                <p className="label">Room Code: </p>
+                <p className="value">{gameID} ({decode})</p>
+            </div>
             <Players players={players} />
             <GameControls socket={socket} isLocked={(teams === null) || (teams.length >= maxTeams)} isReady={isReady()} onStart={onStart} />
         </>
