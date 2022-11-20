@@ -8,7 +8,7 @@ const FocusInput = ({ name, type, onChange, onKeyPress, placeholder, length, val
     }, []);
 
     return (
-        <input ref={focusRef} name={name} type={type} autocomplete="off" onChange={onChange} onKeyPress={onKeyPress} placeholder={placeholder} maxLength={length} value={value} required={required} />
+        <input ref={focusRef} className="form-input" name={name} type={type} autocomplete="off" onChange={onChange} onKeyPress={onKeyPress} placeholder={placeholder} maxLength={length} value={value} required={required} />
     )
 }
 

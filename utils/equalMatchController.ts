@@ -6,14 +6,12 @@ import { Game, Player, Selection } from './structs';
 import { updateState, revealAnswer, updatePlayers, sendError } from './emitter';
 import { Server, Socket } from 'socket.io';
 
-const ENTRIES_PER_ROUND = 2;
-
 export class EqualMatchController extends GameController {
 
     charactersHistory: Set<string>;
-    characters: Map<string, Array<string>>;
     charactersQueue: Array<string>;
-    situation: string;
+    contestQueue: Array<string>;
+    opponent: string;
     answers: Map<string, number>;
     playersQueue: Array<string>;
 
@@ -22,9 +20,9 @@ export class EqualMatchController extends GameController {
         // ready flag set by default
         this.ready = true;
         this.charactersHistory = new Set<string>();
-        this.characters = new Map<string, Array<string>>();
         this.charactersQueue = [];
-        this.situation = '';
+        this.contestQueue = [];
+        this.opponent = '';
         this.answers = new Map<string, number>();
         this.playersQueue = [];
     }
@@ -44,11 +42,10 @@ export class EqualMatchController extends GameController {
         return game.players.get(socket.id);
     }
 
-    private newRound(game: Game, characterMap: Map<string, Array<string>>): void {
-        game.players.forEach((player: Player) => {
-            characterMap.set(player.name, Array<string>());
-        });
-        this.situation = '';
+    private newRound(game: Game): void {
+        this.charactersQueue = [];
+        this.contestQueue = [];
+        this.opponent = '';
     }
 
     /**
@@ -65,10 +62,10 @@ export class EqualMatchController extends GameController {
         // Check if there are characters left in the round
         if (this.charactersQueue.length === 0) {
             // Current round is over. Start a new round.
-            this.newRound(game, this.characters);
-            updateState(io, game, GameState.ENTRY, { count: ENTRIES_PER_ROUND, situation: '' });
+            this.newRound(game);
+            updateState(io, game, GameState.ENTRY, { opponent: '' });
         } else {
-            updateState(io, game, GameState.HINT, { player: this.setPlayerTurn(io, game), situation: '' });
+            updateState(io, game, GameState.HINT, { player: this.setPlayerTurn(io, game), opponent: '' });
         }
         this.sendState(io, game);
     }
@@ -132,42 +129,38 @@ export class EqualMatchController extends GameController {
      * @param io Server connection
      * @param socket SocketIO connected to client
      * @param game current game context
-     * @param content data to store
+     * @param character character data to store
+     * @param contest contest data to store
      */
-    private handleCharacters(io: Server, socket: Socket, game: Game, content: string): void {
-        if (this.charactersHistory.has(content.toUpperCase())) {
-            sendError(socket, content + " has already been used.");
+    private handleCharacters(io: Server, socket: Socket, game: Game, character: string, contest: string): void {
+        if (this.charactersHistory.has(character.toUpperCase())) {
+            sendError(socket, character + " has already been used.");
             return;
         }
         const player = this.getGamePlayer(socket, game);
-        this.charactersHistory.add(content.toUpperCase());
+        this.charactersHistory.add(character.toUpperCase());
 
-        // assign to another player
-        const currentList: Array<string> = this.characters.get(player.name);
-        currentList.push(content);
+        this.charactersQueue.push(character);
+        this.contestQueue.push(contest)
 
-        if (currentList.length == ENTRIES_PER_ROUND) {
-            this.markPlayerReady(io, socket, game, true);
-            if (this.allPlayersReady(game)) {
-                this.playersQueue = this.initializePlayersQueue(game);
-                this.charactersQueue = Array.from(this.characters.values()).flat();
-                this.nextTurn(io, socket, game);
-            }
-        } else {
-            updateState(io, game, GameState.ENTRY, { count: ENTRIES_PER_ROUND - currentList.length });
+        this.markPlayerReady(io, socket, game, true);
+        if (this.allPlayersReady(game)) {
+            this.playersQueue = this.initializePlayersQueue(game);
+            this.nextTurn(io, socket, game);
         }
     }
 
     /**
-     * Set submitted situation from player
+     * Set submitted opponent from player
      * @param io Server connection
      * @param socket SocketIO connected to client
      * @param game current game context
-     * @param situation data to store
+     * @param opponent data to store
      */
-    private handleSituation(io: Server, socket: Socket, game: Game, situation: string): void {
-        this.situation = situation;
-        updateState(io, game, GameState.GUESS, { situation: this.situation });
+    private handleOpponent(io: Server, socket: Socket, game: Game, opponent: string): void {
+        this.opponent = opponent;
+        this.answers.set(opponent, 0);
+        updateState(io, game, GameState.GUESS, { opponent: this.opponent });
     }
 
     private initializePlayersQueue(game: Game): Array<string> {
@@ -188,13 +181,13 @@ export class EqualMatchController extends GameController {
     }
 
     /**
-     * Return random character from list and remove from list
-     * @param characterList List of characters
+     * Return random element from list and remove from list
+     * @param list List
      * @returns 
      */
-    private getRandomCharacter(characterList: Array<string>): string {
-        const randomCharacter: number = Math.floor(Math.random() * characterList.length);
-        return characterList.splice(randomCharacter, 1)[0];
+    private getRandomElement(list: Array<string>): string {
+        const randomElement: number = Math.floor(Math.random() * list.length);
+        return list.splice(randomElement, 1)[0];
     }
 
     /**
@@ -218,12 +211,11 @@ export class EqualMatchController extends GameController {
         const player: Player = this.getCurrentPlayer(game);
 
         // Select a category based on round
-        const character1: string = this.getRandomCharacter(this.charactersQueue);
-        const character2: string = this.getRandomCharacter(this.charactersQueue);
+        const character: string = this.getRandomElement(this.charactersQueue);
+        const contest: string = this.getRandomElement(this.contestQueue);
         this.answers.clear();
-        this.answers.set(character1, 0);
-        this.answers.set(character2, 0);
-        game.question = { question: character1, category: character2 };
+        this.answers.set(character, 0);
+        game.question = { question: contest, category: character };
         this.sendState(io, game);
         revealAnswer(io, game);
         return player;
@@ -242,20 +234,21 @@ export class EqualMatchController extends GameController {
                 this.nextTurn(io, socket, game);
                 break;
             case GameState.ENTRY:
-                const content: string = args.character;
-                if (content === null) {
+                const character: string = args.character;
+                const submittedContest: string = args.contest;
+                if (character === null || submittedContest === null) {
                     logger.error("EqualMatchController::Invalid data received");
                     break;
                 }
-                this.handleCharacters(io, socket, game, content);
+                this.handleCharacters(io, socket, game, character, submittedContest);
                 break;
             case GameState.HINT:
-                const situation: string = args.situation;
-                if (situation === null) {
+                const opponent: string = args.opponent;
+                if (opponent === null) {
                     logger.error("EqualMatchController::Invalid data received");
                     break;
                 }
-                this.handleSituation(io, socket, game, situation);
+                this.handleOpponent(io, socket, game, opponent);
                 break;
             case GameState.GUESS:
                 const selection: Selection = args.selection;

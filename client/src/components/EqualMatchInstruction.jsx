@@ -11,9 +11,9 @@ const DEFAULT_BLANK = "______";
 
 const EqualMatchInstruction = ({ player, onNext, question, state, args }) => {
     const [currentPlayer, setCurrentPlayer] = useState('');
-    const [count, setCount] = useState(2);
     const [character, setCharacter] = useState('');
-    const [situation, setSituation] = useState('');
+    const [contest, setContest] = useState('');
+    const [opponent, setOpponent] = useState('');
     const [selection, setSelection] = useState({ name: '', data: [] });
     const [choices, setChoices] = useState([]);
     const [answers, setAnswers] = useState([]);
@@ -23,18 +23,19 @@ const EqualMatchInstruction = ({ player, onNext, question, state, args }) => {
         if (extraArgs.player !== undefined) {
             setCurrentPlayer(extraArgs.player.name);
         }
-        if (extraArgs.situation !== undefined) {
-            setSituation(extraArgs.situation);
+        if (extraArgs.contest !== undefined) {
+            setContest(extraArgs.contest);
+        }
+        if (extraArgs.opponent !== undefined) {
+            setOpponent(extraArgs.opponent);
         }
         if (extraArgs.selection !== undefined) {
             setSelection(extraArgs.selection);
         }
         if (extraArgs.answers !== undefined) {
-            console.log("HERE");
             setAnswers(extraArgs.answers);
         }
         if (extraArgs.scored !== undefined) {
-            console.log("THERE");
             setScored(extraArgs.scored);
         }
         if (extraArgs.count !== undefined) {
@@ -45,13 +46,14 @@ const EqualMatchInstruction = ({ player, onNext, question, state, args }) => {
     // submit team
     const submitCharacter = (evt) => {
         evt.preventDefault();
-        onNext({ character: character });
+        onNext({ character: character, contest: contest });
         setCharacter('');
+        setContest('');
     };
-    const submitSituation = (evt) => {
+    const submitOpponent = (evt) => {
         evt.preventDefault();
-        onNext({ situation: situation });
-        setSituation('');
+        onNext({ opponent: opponent });
+        setOpponent('');
     };
     const changeSelection = (evt) => {
         //evt.preventDefault();
@@ -79,8 +81,8 @@ const EqualMatchInstruction = ({ player, onNext, question, state, args }) => {
     };
 
     const createChoices = () => {
-        if (question !== null && question.question !== null && question.category !== null) {
-            const choiceList = [question.question, question.category];
+        if (question !== null && opponent !== null && question.category !== null) {
+            const choiceList = [opponent, question.category];
             setChoices(choiceList.map((choice) => {
                 const content = <DefaultRadioChoice item={choice} />;
                 return { checked: false, key: choice, data: [choice], content: content };
@@ -114,27 +116,31 @@ const EqualMatchInstruction = ({ player, onNext, question, state, args }) => {
                 return isPlayerReady() ?
                     <h3>Please wait for other players</h3> :
                     <>
-                        <h3>Submit A Character ({count})</h3>
+                        <h3>Submit A Character and Contest</h3>
                         <form className='option-form' onSubmit={submitCharacter}>
-                            <FocusInput type='text' onChange={(e) => setCharacter(e.target.value)} placeholder="" value={character} required="required" />
+                            <FocusInput type='text' onChange={(e) => setCharacter(e.target.value)} placeholder="Character" value={character} required="required" />
+                            <FocusInput type='text' onChange={(e) => setContest(e.target.value)} placeholder="Contest" value={contest} required="required" />
                             <input type='submit' value='Submit' disabled={isPlayerReady()} />
                         </form>
                     </>;
             case GameState.HINT:
                 return player.turn ?
                     <>
-                        <h3>Who would win in a {situation.length ? situation : DEFAULT_BLANK}: {question.question} or {question.category}?</h3>
-                        <form className='option-form' onSubmit={submitSituation}>
-                            <FocusInput type='text' onChange={(e) => setSituation(e.target.value)} placeholder="" value={situation} required="required" />
+                        <h3>Submit an opponent for {question.category}</h3>
+                        <h3>Contest: {question.question}</h3>
+                        <form className='option-form' onSubmit={submitOpponent}>
+                            <FocusInput type='text' onChange={(e) => setOpponent(e.target.value)} placeholder="" value={opponent} required="required" />
                             <input type='submit' value='Submit' />
                         </form>
                     </> : <h3>Waiting for {currentPlayer}</h3>;
             case GameState.GUESS:
                 return player.turn ? <>
-                    <h3>Who would win in a {situation}: {question.question} or {question.category}?</h3>
+                    <h3>{question.category} vs. {opponent}</h3>
+                    <h3>Contest: {question.question}</h3>
                     <h4>Please wait for other players</h4>
                 </> : isPlayerReady() ? <h3>Please wait for other players</h3> : <>
-                    <h3>Who would win in a {situation}?</h3>
+                    <h3>Choose a character: {question.category} or {opponent}</h3>
+                    <h3>Contest: {question.question}</h3>
                     <form className="radio-selection">
                         <RadioGroup onChange={changeSelection} name="select" items={choices} />
                     </form>
@@ -142,7 +148,8 @@ const EqualMatchInstruction = ({ player, onNext, question, state, args }) => {
                 </>;
             case GameState.REVEAL:
                 return <div>
-                    <h3>Who would win in a {situation}: {question.question} or {question.category}?</h3>
+                    <h3>{question.category} vs. {opponent}</h3>
+                    <h3>Contest: {question.question}</h3>
                     {voteTable()}
                     <h4>Scored: {scored ? <ColoredText text="Success" color="green" /> : <ColoredText text="Failed" color="red" />}</h4>
                     {player.turn &&
@@ -161,7 +168,7 @@ const EqualMatchInstruction = ({ player, onNext, question, state, args }) => {
 
     useEffect(() => {
         createChoices();
-    }, [question]);
+    }, [question, opponent]);
 
     return (
         <div className="instruction">

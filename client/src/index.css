@@ -283,15 +283,6 @@ ul.navbar li {
   flex: 1;
 }
 
-.form-input {
-  display: flex;
-  margin: 1rem auto 1rem auto;
-}
-
-.form-input * {
-  margin: var(--default-spacing);
-}
-
 .label {
   display: flex;
   flex: 1;
@@ -299,14 +290,16 @@ ul.navbar li {
 
 .option-form {
   background-color: gainsboro;
-  display: block;
-  padding: 0.25rem;
-  margin: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  margin: 0.5rem;
   align-items: center;
 }
 
 .option-form>input {
-  margin: var(--default-spacing);
+  display: flex;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 .option-form>input[type='color'] {
