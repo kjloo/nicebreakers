@@ -12,7 +12,7 @@ import Button from './Button';
 
 let socket;
 const connectSocket = (gameID) => {
-    socket = io("http://tinkermonkey808.ddns.net", {
+    socket = io("http://tinkermonkey808.sytes.net", {
         query: {
             gameID: gameID
         }
