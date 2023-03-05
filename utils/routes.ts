@@ -138,6 +138,8 @@ router.get('/game/:gameID', function (req, res) {
         gamePath.push('/topfive');
     } else if (game.type === GameType.EQUALMATCH) {
         gamePath.push('/equalmatch');
+    } else if (game.type === GameType.HOTTAKE) {
+        gamePath.push('/hottake');
     }
     gamePath.push('game');
     gamePath.push(gameID);
@@ -157,7 +159,13 @@ router.get('/game/', function (req, res) {
     res.redirect(`/game/${gameID}`);
 });
 
-router.get(["/movie/game/:gameID", "/trivia/game/:gameID", "/topfive/game/:gameID", "/equalmatch/game/:gameID"], function (req, res, next) {
+router.get([
+    "/movie/game/:gameID",
+    "/trivia/game/:gameID",
+    "/topfive/game/:gameID",
+    "/equalmatch/game/:gameID",
+    "/hottake/game/:gameID",
+], function (req, res, next) {
     // Handle direct route
     const gameID: string = req.params.gameID.toString();
 

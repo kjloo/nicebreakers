@@ -6,6 +6,7 @@ import { TopFiveController } from './topFiveController';
 import { getPlayers } from './filters';
 import { Game } from './structs';
 import { EqualMatchController } from './equalMatchController';
+import { HotTakeController } from './hotTakeController';
 
 // const assets
 export let globalGames: Map<string, Game> = new Map();
@@ -31,6 +32,8 @@ export function gameControllerFactory(game: Game): GameController {
         return new TopFiveController(game);
     } else if (game.type === GameType.EQUALMATCH) {
         return new EqualMatchController(game);
+    } else if (game.type === GameType.HOTTAKE) {
+        return new HotTakeController(game);
     }
     return null;
 }

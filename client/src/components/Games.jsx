@@ -4,6 +4,7 @@ import movieLogo from '../../../images/movie.svg';
 import triviaLogo from '../../../images/trivia.svg';
 import topFiveLogo from '../../../images/topFive.svg';
 import equalMatchLogo from '../../../images/equalMatch.svg';
+import hotTakeLogo from '../../../images/hotTake.svg';
 
 const Games = () => {
     return (
@@ -19,6 +20,9 @@ const Games = () => {
             </Link>
             <Link className="game-icon" to="/equalmatch">
                 <img src={equalMatchLogo} alt="equalmatch" />
+            </Link>
+            <Link className="game-icon" to="/hottake">
+                <img src={hotTakeLogo} alt="hottake" />
             </Link>
         </div>
     )
