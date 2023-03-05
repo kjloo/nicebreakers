@@ -12,7 +12,8 @@ export enum GameType {
     MOVIE,
     TRIVIA,
     TOPFIVE,
-    EQUALMATCH
+    EQUALMATCH,
+    HOTTAKE
 };
 
 export enum GameRound {
