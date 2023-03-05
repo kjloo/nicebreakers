@@ -12,6 +12,8 @@ const TopFiveMenu = lazy(() => import('./components/TopFiveMenu'));
 const TopFiveGame = lazy(() => import('./components/TopFiveGame'));
 const EqualMatchMenu = lazy(() => import('./components/EqualMatchMenu'));
 const EqualMatchGame = lazy(() => import('./components/EqualMatchGame'));
+const HotTakeMenu = lazy(() => import('./components/HotTakeMenu'));
+const HotTakeGame = lazy(() => import('./components/HotTakeGame'));
 const About = lazy(() => import('./components/About'));
 const Footer = lazy(() => import('./components/Footer'));
 
@@ -33,6 +35,8 @@ const App = () => {
                             <Route exact path="/topfive/game/:gameID" component={TopFiveGame} />
                             <Route exact path="/equalmatch" component={EqualMatchMenu} />
                             <Route exact path="/equalmatch/game/:gameID" component={EqualMatchGame} />
+                            <Route exact path="/hottake" component={HotTakeMenu} />
+                            <Route exact path="/hottake/game/:gameID" component={HotTakeGame} />
                             <Route exact path="/about" component={About} />
                         </Switch>
                     </div>
