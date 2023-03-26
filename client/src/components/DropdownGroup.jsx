@@ -10,8 +10,8 @@ function Dropdown({ onChange, items, name, value }) {
 
     return (
         <>
-            <select id={name} onChange={onChange} value={value}>
-                <option value="">--Please choose an option--</option>
+            <select id={name} onChange={onChange} value={value} className="dropdown">
+                <option value="">--Select--</option>
                 {render()}
             </select>
         </>

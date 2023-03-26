@@ -42,6 +42,17 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
         evt.preventDefault();
         onNext({ selection: selection });
     };
+    const submitFinalSelection = (evt) => {
+        evt.preventDefault();
+        onNext({ answers: answers });
+    };
+
+    const validAnswers = () => {
+        answers.every(answer => {
+            console.log(answer.selection);
+            answer.selection
+        })
+    }
 
     // for understanding
     const render = () => {
@@ -59,21 +70,29 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
             case GameState.HINT:
                 return isPlayerReady() ?
                     <h3>Please wait for other players</h3> :
-                    <>
+                    <div>
                         <h3>Who said</h3>
                         <h3>{question.question}</h3>
-                        <form className="radio-selection">
+                        <form className="option-form" onSubmit={submitSelection}>
                             <DropdownGroup onChange={(e) => setSelection(e.target.value)} name="select" items={players} value={selection} />
+                            <input type='submit' value='Submit' />
                         </form>
-                        <Button text='Submit' color="midnightblue" onClick={submitSelection} disabled={!selection || isPlayerReady()} />
-                    </>;
+                    </div>;
             case GameState.GUESS:
                 return isPlayerReady() ?
                     <h3>Please wait for other players</h3> :
-                    <>
+                    <div>
                         <h3>Finalize</h3>
-                        {answers.map(answer => { return <><div>{answer.confession}:{answer.name}</div></> })}
-                    </>;
+                        <form>
+                            {answers.map(answer => {
+                                return <div className="label">
+                                    <p>{answer.confession}</p>
+                                    <DropdownGroup onChange={(e) => answer.selection = e.target.value} name={answer.confession} items={players} value={answer.selection} />
+                                </div>
+                            })}
+                        </form>
+                        <Button text='Submit' color="midnightblue" onClick={submitFinalSelection} disabled={!validAnswers() || isPlayerReady()} />
+                    </div>;
             case GameState.REVEAL:
                 return <div>
                     <h3>The Answer Is: {question.answer}</h3>

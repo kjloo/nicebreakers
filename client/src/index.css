@@ -66,6 +66,10 @@ nav {
   box-shadow: 0 .5em var(--shadow);
 }
 
+select {
+  max-width: 50%;
+}
+
 ul.navbar {
   overflow: hidden;
   padding: 0;
@@ -212,6 +216,8 @@ ul.navbar li {
   width: 1rem;
 }
 
+.dropdown {}
+
 .games-container {
   display: flex;
   flex-direction: row;
@@ -285,11 +291,21 @@ ul.navbar li {
 
 .label {
   display: flex;
+  justify-content: center;
+}
+
+.label>* {
+  display: flex;
+  flex: 3;
+  font-weight: bold;
+}
+
+.label>*:first-child {
+  display: flex;
   flex: 1;
 }
 
 .option-form {
-  background-color: gainsboro;
   display: flex;
   flex-direction: column;
   margin: 0.5rem;
@@ -309,8 +325,10 @@ ul.navbar li {
 .option-form>input[type='submit'] {
   background-color: lightskyblue;
   color: white;
-  border-radius: 0.25rem;
+  border-radius: 10rem;
   border-style: none;
+  padding: 1rem;
+  font-weight: bold;
 }
 
 .players-footer {
@@ -389,11 +407,6 @@ ul.navbar li {
   display: flex;
 }
 
-.room-code {
-  display: flex;
-  justify-content: center;
-}
-
 .team-container {
   background-color: rgb(255, 255, 244);
   max-width: 14rem;
@@ -432,10 +445,4 @@ ul.navbar li {
 
 .upload-button {
   display: flex;
-}
-
-.value {
-  display: flex;
-  flex: 3;
-  font-weight: bold;
 }

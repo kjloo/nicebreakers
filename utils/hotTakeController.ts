@@ -60,14 +60,14 @@ export class HotTakeController extends GameController {
             // No more confessions go to final
             interface confessionMap {
                 confession: string;
-                name: string;
+                selection: string;
             }
             game.players.forEach(player => {
                 const guesses = this.playerSelections.get(player.id);
                 const confessionList = Array<confessionMap>();
                 guesses.forEach((selection, confession) => {
-                    const name = game.players.get(selection).name;
-                    const confessionMap: confessionMap = { confession: confession, name: name };
+                    // const name = game.players.get(selection).name;
+                    const confessionMap: confessionMap = { confession: confession, selection: selection };
                     confessionList.push(confessionMap);
                 });
                 const socket = io.sockets.sockets.get(player.id);
@@ -139,6 +139,7 @@ export class HotTakeController extends GameController {
     private handleFinalSelection(io: Server, socket: Socket, game: Game, selections: Map<string, string>): void {
         const player = this.getGamePlayer(socket, game);
         this.playerSelections.set(player.id, selections);
+        console.log(selections);
 
         this.markPlayerReady(io, socket, game, true);
         if (this.allPlayersReady(game)) {
