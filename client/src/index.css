@@ -68,6 +68,7 @@ nav {
 
 select {
   max-width: 50%;
+  min-width: 6rem;
 }
 
 ul.navbar {
@@ -303,6 +304,7 @@ ul.navbar li {
 .label>*:first-child {
   display: flex;
   flex: 1;
+  padding-right: 0.5rem;
 }
 
 .option-form {

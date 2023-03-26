@@ -48,10 +48,8 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
     };
 
     const validAnswers = () => {
-        answers.every(answer => {
-            console.log(answer.selection);
-            answer.selection
-        })
+        const rc = answers.every(answer => answer.selection);
+        return rc;
     }
 
     // for understanding
@@ -73,10 +71,10 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
                     <div>
                         <h3>Who said</h3>
                         <h3>{question.question}</h3>
-                        <form className="option-form" onSubmit={submitSelection}>
+                        <form className="option-form">
                             <DropdownGroup onChange={(e) => setSelection(e.target.value)} name="select" items={players} value={selection} />
-                            <input type='submit' value='Submit' />
                         </form>
+                        <Button text='Submit' color="midnightblue" onClick={submitSelection} disabled={!selection || isPlayerReady()} />
                     </div>;
             case GameState.GUESS:
                 return isPlayerReady() ?
@@ -84,10 +82,18 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
                     <div>
                         <h3>Finalize</h3>
                         <form>
-                            {answers.map(answer => {
+                            {answers.map((answer, index) => {
                                 return <div className="label">
                                     <p>{answer.confession}</p>
-                                    <DropdownGroup onChange={(e) => answer.selection = e.target.value} name={answer.confession} items={players} value={answer.selection} />
+                                    <DropdownGroup onChange={(e) => {
+                                        setAnswers(answers.map((answer, i) => {
+                                            if (index == i) {
+                                                answer.selection = e.target.value;
+                                            }
+                                            return answer;
+                                        }));
+                                    }
+                                    } name={answer.confession} items={players} value={answer.selection} />
                                 </div>
                             })}
                         </form>
