@@ -2,37 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { GameState } from '../../../utils/enums';
 import FocusInput from './FocusInput';
 import Button from './Button';
-import AnswerValidator from './AnswerValidator';
+import DropdownGroup from './DropdownGroup';
 
-const HotTakeInstruction = ({ player, teams, onNext, state, question }) => {
-    const [movie, setMovie] = useState('');
-    const [team, setTeam] = useState(undefined);
+const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
+    const [confession, setConfession] = useState('');
+    const [selection, setSelection] = useState('');
+    const [answers, setAnswers] = useState([]);
+    const [players, setPlayers] = useState([]);
 
-    const getCurrentTeam = () => {
-        if (!Array.isArray(teams)) {
-            return undefined;
-        }
-        // Get which teams turn it is
-        return teams.find((team) => team.turn);
-    }
+    useEffect(() => {
+        handleArgs(args);
+    }, [args]);
 
-    const isTeamsTurn = () => {
-        let currentTeam = team;
-        if (currentTeam === undefined) {
-            currentTeam = getCurrentTeam();
-            if (currentTeam === undefined) {
-                return false;
-            }
-            setTeam(currentTeam);
-        }
-        return (player && (player.teamID === currentTeam.id));
-    }
-
-    const displayTeam = () => {
-        if ((team !== undefined) && (state !== GameState.REVEAL)) {
-            return <h2 style={{ color: team.color }}> Team {team.name}'s Turn</h2>
-        }
-    }
+    const isPlayerReady = () => {
+        return player.idle;
+    };
 
     const endGame = () => {
         if (confirm("Are you sure you want to end the game?")) {
@@ -40,49 +24,56 @@ const HotTakeInstruction = ({ player, teams, onNext, state, question }) => {
         }
     }
 
+    const handleArgs = (extraArgs) => {
+        if (extraArgs.players !== undefined) {
+            setPlayers(extraArgs.players);
+        }
+        if (extraArgs.answers !== undefined) {
+            setAnswers(extraArgs.answers);
+        }
+    }
+
+    const submitConfession = (evt) => {
+        evt.preventDefault();
+        onNext({ confession: confession });
+        setConfession('');
+    };
+    const submitSelection = (evt) => {
+        evt.preventDefault();
+        onNext({ selection: selection });
+    };
+
     // for understanding
     const render = () => {
-        if (player && (player.teamID === -1)) {
-            return <h3>Wait For Current Game To End</h3>
-        }
         switch (state) {
             case GameState.ENTRY:
-                return player.turn ?
-                    <form className='option-form' onSubmit={submitMovie}>
-                        <FocusInput type='text' onChange={(e) => setMovie(e.target.value)} placeholder="Enter Movie" value={movie} required="required" />
-                        <input type='submit' value='Submit' />
-                    </form> :
-                    <h3>Wait For Hint Giver</h3>
+                return isPlayerReady() ?
+                    <h3>Please wait for other players</h3> :
+                    <>
+                        <h3>Submit A Hot Take</h3>
+                        <form className='option-form' onSubmit={submitConfession}>
+                            <FocusInput type='text' onChange={(e) => setConfession(e.target.value)} placeholder="Statement" value={confession} required="required" />
+                            <input type='submit' value='Submit' disabled={isPlayerReady()} />
+                        </form>
+                    </>;
             case GameState.HINT:
-                return player.turn ?
-                    <h3>Give Hints To Team</h3> :
-                    <div>
-                        <h3>Listen to Hints</h3>
-                        {isTeamsTurn() &&
-                            <>
-                                <h3>Hit This Button When You Know The Answer!</h3>
-                                <Button text="Stop" color="red" onClick={onNext} />
-                            </>
-                        }
-                    </div >
-            case GameState.STEAL:
-                return player.turn ?
+                return isPlayerReady() ?
+                    <h3>Please wait for other players</h3> :
                     <>
-                        <h3>Opposing Team Players Are Guessing</h3>
-                        <AnswerValidator onAnswer={onNext} />
-                    </> :
-                    isTeamsTurn() ?
-                        <h3>Wait. Opponents Are Guessing</h3> :
-                        <h3>Try To Steal</h3>
+                        <h3>Who said</h3>
+                        <h3>{question.question}</h3>
+                        <form className="radio-selection">
+                            <DropdownGroup onChange={(e) => setSelection(e.target.value)} name="select" items={players} value={selection} />
+                        </form>
+                        <Button text='Submit' color="midnightblue" onClick={submitSelection} disabled={!selection || isPlayerReady()} />
+                    </>;
             case GameState.GUESS:
-                return player.turn ?
+                return isPlayerReady() ?
+                    <h3>Please wait for other players</h3> :
                     <>
-                        <h3>Players Are Guessing</h3>
-                        <AnswerValidator onAnswer={onNext} />
-                    </> :
-                    isTeamsTurn() ?
-                        <h3>Make A Guess</h3> :
-                        <h3>Wait. Opponents Are Guessing</h3>
+                        <h3>Finalize</h3>
+                        {answers.map(answer => { return <><div>{answer.confession}:{answer.name}</div></> })}
+                    </>;
             case GameState.REVEAL:
                 return <div>
                     <h3>The Answer Is: {question.answer}</h3>
@@ -94,20 +85,9 @@ const HotTakeInstruction = ({ player, teams, onNext, state, question }) => {
                 return <h3>No Instructions</h3>
         }
     }
-    // submit team
-    const submitMovie = (evt) => {
-        evt.preventDefault();
-        onNext({ answer: movie });
-        setMovie('');
-    }
-
-    useEffect(() => {
-        setTeam(getCurrentTeam());
-    }, [teams])
 
     return (
         <div className="instruction">
-            {displayTeam()}
             {render()}
             <Button text="End Game" color="firebrick" onClick={endGame} />
         </div>

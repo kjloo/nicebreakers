@@ -51,6 +51,17 @@ export class GameController {
         return setReady(s, gameID, ready);
     }
 
+    /**
+     * Set idle state of all players
+     * @param game The game context
+     * @param idle The idle state
+     */
+    protected setPlayersIdle(game: Game, idle: boolean) {
+        game.players.forEach((player: Player) => {
+            player.idle = idle;
+        });
+    }
+
     protected changeTeamTurns(game: Game) {
         // Set old team to false
         let team = this.getCurrentTeam(game);
@@ -69,6 +80,29 @@ export class GameController {
 
     protected getCurrentPlayer(game: Game): Player {
         return getByFilter(game.players, (player: Player) => player.turn);
+    }
+
+    /**
+     * Return the player associated with the socket
+     * @param socket SocketIO connected to the client
+     * @param game The current game context
+     * @returns The player associated with the socket
+     */
+    protected getGamePlayer(socket: Socket, game: Game) {
+        return game.players.get(socket.id);
+    }
+
+    /**
+     * Set player ready state
+     * @param io The server connection
+     * @param socket SocketIO connected to the client
+     * @param game The current game context
+     * @param ready Player ready state
+     */
+    protected markPlayerReady(io: Server, socket: Socket, game: Game, ready: boolean): void {
+        const player = this.getGamePlayer(socket, game);
+        player.idle = ready;
+        updatePlayers(io, game);
     }
 
     protected allPlayersReady(game: Game): boolean {

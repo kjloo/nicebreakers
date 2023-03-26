@@ -47,6 +47,13 @@ export function updateState(io: Server, game: Game, state: GameState, args: {} =
     io.in(game.id).emit('set state', { state: state, args: args });
 }
 
+export function updatePlayerState(s: Socket, game: Game, state: GameState, args: {} = {}) {
+    game.state = state;
+    game.args = args;
+    console.log("Game " + game.id + " State: " + game.state, " Args: " + JSON.stringify(game.args));
+    s.emit('set state', { state: state, args: args });
+}
+
 export function setReady(io: Server, gameID: string, ready: boolean): boolean {
     io.in(gameID).emit('ready', ready);
     return true;

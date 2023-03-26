@@ -32,16 +32,6 @@ export class EqualMatchController extends GameController {
         updatePlayers(io, game);
     }
 
-    /**
-     * Return the player associated with the socket
-     * @param socket SocketIO connected to the client
-     * @param game The current game context
-     * @returns The player associated with the socket
-     */
-    private getGamePlayer(socket: Socket, game: Game) {
-        return game.players.get(socket.id);
-    }
-
     private newRound(game: Game): void {
         this.charactersQueue = [];
         this.contestQueue = [];
@@ -56,9 +46,7 @@ export class EqualMatchController extends GameController {
      */
     private nextTurn(io: Server, socket: Socket, game: Game) {
         // Set players active
-        game.players.forEach((player: Player) => {
-            player.idle = false;
-        });
+        this.setPlayersIdle(game, false)
         // Check if there are characters left in the round
         if (this.charactersQueue.length === 0) {
             // Current round is over. Start a new round.
@@ -116,12 +104,6 @@ export class EqualMatchController extends GameController {
                 }), scored: success
             });
         }
-    }
-
-    private markPlayerReady(io: Server, socket: Socket, game: Game, ready: boolean): void {
-        const player = this.getGamePlayer(socket, game);
-        player.idle = ready;
-        updatePlayers(io, game);
     }
 
     /**
