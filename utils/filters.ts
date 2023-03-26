@@ -15,6 +15,11 @@ export function getByFilter(map: Map<any, any>, filter) {
     return map.get(Array.from(map.entries()).find(value => filter(value[1]))[0]);
 }
 
+export function getRandom(list: Array<string>): string {
+    const random: number = Math.floor(Math.random() * list.length);
+    return list.splice(random, 1)[0];
+}
+
 export function findByFilter(list: Array<any>, filter) {
     if (!list || !(list instanceof Array)) {
         return undefined;
