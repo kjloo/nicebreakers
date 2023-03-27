@@ -290,6 +290,31 @@ ul.navbar li {
   flex: 1;
 }
 
+.inline-form {
+  display: flex;
+  background-color: gainsboro;
+  flex-direction: row;
+  margin: 0.5rem;
+  align-items: center;
+}
+
+.inline-form>input {
+  display: flex;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.inline-form>input[type='color'] {
+  vertical-align: middle;
+}
+
+.inline-form>input[type='submit'] {
+  background-color: lightskyblue;
+  color: white;
+  border-radius: 1rem;
+  border-style: none;
+}
+
 .label {
   display: flex;
   justify-content: center;
@@ -318,10 +343,6 @@ ul.navbar li {
   display: flex;
   margin-left: 0.5rem;
   margin-right: 0.5rem;
-}
-
-.option-form>input[type='color'] {
-  vertical-align: middle;
 }
 
 .option-form>input[type='submit'] {

@@ -198,12 +198,14 @@ export class TriviaController extends GameController {
      * @returns success/failure
      */
     public override loadData(s: Server, gameID: string, data: Buffer): boolean {
-        var rc: boolean = false
+        console.log("Load trivia json file")
+        var rc: boolean = false;
         try {
             this.questions = JSON.parse(data.toString()).sort(() => Math.random() - 0.5);
-            rc = this.setReady(s, gameID, true)
+            rc = this.setReady(s, gameID, true);
         } catch (err) {
-            logger.error("Invalid JSON file: " + err)
+            logger.error("Invalid JSON file: " + err);
+            console.error("Invalid JSON file: " + err);
             return false;
         }
         return rc;

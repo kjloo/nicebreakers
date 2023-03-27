@@ -13,6 +13,7 @@ interface confessionSelection {
 
 export class HotTakeController extends GameController {
 
+    categories: Array<string>;
     confessionMap: Map<string, string>;
     confessionQueue: Array<string>;
     currentConfession: string;
@@ -21,10 +22,32 @@ export class HotTakeController extends GameController {
     public constructor(game: Game) {
         super(game);
         // ready flag set by default
-        this.ready = true;
+        this.ready = false;
+        this.categories = new Array<string>();
         this.confessionMap = new Map<string, string>();
         this.confessionQueue = new Array<string>();
         this.playerSelections = new Map<string, Map<string, string>>();
+    }
+
+    /**
+     * Receives JSON file from client and loads it as game context
+     * @param s SocketIO connected to client
+     * @param gameID Game ID to send data to
+     * @param data Data receieved from client. Should be a JSON file
+     * @returns success/failure
+     */
+    public override loadData(s: Server, gameID: string, data: Buffer): boolean {
+        console.log("Load hot take categories json file")
+        var rc: boolean = false;
+        try {
+            this.categories = JSON.parse(data.toString()).sort(() => Math.random() - 0.5);
+            rc = this.setReady(s, gameID, true);
+        } catch (err) {
+            logger.error("Invalid JSON file: " + err);
+            console.error("Invalid JSON file: " + err);
+            return false;
+        }
+        return rc;
     }
 
     private sendState(io: Server, game: Game) {
@@ -37,6 +60,9 @@ export class HotTakeController extends GameController {
         this.confessionMap.clear();
         this.confessionQueue = [];
         this.playerSelections.clear();
+        const category = getRandom(this.categories);
+        game.question = { ...game.question, category: category };
+        revealAnswer(io, game);
         updateState(io, game, GameState.ENTRY);
         this.sendState(io, game);
     }
@@ -72,7 +98,7 @@ export class HotTakeController extends GameController {
             });
         } else {
             this.currentConfession = getRandom(this.confessionQueue);
-            game.question = { question: this.currentConfession }
+            game.question = { ...game.question, question: this.currentConfession }
             revealAnswer(io, game);
             updateState(io, game, GameState.HINT, { players: players });
         }

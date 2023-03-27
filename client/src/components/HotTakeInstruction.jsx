@@ -63,7 +63,7 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
                 return isPlayerReady() ?
                     <h3>Please wait for other players</h3> :
                     <>
-                        <h3>Submit A Hot Take</h3>
+                        <h3>Submit A Hot Take About {question.category}</h3>
                         <form className='option-form' onSubmit={submitConfession}>
                             <FocusInput type='text' onChange={(e) => setConfession(e.target.value)} placeholder="Statement" value={confession} required="required" />
                             <input type='submit' value='Submit' disabled={isPlayerReady()} />

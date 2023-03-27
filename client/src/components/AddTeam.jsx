@@ -21,7 +21,7 @@ const AddTeam = ({ setAddTeam, onSubmit }) => {
     }, []);
 
     return (
-        <form className='option-form' onSubmit={submitTeam}>
+        <form className='inline-form' onSubmit={submitTeam}>
             <FocusInput type='text' onChange={(e) => setName(e.target.value)} placeholder="Enter Team Name" value={name} required="required" />
             <input type='color' onChange={(e) => setColor(e.target.value)} value={color} required />
             <input type='submit' value='Add' />
