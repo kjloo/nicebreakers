@@ -6,6 +6,11 @@ import { Game } from './structs';
 import { revealAnswer, updatePlayers, updatePlayerState, updateState } from './emitter';
 import { Server, Socket } from 'socket.io';
 
+interface confessionSelection {
+    confession: string;
+    selection: string;
+}
+
 export class HotTakeController extends GameController {
 
     confessionMap: Map<string, string>;
@@ -27,11 +32,13 @@ export class HotTakeController extends GameController {
         updatePlayers(io, game);
     }
 
-    private newRound(game: Game): void {
+    private newRound(io: Server, game: Game): void {
         this.setPlayersIdle(game, false);
         this.confessionMap.clear();
         this.confessionQueue = [];
         this.playerSelections.clear();
+        updateState(io, game, GameState.ENTRY);
+        this.sendState(io, game);
     }
 
     /**
@@ -49,27 +56,17 @@ export class HotTakeController extends GameController {
             id: string;
             name: string;
         }
-        const players = Array<indexedList>();
-        game.players.forEach(
-            (player, key) => {
-                const indexedList: indexedList = { id: key, name: player.name };
-                players.push(indexedList);
-            });
+        const players: Array<indexedList> = Array.from(game.players, (player) => {
+            return { id: player[0], name: player[1].name }
+        });
 
         if (this.confessionQueue.length === 0) {
             // No more confessions go to final
-            interface confessionMap {
-                confession: string;
-                selection: string;
-            }
             game.players.forEach(player => {
                 const guesses = this.playerSelections.get(player.id);
-                const confessionList = Array<confessionMap>();
-                guesses.forEach((selection, confession) => {
-                    // const name = game.players.get(selection).name;
-                    const confessionMap: confessionMap = { confession: confession, selection: selection };
-                    confessionList.push(confessionMap);
-                });
+                const confessionList: Array<confessionSelection> = Array.from(guesses, (guess) => {
+                    return { confession: guess[0], selection: guess[1] };
+                })
                 const socket = io.sockets.sockets.get(player.id);
                 updatePlayerState(socket, game, GameState.GUESS, { answers: confessionList, players: players });
             });
@@ -89,7 +86,7 @@ export class HotTakeController extends GameController {
      * @param game current game context
      */
     private endRound(io: Server, socket: Socket, game: Game) {
-        this.newRound(game);
+        this.newRound(io, game);
     }
 
     /**
@@ -134,16 +131,35 @@ export class HotTakeController extends GameController {
   * @param io Server connection
   * @param socket SocketIO connected to client
   * @param game current game context
-  * @param selections finalized map of selections
+  * @param finalAnswers finalized map of selections
   */
-    private handleFinalSelection(io: Server, socket: Socket, game: Game, selections: Map<string, string>): void {
+    private handleFinalSelection(io: Server, socket: Socket, game: Game, finalAnswers: Array<confessionSelection>): void {
         const player = this.getGamePlayer(socket, game);
-        this.playerSelections.set(player.id, selections);
-        console.log(selections);
+        this.playerSelections.set(player.id, new Map<string, string>(finalAnswers.map(answer => [answer.confession, answer.selection])));
 
         this.markPlayerReady(io, socket, game, true);
         if (this.allPlayersReady(game)) {
-            this.endRound(io, socket, game);
+            interface confessionMap {
+                confession: string;
+                name: string;
+            }
+            // Calculate score and update players
+            game.players.forEach(player => {
+                const answerMap = this.playerSelections.get(player.id);
+                answerMap.forEach((playerId, confession) => {
+                    // Get actual answers
+                    const expected = this.confessionMap.get(playerId);
+                    if (confession === expected) {
+                        player.score++;
+                    }
+                });
+            });
+            const confessionList: Array<confessionMap> = Array.from(this.confessionMap, (confession) => {
+                const name = game.players.get(confession[0]).name;
+                return { confession: confession[1], name: name };
+            });
+            updateState(io, game, GameState.REVEAL, { results: confessionList });
+            this.sendState(io, game);
         }
     }
 
@@ -152,8 +168,7 @@ export class HotTakeController extends GameController {
     public override gameStateMachine(io: Server, socket: Socket, game: Game, state: GameState, args: any = {}): void {
         switch (state) {
             case GameState.SETUP:
-                this.newRound(game);
-                updateState(io, game, GameState.ENTRY);
+                this.newRound(io, game);
                 break;
             case GameState.ENTRY:
                 const confession: string = args.confession;
@@ -172,15 +187,15 @@ export class HotTakeController extends GameController {
                 this.handleSelection(io, socket, game, selection);
                 break;
             case GameState.GUESS:
-                const finalSelection: Map<string, string> = args.selections;
-                if (finalSelection === null) {
+                const finalAnswers: Array<confessionSelection> = args.answers;
+                if (finalAnswers === null) {
                     logger.error("HotTakeController::Invalid selection");
                     break;
                 }
-                this.handleFinalSelection(io, socket, game, finalSelection);
+                this.handleFinalSelection(io, socket, game, finalAnswers);
                 break;
             case GameState.REVEAL:
-                this.nextTurn(io, socket, game);
+                this.endRound(io, socket, game);
                 break;
             case GameState.END:
                 this.endGame(io, game);

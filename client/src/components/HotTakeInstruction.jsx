@@ -8,6 +8,7 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
     const [confession, setConfession] = useState('');
     const [selection, setSelection] = useState('');
     const [answers, setAnswers] = useState([]);
+    const [results, setResults] = useState([]);
     const [players, setPlayers] = useState([]);
 
     useEffect(() => {
@@ -30,6 +31,9 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
         }
         if (extraArgs.answers !== undefined) {
             setAnswers(extraArgs.answers);
+        }
+        if (extraArgs.results !== undefined) {
+            setResults(extraArgs.results);
         }
     }
 
@@ -101,7 +105,11 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
                     </div>;
             case GameState.REVEAL:
                 return <div>
-                    <h3>The Answer Is: {question.answer}</h3>
+                    {results.map((result) => {
+                        return <div>
+                            <p>{result.name} said {result.confession}</p>
+                        </div>
+                    })}
                     <Button text="Next" color="blue" onClick={onNext} />
                 </div>
             case GameState.SETUP:
