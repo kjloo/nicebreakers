@@ -5,6 +5,7 @@ import Button from './Button';
 import DropdownGroup from './DropdownGroup';
 
 const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
+    const [categories, setCategories] = useState([]);
     const [confession, setConfession] = useState('');
     const [selection, setSelection] = useState('');
     const [answers, setAnswers] = useState([]);
@@ -26,6 +27,9 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
     }
 
     const handleArgs = (extraArgs) => {
+        if (extraArgs.categories !== undefined) {
+            setCategories(extraArgs.categories);
+        }
         if (extraArgs.players !== undefined) {
             setPlayers(extraArgs.players);
         }
@@ -36,7 +40,11 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
             setResults(extraArgs.results);
         }
     }
-
+    const submitCategory = (evt) => {
+        evt.preventDefault();
+        onNext({ category: evt.target.value });
+        setCategories([]);
+    }
     const submitConfession = (evt) => {
         evt.preventDefault();
         onNext({ confession: confession });
@@ -60,6 +68,16 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
     const render = () => {
         switch (state) {
             case GameState.ENTRY:
+                return player.turn ?
+                    <div>
+                        <h3>Select a Category</h3>
+                        {categories.map(category => <Button text={category} onClick={submitCategory} value={category} />)}
+                    </div> :
+                    <div>
+                        <h3>Waiting for Category Selection</h3>
+                        {categories.map(category => <div>{category}</div>)}
+                    </div>
+            case GameState.HINT:
                 return isPlayerReady() ?
                     <h3>Please wait for other players</h3> :
                     <>
@@ -69,7 +87,7 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
                             <input type='submit' value='Submit' disabled={isPlayerReady()} />
                         </form>
                     </>;
-            case GameState.HINT:
+            case GameState.GUESS:
                 return isPlayerReady() ?
                     <h3>Please wait for other players</h3> :
                     <div>
@@ -80,7 +98,7 @@ const HotTakeInstruction = ({ player, onNext, question, state, args }) => {
                         </form>
                         <Button text='Submit' color="midnightblue" onClick={submitSelection} disabled={!selection || isPlayerReady()} />
                     </div>;
-            case GameState.GUESS:
+            case GameState.STEAL:
                 return isPlayerReady() ?
                     <h3>Please wait for other players</h3> :
                     <div>

@@ -93,6 +93,15 @@ export class GameController {
     }
 
     /**
+     * Create a list of players
+     * @param game The current game context
+     * @returns 
+     */
+    protected initializePlayersQueue(game: Game): Array<string> {
+        return Array.from(game.players.values()).map((player: Player) => player.name);
+    }
+
+    /**
      * Set player ready state
      * @param io The server connection
      * @param socket SocketIO connected to the client

@@ -2,7 +2,7 @@ import logger from './logger';
 import { GameState } from './enums';
 import { getRandom } from './filters';
 import { GameController } from './gameController';
-import { Game } from './structs';
+import { Game, Player } from './structs';
 import { revealAnswer, updatePlayers, updatePlayerState, updateState } from './emitter';
 import { Server, Socket } from 'socket.io';
 
@@ -14,19 +14,23 @@ interface confessionSelection {
 export class HotTakeController extends GameController {
 
     categories: Array<string>;
+    categoryChoices: Array<string>;
     confessionMap: Map<string, string>;
     confessionQueue: Array<string>;
     currentConfession: string;
     playerSelections: Map<string, Map<string, string>>;
+    playersQueue: Array<string>;
 
     public constructor(game: Game) {
         super(game);
         // ready flag set by default
         this.ready = false;
         this.categories = new Array<string>();
+        this.categoryChoices = new Array<string>();
         this.confessionMap = new Map<string, string>();
         this.confessionQueue = new Array<string>();
         this.playerSelections = new Map<string, Map<string, string>>();
+        this.playersQueue = new Array<string>();
     }
 
     /**
@@ -55,16 +59,51 @@ export class HotTakeController extends GameController {
         updatePlayers(io, game);
     }
 
+    /**
+     * Start next round
+     * @param io Server connection
+     * @param game current game context
+     */
     private newRound(io: Server, game: Game): void {
-        this.setPlayersIdle(game, false);
         this.confessionMap.clear();
         this.confessionQueue = [];
         this.playerSelections.clear();
-        const category = getRandom(this.categories);
+        this.setPlayerTurn(game);
+        this.setPlayersIdle(game, false);
+        this.categoryChoices = Array.from(Array(5)).map(n => getRandom(this.categories));
+        revealAnswer(io, game);
+        updateState(io, game, GameState.ENTRY, { categories: this.categoryChoices });
+        this.sendState(io, game);
+    }
+
+    /**
+     * Set a random player
+     * @param game The current game context
+     */
+    private setPlayerTurn(game: Game): void {
+        if (this.playersQueue.length === 0) {
+            this.playersQueue = this.initializePlayersQueue(game);
+        }
+        const playerName = getRandom(this.playersQueue);
+        game.players.forEach((player: Player) => {
+            const isTurn = player.name === playerName;
+            player.turn = isTurn;
+        });
+    }
+
+    /**
+     * Set the category for the round
+     * @param io Server connection
+     * @param game current game context
+     * @param game current game context
+     */
+    private handleCategory(io: Server, game: Game, category: string): void {
+        // put categories back into memory
+        this.categoryChoices = this.categoryChoices.filter(c => c !== category);
+        this.categories.push(...this.categoryChoices);
         game.question = { ...game.question, category: category };
         revealAnswer(io, game);
-        updateState(io, game, GameState.ENTRY);
-        this.sendState(io, game);
+        updateState(io, game, GameState.HINT);
     }
 
     /**
@@ -94,13 +133,13 @@ export class HotTakeController extends GameController {
                     return { confession: guess[0], selection: guess[1] };
                 })
                 const socket = io.sockets.sockets.get(player.id);
-                updatePlayerState(socket, game, GameState.GUESS, { answers: confessionList, players: players });
+                updatePlayerState(socket, game, GameState.STEAL, { answers: confessionList, players: players });
             });
         } else {
             this.currentConfession = getRandom(this.confessionQueue);
             game.question = { ...game.question, question: this.currentConfession }
             revealAnswer(io, game);
-            updateState(io, game, GameState.HINT, { players: players });
+            updateState(io, game, GameState.GUESS, { players: players });
         }
         this.sendState(io, game);
     }
@@ -197,6 +236,14 @@ export class HotTakeController extends GameController {
                 this.newRound(io, game);
                 break;
             case GameState.ENTRY:
+                const category = args.category;
+                if (category === null) {
+                    logger.error("HotTakeController::Invalid data received");
+                    break;
+                }
+                this.handleCategory(io, game, category);
+                break;
+            case GameState.HINT:
                 const confession: string = args.confession;
                 if (confession === null) {
                     logger.error("HotTakeController::Invalid data received");
@@ -204,7 +251,7 @@ export class HotTakeController extends GameController {
                 }
                 this.handleConfessions(io, socket, game, confession);
                 break;
-            case GameState.HINT:
+            case GameState.GUESS:
                 const selection: string = args.selection;
                 if (selection === null) {
                     logger.error("HotTakeController::Invalid data received");
@@ -212,7 +259,7 @@ export class HotTakeController extends GameController {
                 }
                 this.handleSelection(io, socket, game, selection);
                 break;
-            case GameState.GUESS:
+            case GameState.STEAL:
                 const finalAnswers: Array<confessionSelection> = args.answers;
                 if (finalAnswers === null) {
                     logger.error("HotTakeController::Invalid selection");

@@ -153,10 +153,6 @@ export class TopFiveController extends GameController {
         }
     }
 
-    private initializePlayersQueue(game: Game): Array<string> {
-        return Array.from(game.players.values()).map((player: Player) => player.name);
-    }
-
     private getRandomPlayer(playerList: Array<string>, playerName?: string): string {
         let randomPlayer: number = 0;
         let done: boolean = false;

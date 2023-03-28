@@ -5,6 +5,7 @@ import { GameController } from './gameController';
 import { Game, Player, Selection } from './structs';
 import { updateState, revealAnswer, updatePlayers, sendError } from './emitter';
 import { Server, Socket } from 'socket.io';
+import { getRandom } from './filters';
 
 export class EqualMatchController extends GameController {
 
@@ -145,10 +146,6 @@ export class EqualMatchController extends GameController {
         updateState(io, game, GameState.GUESS, { opponent: this.opponent });
     }
 
-    private initializePlayersQueue(game: Game): Array<string> {
-        return Array.from(game.players.values()).map((player: Player) => player.name);
-    }
-
     private getRandomPlayer(playerList: Array<string>, playerName?: string): string {
         let randomPlayer: number = 0;
         let done: boolean = false;
@@ -160,16 +157,6 @@ export class EqualMatchController extends GameController {
             done = playerList[randomPlayer] !== playerName;
         }
         return playerList.splice(randomPlayer, 1)[0];
-    }
-
-    /**
-     * Return random element from list and remove from list
-     * @param list List
-     * @returns 
-     */
-    private getRandomElement(list: Array<string>): string {
-        const randomElement: number = Math.floor(Math.random() * list.length);
-        return list.splice(randomElement, 1)[0];
     }
 
     /**
@@ -193,8 +180,8 @@ export class EqualMatchController extends GameController {
         const player: Player = this.getCurrentPlayer(game);
 
         // Select a category based on round
-        const character: string = this.getRandomElement(this.charactersQueue);
-        const contest: string = this.getRandomElement(this.contestQueue);
+        const character: string = getRandom(this.charactersQueue);
+        const contest: string = getRandom(this.contestQueue);
         this.answers.clear();
         this.answers.set(character, 0);
         game.question = { question: contest, category: character };
