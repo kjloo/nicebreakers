@@ -41,7 +41,7 @@ export class HotTakeController extends GameController {
      * @returns success/failure
      */
     public override loadData(s: Server, gameID: string, data: Buffer): boolean {
-        console.log("Load hot take categories json file")
+        console.log("Load hot take categories json file");
         var rc: boolean = false;
         try {
             this.categories = JSON.parse(data.toString()).sort(() => Math.random() - 0.5);
@@ -122,22 +122,22 @@ export class HotTakeController extends GameController {
             name: string;
         }
         const players: Array<indexedList> = Array.from(game.players, (player) => {
-            return { id: player[0], name: player[1].name }
+            return { id: player[1].name, name: player[1].name };
         });
 
         if (this.confessionQueue.length === 0) {
             // No more confessions go to final
             game.players.forEach(player => {
-                const guesses = this.playerSelections.get(player.id);
+                const guesses = this.playerSelections.get(player.name);
                 const confessionList: Array<confessionSelection> = Array.from(guesses, (guess) => {
                     return { confession: guess[0], selection: guess[1] };
-                })
+                });
                 const socket = io.sockets.sockets.get(player.id);
                 updatePlayerState(socket, game, GameState.STEAL, { answers: confessionList, players: players });
             });
         } else {
             this.currentConfession = getRandom(this.confessionQueue);
-            game.question = { ...game.question, question: this.currentConfession }
+            game.question = { ...game.question, question: this.currentConfession };
             revealAnswer(io, game);
             updateState(io, game, GameState.GUESS, { players: players });
         }
@@ -163,9 +163,9 @@ export class HotTakeController extends GameController {
      */
     private handleConfessions(io: Server, socket: Socket, game: Game, confession: string): void {
         const player = this.getGamePlayer(socket, game);
-        this.confessionMap.set(player.id, confession);
+        this.confessionMap.set(player.name, confession);
         // Initialize selection map
-        this.playerSelections.set(player.id, new Map<string, string>);
+        this.playerSelections.set(player.name, new Map<string, string>);
 
         this.markPlayerReady(io, socket, game, true);
         if (this.allPlayersReady(game)) {
@@ -175,7 +175,7 @@ export class HotTakeController extends GameController {
     }
 
     /**
-     * Set player selection
+     * Set player selection for a confession
      * @param io Server connection
      * @param socket SocketIO connected to client
      * @param game current game context
@@ -183,7 +183,10 @@ export class HotTakeController extends GameController {
      */
     private handleSelection(io: Server, socket: Socket, game: Game, selection: string): void {
         const player = this.getGamePlayer(socket, game);
-        this.playerSelections.get(player.id).set(this.currentConfession, selection);
+        if (!this.playerSelections.has(player.name)) {
+            this.playerSelections.set(player.name, new Map<string, string>());
+        }
+        this.playerSelections.get(player.name).set(this.currentConfession, selection);
 
         this.markPlayerReady(io, socket, game, true);
         if (this.allPlayersReady(game)) {
@@ -192,15 +195,15 @@ export class HotTakeController extends GameController {
     }
 
     /**
-  * Set player selection
-  * @param io Server connection
-  * @param socket SocketIO connected to client
-  * @param game current game context
-  * @param finalAnswers finalized map of selections
-  */
+     * Set player's final selections
+     * @param io Server connection
+     * @param socket SocketIO connected to client
+     * @param game current game context
+     * @param finalAnswers finalized map of selections
+     */
     private handleFinalSelection(io: Server, socket: Socket, game: Game, finalAnswers: Array<confessionSelection>): void {
         const player = this.getGamePlayer(socket, game);
-        this.playerSelections.set(player.id, new Map<string, string>(finalAnswers.map(answer => [answer.confession, answer.selection])));
+        this.playerSelections.set(player.name, new Map<string, string>(finalAnswers.map(answer => [answer.confession, answer.selection])));
 
         this.markPlayerReady(io, socket, game, true);
         if (this.allPlayersReady(game)) {
@@ -210,18 +213,17 @@ export class HotTakeController extends GameController {
             }
             // Calculate score and update players
             game.players.forEach(player => {
-                const answerMap = this.playerSelections.get(player.id);
-                answerMap.forEach((playerId, confession) => {
+                const answerMap = this.playerSelections.get(player.name);
+                answerMap.forEach((playerName, confession) => {
                     // Get actual answers
-                    const expected = this.confessionMap.get(playerId);
+                    const expected = this.confessionMap.get(playerName);
                     if (confession === expected) {
                         player.score++;
                     }
                 });
             });
             const confessionList: Array<confessionMap> = Array.from(this.confessionMap, (confession) => {
-                const name = game.players.get(confession[0]).name;
-                return { confession: confession[1], name: name };
+                return { confession: confession[1], name: confession[0] };
             });
             updateState(io, game, GameState.REVEAL, { results: confessionList });
             this.sendState(io, game);

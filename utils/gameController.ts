@@ -115,7 +115,7 @@ export class GameController {
     }
 
     protected allPlayersReady(game: Game): boolean {
-        return Array.from(game.players.values()).every((player) => player.idle);
+        return Array.from(game.players.values()).every((player) => player.idle) && game.cachedPlayers.length == 0;
     }
 
     /**

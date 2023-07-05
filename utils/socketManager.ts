@@ -66,20 +66,18 @@ export function createSocket(server) {
                 // Check if player is cached
                 let player: Player = getPlayer(game, id);
                 if (controller.isGameStarted(game)) {
-                    if (player === undefined) {
-                        // Can't find by id so search by name in cached players
-                        for (let i: number = 0; i < game.cachedPlayers.length; i++) {
-                            if (game.cachedPlayers[i] === undefined) {
-                                console.log("Error getting cached player");
-                                console.log(game);
-                                continue;
-                            }
-                            if (game.cachedPlayers[i].name === name) {
-                                console.log("Found Cached Player: " + name);
-                                player = game.cachedPlayers[i];
-                                game.cachedPlayers.splice(i, 1);
-                                break;
-                            }
+                    // Can't find by id so search by name in cached players
+                    for (let i: number = 0; i < game.cachedPlayers.length; i++) {
+                        if (game.cachedPlayers[i] === undefined) {
+                            console.log("Error getting cached player");
+                            console.log(game);
+                            continue;
+                        }
+                        if (game.cachedPlayers[i].name === name) {
+                            console.log("Found Cached Player: " + name);
+                            player = game.cachedPlayers[i];
+                            game.cachedPlayers.splice(i, 1);
+                            break;
                         }
                     }
                 }
