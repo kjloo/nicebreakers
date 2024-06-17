@@ -15,7 +15,8 @@
     "webpack:server": "nodemon --watch server --watch utils --exec npm run start",
     "dev-watch": "HOST=server npm-run-all --parallel webpack:*",
     "dev": "HOST=server npm run build:client && npm run build:server && npm start",
-    "test": "HOST=server jest"
+    "test": "HOST=server jest",
+    "docker:build": "docker build -t nicebreakers ."
   },
   "author": "Kaleb Loo",
   "license": "ISC",
