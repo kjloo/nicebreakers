@@ -10,11 +10,10 @@ import GameSetup from './GameSetup';
 import { GameType, PlayerType } from '../../../utils/enums';
 import Button from './Button';
 
-const hostname = process.env.HOSTNAME || "http://tinkermonkey808.ddns.net";
 let socket;
 
 const connectSocket = (gameID) => {
-    socket = io(hostname, {
+    socket = io({
         query: {
             gameID: gameID
         }

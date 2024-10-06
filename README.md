@@ -4,6 +4,10 @@ Learn React, Express, Socket.io
 
 ## Run Locally
 
+```shell
+npm install
+```
+
 ### Docker
 
 ```shell
