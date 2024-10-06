@@ -10,15 +10,18 @@ import GameSetup from './GameSetup';
 import { GameType, PlayerType } from '../../../utils/enums';
 import Button from './Button';
 
+const hostname = process.env.HOSTNAME || "http://tinkermonkey808.ddns.net";
 let socket;
+
 const connectSocket = (gameID) => {
-    socket = io("http://tinkermonkey808.ddns.net", {
+    socket = io(hostname, {
         query: {
             gameID: gameID
         }
     });
     socket.connect();
 };
+
 
 const GameSocket = ({ children, title, roles, gameType }) => {
     const [readyFlag, setReadyFlag] = useState(false);
